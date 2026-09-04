@@ -1,0 +1,13 @@
+# Media pipeline (scroll-world, architecture B, refined sepia clay)
+
+Approved: engine = scroll-world v0.8.0 (vendored), camera = World Flythrough (dive + connector), art = matte clay diorama in a vivid-but-soft pastel palette (user revised 2026-09-04: no sepia; lovely, cheerful, close to the scroll-world demo look), faceless figures, mobile = native 9:16 chain, biller = Higgsfield credits (`gpt_image_2` stills, `seedance_2_0_mini` previz → `seedance_2_0` final).
+
+Order of work
+1. Anchor overview regenerated on Higgsfield (`media/anchor/`). Current: `anchor-v5a.png` (pastel palette; easel gallery up the stair; trail with photo-zone arch, stamp table, easels, X-banners, balloons, bunting; no monument stone; alternatives `anchor-v5b.png`, `anchor-v4-*.png`; terrain as natural hill above the terrace, S-curve sleeper stair from the car park to the chapel–main-building gap, chapel forward of the main building). `anchor-v5.txt` holds the corrected site description; reuse it verbatim in every still.
+2. Seven scene stills with the verbatim style preamble (`media/prompts/style-preamble.txt`) and the anchor as `--image` → approve cohesion.
+3. Previz chain on `seedance_2_0_mini` (7 dives + 6 connectors, 16:9) → approve journey and seams.
+4. Final 1080p chain, then the 9:16 chain from portrait canvases.
+5. Encode (`crf 20 -g 8`, mobile `720w -g 4`) into `apps/web/public/media/clips`, run `npm run media:manifest`.
+
+Budget (observed 2026-09-03): still ≈ 8.5 credits. Videos per skill notes ≈ 40–55 (standard) / ~¼ (mini).
+Every leg: eyeball the handoff frame before the next; re-roll NSFW false positives with "empty, architectural" wording; never mix chain models.

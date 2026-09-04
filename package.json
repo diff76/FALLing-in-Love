@@ -1,0 +1,26 @@
+{
+  "name": "falling-in-love",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20.9.0" },
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@fil/web",
+    "dev:ops": "npm run dev --workspace=@fil/ops",
+    "build": "npm run build --workspace=@fil/web && npm run build --workspace=@fil/ops",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "media:posters": "bash media/scripts/posters.sh",
+    "media:manifest": "node media/scripts/manifest.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.2",
+    "eslint-config-next": "16.3.4",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
+}

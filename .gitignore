@@ -1,0 +1,12 @@
+node_modules
+.next
+.env
+.env.local
+.env.*.local
+.DS_Store
+npm-debug.log*
+*.tsbuildinfo
+# generated media working files (raw renders, frames, logs) — keep prompts and scripts
+media/work/
+media/anchor/*.json
+media/anchor/*.err

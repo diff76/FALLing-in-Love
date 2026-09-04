@@ -1,0 +1,22 @@
+{
+  "name": "@fil/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fil/config": "*",
+    "@fil/domain": "*",
+    "@fil/supabase": "*",
+    "next": "16.3.4",
+    "qrcode": "^1.5.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": { "@types/qrcode": "^1.5.5" }
+}
