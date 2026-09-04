@@ -10,6 +10,6 @@ Next
 - Connect a Supabase project (`.env.local`), push migration, create staff accounts → end-to-end test of reserve → pass → scan → check-in → display
 - Confirm shuttle runs, station list, hospitality stock; replace provisional seed
 - Admin: edit/cancel reservation, void check-in, inventory adjust, CSV export
-- Track 2: anchor approval → 7 stills → previz chain → final + mobile chains → encode + manifest
+- Track 2: anchor approved (v5b) and 7 clay stills done and wired as posters → next: previz chain (`seedance_2_0_mini`, 7 dives + 6 connectors) → final + mobile chains → encode + manifest
 - Phase 5: The One More Song (playlist, gallery, upload, moderation, Storage)
 - Retention job: purge personal data 30 days after the event
