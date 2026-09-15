@@ -10,4 +10,5 @@ Order of work
 5. Encode (`crf 20 -g 8`, mobile `720w -g 4`) into `apps/web/public/media/clips`, run `npm run media:manifest`.
 
 Budget (observed 2026-09-03): still ≈ 8.5 credits. Videos per skill notes ≈ 40–55 (standard) / ~¼ (mini).
+Stills script rule (2026-09-16): references come only from each prompt's `refs:` line, in order — never an implicit anchor — so "the first reference image" in a prompt means the first file listed.
 Every leg: eyeball the handoff frame before the next; re-roll NSFW false positives with "empty, architectural" wording; never mix chain models.

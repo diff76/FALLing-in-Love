@@ -12,11 +12,20 @@ gen_still() { # name
   local n="$1" out="$W/still_$1"
   if [ -s "$out.png" ]; then log "still $n already present — skip"; return 0; fi
   local subject; subject="$(grep -v '^refs:' "$PR/still_$n.txt") $(cat "$PR/common-rules.txt")"
-  local refs=(--image "$ANCHOR")
+  # References come ONLY from the prompt's "refs:" line, in that order (the first listed
+  # is what a prompt means by "the first reference image"). anchor-*.png resolves to
+  # media/anchor, other .png to the stills work dir, .jpg to Assets.
+  local refs=()
   local line; line=$(grep '^refs:' "$PR/still_$n.txt" | sed 's/^refs: *//')
   local IFS=','; for f in $line; do
-    f=$(echo "$f" | sed 's/^ *//;s/ *$//'); case "$f" in *.jpg) [ -f "$A/$f" ] && refs+=(--image "$A/$f");; *.png) [ -f "$W/$f" ] && refs+=(--image "$W/$f");; esac
+    f=$(echo "$f" | sed 's/^ *//;s/ *$//')
+    case "$f" in
+      anchor-*.png) [ -f "$P/anchor/$f" ] && refs+=(--image "$P/anchor/$f") ;;
+      *.png)        [ -f "$W/$f" ] && refs+=(--image "$W/$f") ;;
+      *.jpg)        [ -f "$A/$f" ] && refs+=(--image "$A/$f") ;;
+    esac
   done; unset IFS
+  [ ${#refs[@]} -gt 0 ] || { log "still $n has no resolvable refs — check the refs: line"; return 1; }
   log "still $n start (${#refs[@]} ref args)"
   higgsfield generate create gpt_image_2 --prompt "$(cat "$PR/style-preamble.txt") $subject Composed for the centre with headroom above the focal subject; 3:2 landscape." \
     "${refs[@]}" --aspect_ratio 3:2 --resolution 2k --quality high \
