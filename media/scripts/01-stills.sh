@@ -11,11 +11,11 @@ log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$W/run.log"; }
 gen_still() { # name
   local n="$1" out="$W/still_$1"
   if [ -s "$out.png" ]; then log "still $n already present — skip"; return 0; fi
-  local subject; subject=$(grep -v '^refs:' "$PR/still_$n.txt")
+  local subject; subject="$(grep -v '^refs:' "$PR/still_$n.txt") $(cat "$PR/common-rules.txt")"
   local refs=(--image "$ANCHOR")
   local line; line=$(grep '^refs:' "$PR/still_$n.txt" | sed 's/^refs: *//')
   local IFS=','; for f in $line; do
-    f=$(echo "$f" | sed 's/^ *//;s/ *$//'); case "$f" in *.jpg) [ -f "$A/$f" ] && refs+=(--image "$A/$f");; esac
+    f=$(echo "$f" | sed 's/^ *//;s/ *$//'); case "$f" in *.jpg) [ -f "$A/$f" ] && refs+=(--image "$A/$f");; *.png) [ -f "$W/$f" ] && refs+=(--image "$W/$f");; esac
   done; unset IFS
   log "still $n start (${#refs[@]} ref args)"
   higgsfield generate create gpt_image_2 --prompt "$(cat "$PR/style-preamble.txt") $subject Composed for the centre with headroom above the focal subject; 3:2 landscape." \
