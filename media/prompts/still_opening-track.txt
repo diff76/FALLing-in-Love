@@ -1,2 +1,2 @@
-Subject: reproduce the first reference image exactly — same building, lounge, people, pavement, bus (front pointing left, plain left flank with no door) — with only TWO additions: (1) on the front fascia of the entrance canopy, the Korean sign 창동염광교회 in clean white letters (the only text allowed); (2) a vehicle driveway: at the left, between the street and the pilotis, the kerb is dropped flush with the road and a strip of the pavement becomes a short driveway so a car could drive off the street straight under the pilotis. Nothing else changes.
-refs: still_opening-track_v12.png
+Subject: reproduce the first reference image exactly — same building, sign, lounge, people, pavement, driveway and bus — with ONE correction: the bus is missing its front wheel. Give it a proper front wheel in the front wheel arch on the visible left side, matching the rear wheel (dark tyre, grey hub), so the bus stands on both wheels. Nothing else changes.
+refs: still_opening-track_v13.png
