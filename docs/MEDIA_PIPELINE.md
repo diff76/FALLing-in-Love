@@ -15,3 +15,14 @@ Every leg: eyeball the handoff frame before the next; re-roll NSFW false positiv
 
 
 Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpaint true --mask '{"id":"<upload id>"}'` with the base image as `--image <upload id>`; upload both with `higgsfield upload create <file>`. The mask is a white polygon on black (see `media/work/stills/mask_fountain.png`). Far more reliable than describing positions in words.
+
+
+## Previz chain — done 2026-09-16
+- 7 dives (8 s) + 6 connectors (5 s) on `seedance_2_0_mini` 720p, scripts `02-dives.sh` → `03-connectors.sh` → `04-encode.sh`; clips in `apps/web/public/media/clips`, manifest regenerated; posters set from the dives' first frames (`POSTER_SOURCE=previz python3 media/scripts/posters.py`).
+- Verified in the browser: clips load as blobs, `seekable` = full duration, `currentTime` follows scroll, connectors crossfade.
+- Cost observed: mini dive ≈ 20 credits, mini connector ≈ 15; **standard 1080p dive ≈ 72 credits** (measured), connector est. ≈ 45.
+
+### Frame-lock findings (important)
+- `--start-image` on Higgsfield Seedance is NOT pixel-locked for our rendered stills: mini gave 12–14 dB vs the still (re-interpreted scenes, e.g. a pitched-roof church); a 16:9 canvas did not help (13.9 dB). Standard 1080p gave 19.6 dB with the SAME composition (faithful re-render, slight zoom).
+- Connector seams (video frame → video frame) read 20–26 dB start / 17–23 dB end — consistent with the skill's "judge by composition" guidance.
+- Consequence: the scene poster must be each dive's actual first frame (never the still), and the final chain must run on the standard tier so the approved content survives. Budget for the final: ≈ 7×72 + 6×45 ≈ 775 credits desktop, ≈ 1,550 with the 9:16 mobile chain, before re-rolls.

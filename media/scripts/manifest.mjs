@@ -2,8 +2,9 @@
 // the scene config reads. Run after media/scripts/04-encode.sh.
 import { existsSync, readdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = resolve(new URL("../..", import.meta.url).pathname);
+const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const dir = resolve(root, "apps/web/public/media/clips");
 const order = ["opening-track", "landing", "ascent", "garden", "trail", "chamber", "finale"];
 const files = existsSync(dir) ? new Set(readdirSync(dir)) : new Set();

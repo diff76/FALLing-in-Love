@@ -36,14 +36,23 @@ def autumn(img):
     return Image.merge("RGB", (r, g, b))
 
 STILLS = ROOT / "media/work/stills"   # clay scene stills (Track 2) win over photo plates
+import os
+VIDEO_FRAMES = ROOT / "media/work" / os.environ.get("POSTER_SOURCE", "") / "first_{}.png" if os.environ.get("POSTER_SOURCE") else None
+def source_for(scene):
+    """POSTER_SOURCE=previz|final → the dive's actual first frame (so the poster equals frame 0 of the clip)."""
+    if VIDEO_FRAMES is not None:
+        f = ROOT / "media/work" / os.environ["POSTER_SOURCE"] / f"first_{scene}.png"
+        if f.exists(): return f
+    f = STILLS / f"still_{scene}.png"
+    return f if f.exists() else None
 
 for scene, (name, ay) in PLATES.items():
-    still = STILLS / f"still_{scene}.png"
-    if still.exists():
+    still = source_for(scene)
+    if still is not None:
         src = Image.open(still).convert("RGB")
         cover(src, 1920, 1080, 0.5).save(OUT / f"{scene}.webp", quality=84, method=6)
         cover(src, 1080, 1920, 0.5).save(OUT / f"{scene}-m.webp", quality=82, method=6)
-        print("poster", scene, "(clay still)")
+        print("poster", scene, "from", still.relative_to(ROOT))
         continue
     src = Image.open(SRC / name).convert("RGB")
     autumn(cover(src, 1920, 1080, ay)).save(OUT / f"{scene}.webp", quality=82, method=6)
@@ -51,12 +60,12 @@ for scene, (name, ay) in PLATES.items():
     print("poster", scene, "(photo plate)")
 
 # opening track: clay still if present, else a stand-in built from the chapel lobby light
-ot = STILLS / "still_opening-track.png"
-if ot.exists():
+ot = source_for("opening-track")
+if ot is not None:
     src = Image.open(ot).convert("RGB")
     cover(src, 1920, 1080).save(OUT / "opening-track.webp", quality=84, method=6)
     cover(src, 1080, 1920).save(OUT / "opening-track-m.webp", quality=82, method=6)
-    print("poster opening-track (clay still)")
+    print("poster opening-track from", ot.relative_to(ROOT))
 else:
   # no photograph of the Changdong lounge yet — a warm, out-of-focus
   # stand-in built from the chapel lobby light so the scene has a coherent plate.
