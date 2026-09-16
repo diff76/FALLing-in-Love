@@ -26,3 +26,10 @@ Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpain
 - `--start-image` on Higgsfield Seedance is NOT pixel-locked for our rendered stills: mini gave 12–14 dB vs the still (re-interpreted scenes, e.g. a pitched-roof church); a 16:9 canvas did not help (13.9 dB). Standard 1080p gave 19.6 dB with the SAME composition (faithful re-render, slight zoom).
 - Connector seams (video frame → video frame) read 20–26 dB start / 17–23 dB end — consistent with the skill's "judge by composition" guidance.
 - Consequence: the scene poster must be each dive's actual first frame (never the still), and the final chain must run on the standard tier so the approved content survives. Budget for the final: ≈ 7×72 + 6×45 ≈ 775 credits desktop, ≈ 1,550 with the 9:16 mobile chain, before re-rolls.
+
+
+## Final desktop chain — done 2026-09-17
+- 7 dives (1080p, 8 s) + 6 connectors (5 s) on `seedance_2_0` std: `VMODEL=seedance_2_0 TIER=final` with the same scripts; raw renders in `media/work/final` (git-ignored), encodes in `apps/web/public/media/clips`, posters from `POSTER_SOURCE=final`.
+- Cost: 773.5 credits for 13 clips (dive ≈ 72, connector ≈ 45). Two dives hit an `ip_detected` filter on the first try and passed on the automatic retry (no extra charge).
+- Seams: 20–25 dB start / 17–21 dB end — same composition, crossfade covers the residual.
+- Mobile (9:16) chain not yet rendered: budget ≈ 775 credits + portrait canvases; balance after this run 941.
