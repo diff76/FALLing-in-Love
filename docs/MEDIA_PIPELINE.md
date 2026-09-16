@@ -12,3 +12,6 @@ Order of work
 Budget (observed 2026-09-03): still ≈ 8.5 credits. Videos per skill notes ≈ 40–55 (standard) / ~¼ (mini).
 Stills script rule (2026-09-16): references come only from each prompt's `refs:` line, in order — never an implicit anchor — so "the first reference image" in a prompt means the first file listed.
 Every leg: eyeball the handoff frame before the next; re-roll NSFW false positives with "empty, architectural" wording; never mix chain models.
+
+
+Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpaint true --mask '{"id":"<upload id>"}'` with the base image as `--image <upload id>`; upload both with `higgsfield upload create <file>`. The mask is a white polygon on black (see `media/work/stills/mask_fountain.png`). Far more reliable than describing positions in words.
