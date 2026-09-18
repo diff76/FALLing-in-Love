@@ -14,7 +14,16 @@ gen_conn() { local i="$1" s="$2" e="$3" out="$W/conn_$1" try=1
 log "=== connectors $VMODEL ($TIER) ==="
 i=0; prev=""
 for n in $NAMES; do
-  if [ -n "$prev" ]; then i=$((i+1)); [ -f "$W/last_$prev.png" ] && [ -f "$W/first_$n.png" ] && gen_conn "$i" "$W/last_$prev.png" "$W/first_$n.png" & sleep 3; fi
+  if [ -n "$prev" ]; then i=$((i+1))
+    if [ "$n" = "one-more-song" ]; then
+      # Rendered BACKWARDS (phone screen -> campus) so the push-in reads naturally, then time-reversed
+      # into the forward chain: finale aerial -> shrinks into the phone screen -> living room.
+      ( gen_conn "$i" "$W/first_$n.png" "$W/last_$prev.png" && ffmpeg -v error -y -i "$W/conn_$i.mp4" -vf reverse -an "$W/conn_${i}_fwd.mp4" && mv "$W/conn_${i}_fwd.mp4" "$W/conn_$i.mp4" && log "conn $i time-reversed" ) &
+    else
+      [ -f "$W/last_$prev.png" ] && [ -f "$W/first_$n.png" ] && gen_conn "$i" "$W/last_$prev.png" "$W/first_$n.png" &
+    fi
+    sleep 3
+  fi
   prev="$n"
 done; wait
 log "=== connectors done: $(ls "$W"/conn_*.mp4 2>/dev/null | wc -l | tr -d ' ') ==="

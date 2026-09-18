@@ -41,3 +41,8 @@ Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpain
 - After changing a scene's still, its incoming connector must be regenerated too (conn 7 kept ending on the old big-phone frame).
 - Tiny UI on a phone screen hallucinates glyphs; describe track rows as "thin grey bars, no letters" and say the screen never changes.
 - `media/scripts/audit-sheet.py <tier> <names>` builds a first/mid/last sheet — review it before encoding.
+
+
+## Connector grammar — corrected 2026-09-18
+The skill's default connector ("pull up into the sky, fly over, descend") invented places that are not on the route (a village between church and campus; the chapel seen from above before the stair). Connectors now describe the REAL ground-level move between two scenes (bus pulls away → bus arrives; walk from the tent to the stair foot). Conn 7 is rendered backwards (phone screen → campus) and time-reversed so the finale shrinks into the phone.
+The ascent dive must START with no building visible: the ascent still's top band is inpainted to solid canopy (`still_ascent.png`); the model still invents a spire-chapel at the END of that dive — open item, needs one re-roll when credits allow.
