@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { eventConfig } from "@fil/config";
+import { Reveal } from "./reveal";
 
 const songCards = [
   { hint: "이 선율, 어디선가 들으셨을 겁니다.", title: "영화 속의 그 곡", body: "선곡이 확정되면 이 자리에서 이야기가 열립니다." },
@@ -10,12 +11,12 @@ const songCards = [
 export function Invitation() {
   return (
     <section className="invitation" id="invitation">
-      <p className="eyebrow">A note for you</p>
-      <p className="invitationText">
+      <Reveal><p className="eyebrow">A note for you</p></Reveal>
+      <Reveal delay={120}><p className="invitationText">
         가을 오후의 햇빛 아래,<br />좋은 음악과 잘 차린 테이블을 준비했습니다.<br />
         <strong>설명을 듣거나 무엇을 결정하실 필요는 없습니다.<br />그저 한나절 편안히 보내다 가시면 됩니다.</strong>
-      </p>
-      <a className="begin" href="#world">공간으로 들어가기 <span aria-hidden="true">↓</span></a>
+      </p></Reveal>
+      <Reveal delay={260}><a className="begin" href="#world">공간으로 들어가기 <span aria-hidden="true">↓</span></a></Reveal>
     </section>
   );
 }
@@ -25,6 +26,7 @@ export function AfterWorld() {
     <main className="after" id="after">
       <section className="band worship" id="act-one">
         <div className="wrap narrow">
+          <Reveal group>
           <p className="eyebrow">ACT I · 13:00 · 특별예배</p>
           <h2 className="head">오늘을 위해 준비한 예배</h2>
           <blockquote>
@@ -32,19 +34,23 @@ export function AfterWorld() {
             <cite>에베소서 3:18–19</cite>
           </blockquote>
           <p className="lede">오늘의 모든 곡이 이 한 문장 위에 놓여 있습니다. 초청하신 분과 나란히 앉아 함께 드립니다.</p>
+        </Reveal>
         </div>
       </section>
 
       <section className="band tuning" id="tuning">
         <div className="wrap narrow">
+          <Reveal group>
           <p className="eyebrow">THE TUNING · 13:40</p>
           <h2 className="head">조율하는 시간도 순서입니다</h2>
           <p className="lede">예배가 끝나면 무대를 바꿉니다. 그 시간을 감추지 않고 그대로 열어 둡니다. 악기를 조율하는 소리 위로, 오늘 연주될 곡을 하나씩 소개합니다.</p>
+        </Reveal>
         </div>
       </section>
 
       <section className="band songs" id="songs">
         <div className="wrap">
+          <Reveal group>
           <p className="eyebrow">ACT II · The Chamber</p>
           <h2 className="head">그 곡, 사실은</h2>
           <p className="lede">영화와 광고에서 여러 번 들으셨을 곡들입니다. 그 뿌리가 찬송이거나 크리스천 음악이었다는 사실은, 아마 오늘 처음 아시게 될 겁니다.</p>
@@ -61,11 +67,13 @@ export function AfterWorld() {
             ))}
           </div>
           <p className="lede closing">사랑에 관한 이야기는 이미 충분히 들으셨을 겁니다. 오늘 들으실 곡들도 다르지 않습니다. 다만 그 사랑이 어디서 왔는지가 조금 다를 뿐입니다.</p>
+        </Reveal>
         </div>
       </section>
 
       <section className="band day" id="day">
         <div className="wrap dayGrid">
+          <Reveal group>
           <div>
             <p className="eyebrow">Sunday, October 11</p>
             <h2 className="head">하루의 리듬</h2>
@@ -77,11 +85,13 @@ export function AfterWorld() {
               <li key={s.time}><time>{s.time}</time><span><b>{s.title}</b>{"note" in s ? <small>{s.note}</small> : null}</span></li>
             ))}
           </ol>
+        </Reveal>
         </div>
       </section>
 
       <section className="band practical" id="practical">
         <div className="wrap">
+          <Reveal group>
           <p className="eyebrow">Before you arrive</p>
           <h2 className="head">알아두시면 좋은 것들</h2>
           <div className="practicalGrid">
@@ -90,15 +100,18 @@ export function AfterWorld() {
             <article><span>03</span><h3>편안한 하루</h3><p>야외 정원 시간이 있어 걷기 편한 신발을 권해드립니다. 짧은 숲 계단 대신 이용할 수 있는 우회 동선도 준비합니다.</p></article>
             <article><span>04</span><h3>개인정보</h3><p>좌석 배정과 안내를 위해 성함과 연락처만 받습니다. 행사 후 {eventConfig.dataRetentionDays}일 안에 모두 삭제합니다.</p></article>
           </div>
+        </Reveal>
         </div>
       </section>
 
       <section className="band memory" id="one-more-song">
         <div className="wrap narrow">
+          <Reveal group>
           <p className="eyebrow">After the day</p>
           <h2 className="head display">THE ONE<br /><em>MORE SONG</em></h2>
           <p className="lede">하루가 끝난 뒤에도 플레이리스트와 사진은 이곳에 남습니다.</p>
           <Link className="button ghost" href="/one-more-song">미리 보기 <span aria-hidden="true">→</span></Link>
+        </Reveal>
         </div>
       </section>
 

@@ -39,15 +39,11 @@ img { max-width: 100%; }
 .brand { font-size: 14px; font-weight: 700; letter-spacing: .2em; }
 .topCta { text-decoration: none; border: 1px solid rgba(255, 255, 255, .5); border-radius: 999px; padding: 11px 19px; font-size: 14px; font-weight: 700; backdrop-filter: blur(8px); }
 .overtureCopy { position: absolute; left: clamp(22px, 8vw, 124px); top: 50%; transform: translateY(-48%); max-width: 760px; }
-.overture h1 { margin: 0; font-family: var(--font-display); font-size: clamp(60px, 10vw, 148px); font-weight: 400; line-height: .88; letter-spacing: -.05em; }
+.overture h1 { margin: 0; font-family: var(--font-syne), "Syne", var(--font-display); font-size: clamp(60px, 10vw, 148px); font-weight: 600; line-height: .92; letter-spacing: -.045em; }
 .overture h1 .line { display: inline-block; white-space: nowrap; }
-.overture h1 .fall { font-weight: 700; }
-/* Syne variant (`/?title=syne`): geometric grotesque, heavy FALL, synthesized italic for "in". */
-.overture h1.syne { font-family: var(--font-syne), "Syne", var(--font-display); font-weight: 600; letter-spacing: -.045em; line-height: .92; }
-.overture h1.syne .fall { font-weight: 800; }
-.overture h1.syne em { font-style: italic; font-weight: 400; }
-.fall { font-weight: 700; }
-.overture h1 em { font-style: italic; color: var(--paper-warm); }
+.overture h1 .fall { font-weight: 800; }
+.fall { font-weight: 800; }
+.overture h1 em { font-style: italic; font-weight: 400; color: var(--paper-warm); }
 .subtitle { margin: 22px 0 0 4px; font-family: var(--font-display); font-size: clamp(18px, 2vw, 26px); letter-spacing: .06em; }
 .promise { margin: clamp(30px, 5vh, 60px) 0 0; font-family: var(--font-ko); font-size: clamp(18px, 2vw, 26px); line-height: 1.7; text-shadow: 0 2px 18px rgba(18, 12, 8, .85), 0 0 6px rgba(18, 12, 8, .7), 0 1px 2px rgba(18, 12, 8, .8); }
 .eventLine { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 28px; color: rgba(252, 248, 240, .92); font-size: 17px; letter-spacing: .1em; text-shadow: 0 2px 16px rgba(18, 12, 8, .85), 0 0 6px rgba(18, 12, 8, .7), 0 1px 2px rgba(18, 12, 8, .8); }
@@ -73,9 +69,9 @@ img { max-width: 100%; }
 .sw-root .sw-copy__eyebrow { font-family: var(--font-body); }
 .sw-root .sw-copy__body { font-family: var(--font-body); }
 .sw-root .sw-brand__mark { display: none; }
-.sw-root .sw-brand__name.lockup { font-family: var(--font-display); font-weight: 400; font-size: clamp(20px, 2vw, 26px); letter-spacing: -.04em; line-height: 1; }
+.sw-root .sw-brand__name.lockup { font-family: var(--font-syne), "Syne", var(--font-display); font-weight: 600; font-size: clamp(20px, 2vw, 26px); letter-spacing: -.04em; line-height: 1; }
 .sw-root .lockup em { font-style: italic; color: var(--persimmon); }
-.sw-root .sw-copy__title.lockup { font-weight: 400; }
+.sw-root .sw-copy__title.lockup { font-family: var(--font-syne), "Syne", var(--font-display); font-weight: 600; }
 .sw-root .sw-nav__item { font-family: var(--font-body); }
 
 /* ---------- After the world ---------- */
@@ -199,4 +195,32 @@ img { max-width: 100%; }
   html { scroll-behavior: auto; }
   .overtureMedia img { transform: none; }
   .button:hover { transform: none; }
+}
+
+
+/* ---------- text animation ---------- */
+/* Hero: stagger in on load (eyebrow, title lines, subtitle, promise, event line). */
+.heroReveal > * { opacity: 0; transform: translateY(22px); animation: heroIn .9s var(--ease) forwards; }
+.heroReveal > .eyebrow { animation-delay: .15s; }
+.heroReveal > h1 { animation-delay: .3s; }
+.heroReveal > .subtitle { animation-delay: .55s; }
+.heroReveal > .promise { animation-delay: .7s; }
+.heroReveal > .eventLine { animation-delay: .85s; }
+.heroReveal h1 .line { display: inline-block; opacity: 0; transform: translateY(.35em); animation: heroLine 1s var(--ease) forwards; }
+.heroReveal h1 .line:nth-child(1) { animation-delay: .35s; }
+.heroReveal h1 .line:nth-child(3) { animation-delay: .5s; }
+@keyframes heroIn { to { opacity: 1; transform: none; } }
+@keyframes heroLine { to { opacity: 1; transform: none; } }
+.scrollCue { opacity: 0; animation: heroIn 1s var(--ease) 1.4s forwards; }
+/* Standard sections: reveal on scroll (Reveal component adds .rv / .rv-in). */
+.rv { opacity: 0; transform: translateY(24px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+.rv.rv-in { opacity: 1; transform: none; }
+/* The group wrapper must not break grid parents (dayGrid): it contributes no box of its own. */
+.rvGroup { display: contents; }
+/* Scene copy inside the world: eyebrow → title → body slide up when the scene becomes active. */
+.sw-root .sw-copy > .swa { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+.sw-root .sw-copy.swa-in > .swa { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .heroReveal > *, .heroReveal h1 .line, .scrollCue { animation: none; opacity: 1; transform: none; }
+  .rv, .sw-root .sw-copy > .swa { opacity: 1; transform: none; transition: none; }
 }

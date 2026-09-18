@@ -34,6 +34,27 @@ function breakSentences(host: HTMLElement) {
   });
 }
 
+/**
+ * The engine fades each scene's copy block in/out by scroll. On top of that, when a copy block
+ * becomes visible its eyebrow → title → body slide up in sequence (and reset when it leaves),
+ * so every scene's text "arrives" rather than just appearing. Reduced motion: no slide.
+ */
+function animateSceneCopy(host: HTMLElement) {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const copies = host.querySelectorAll<HTMLElement>(".sw-copy");
+  copies.forEach((c) => {
+    Array.from(c.children).forEach((child, i) => { (child as HTMLElement).classList.add("swa"); (child as HTMLElement).style.transitionDelay = `${i * 90}ms`; });
+  });
+  if (reduce) { copies.forEach((c) => c.classList.add("swa-in")); return; }
+  let raf = 0;
+  const tick = () => {
+    copies.forEach((c) => { const on = parseFloat(c.style.opacity || "0") > 0.35; c.classList.toggle("swa-in", on); });
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  window.addEventListener("pagehide", () => cancelAnimationFrame(raf), { once: true });
+}
+
 export function CinematicWorld() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -78,6 +99,7 @@ export function CinematicWorld() {
       mountScrollWorld(host, config);
       dressBrand(host);
       breakSentences(host);
+      animateSceneCopy(host);
     }).catch((error) => console.error("scroll-world failed to mount", error));
     return () => {
       cancelled = true;
