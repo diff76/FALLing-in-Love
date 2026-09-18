@@ -7,7 +7,8 @@
     "garden": "/media/clips/garden.mp4",
     "trail": "/media/clips/trail.mp4",
     "chamber": "/media/clips/chamber.mp4",
-    "finale": "/media/clips/finale.mp4"
+    "finale": "/media/clips/finale.mp4",
+    "one-more-song": "/media/clips/one-more-song.mp4"
   },
   "clipsMobile": {},
   "connectors": [
@@ -17,7 +18,7 @@
     "/media/clips/conn4.mp4",
     "/media/clips/conn5.mp4",
     "/media/clips/conn6.mp4",
-    null
+    "/media/clips/conn7.mp4"
   ],
   "connectorsMobile": [
     null,
