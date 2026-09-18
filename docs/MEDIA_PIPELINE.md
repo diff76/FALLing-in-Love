@@ -33,3 +33,11 @@ Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpain
 - Cost: 773.5 credits for 13 clips (dive ≈ 72, connector ≈ 45). Two dives hit an `ip_detected` filter on the first try and passed on the automatic retry (no extra charge).
 - Seams: 20–25 dB start / 17–21 dB end — same composition, crossfade covers the residual.
 - Mobile (9:16) chain not yet rendered: budget ≈ 775 credits + portrait canvases; balance after this run 941.
+
+
+## Lessons locked in (2026-09-18)
+- Never put "faceless" in a VIDEO prompt: the stills have faces, and the video model obeys the word by erasing them (chamber musicians). Video style tail now says "small sculpted faces".
+- The video model re-grows crowds and rails that exist anywhere in the still (roadside line, rope posts). Fix the STILL by inpainting, not the prompt; then re-roll.
+- After changing a scene's still, its incoming connector must be regenerated too (conn 7 kept ending on the old big-phone frame).
+- Tiny UI on a phone screen hallucinates glyphs; describe track rows as "thin grey bars, no letters" and say the screen never changes.
+- `media/scripts/audit-sheet.py <tier> <names>` builds a first/mid/last sheet — review it before encoding.
