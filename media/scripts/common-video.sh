@@ -2,7 +2,7 @@
 # shared config for the scroll-world video chain (bash 3.2 safe)
 P="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STILLS="$P/work/stills"; PR="$P/prompts/video"
-NAMES="opening-track landing ascent garden trail chamber finale"
+NAMES="opening-track landing ascent garden trail chamber finale one-more-song"
 VMODEL="${VMODEL:-seedance_2_0_mini}"       # previz; final = seedance_2_0
 case "$VMODEL" in
   kling3_0)          VOPTS="--mode std --sound off";        DIVE_DUR=10; CONN_DUR=5 ;;

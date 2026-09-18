@@ -16,7 +16,7 @@ test("public and operations entry routes exist and stay separate", async () => {
   assert.ok(!/\/(scan|desk|admin)\b/.test(web), "public site must not link to operations");
 });
 
-test("scene config keeps the approved seven-scene order", async () => {
+test("scene config keeps the approved scene order (seven + One More Song)", async () => {
   const src = await readFile(new URL("../apps/web/src/config/scenes.ts", import.meta.url), "utf8");
   const ids = [...src.matchAll(/^\s+id: "([a-z-]+)"/gm)].map((m) => m[1]);
   assert.deepEqual(ids, [...SCENE_ORDER]);

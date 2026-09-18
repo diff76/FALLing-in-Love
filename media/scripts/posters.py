@@ -17,6 +17,7 @@ PLATES = {
     "trail": ("채플과 본관 연결부_잔듸광장_2.jpg", 0.5),
     "chamber": ("채플_1.jpg", 0.5),
     "finale": ("본관 앞 분수_2.jpg", 0.5),   # same fountain terrace as 04, different angle — jazz busking happens here
+    "one-more-song": (None, 0.5),          # clay still only (no site photo exists)
 }
 
 def cover(img, w, h, ay=0.5):
@@ -54,6 +55,8 @@ for scene, (name, ay) in PLATES.items():
         cover(src, 1080, 1920, 0.5).save(OUT / f"{scene}-m.webp", quality=82, method=6)
         print("poster", scene, "from", still.relative_to(ROOT))
         continue
+    if name is None:
+        print("poster", scene, "SKIPPED (no still yet)"); continue
     src = Image.open(SRC / name).convert("RGB")
     autumn(cover(src, 1920, 1080, ay)).save(OUT / f"{scene}.webp", quality=82, method=6)
     autumn(cover(src, 1080, 1920, ay)).save(OUT / f"{scene}-m.webp", quality=80, method=6)

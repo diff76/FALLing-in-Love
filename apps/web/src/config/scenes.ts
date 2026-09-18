@@ -53,6 +53,12 @@ const base: Omit<CinematicScene, "media">[] & { id: SceneId }[] = [
     body: "분수대 곁에서 재즈 트리오가 마지막 곡을 시작합니다. 카메라는 천천히 물러나 채플과 본관, 잔디와 수공간을 한 화면에 담고, 오늘 다녀온 자리들이 하나의 정원이었음을 보여줍니다.",
     accent: "#BE5637", camera: "pull-out", scroll: 1.8, linger: 0.4,
   },
+  {
+    id: "one-more-song", label: "One More Song", eyebrow: "08 · The One More Song",
+    title: "The Day Is Over. The Playlist Isn’t.",
+    body: "파티가 끝난 저녁, 스마트폰으로 받은 초대장 링크를 엽니다. 그날 들었던 곡이 앨범 트랙으로, 그날의 사진이 슬라이드로 흐릅니다. 그리고 그 안에 다음 초대장이 함께 담겨 있습니다.",
+    accent: "#C9932F", camera: "dive", scroll: 1.6, linger: 0.5,
+  },
 ];
 
 const posters: Record<SceneId, { poster: string; posterMobile?: string; posterAlt: string }> = {
@@ -63,6 +69,7 @@ const posters: Record<SceneId, { poster: string; posterMobile?: string; posterAl
   trail: { poster: "/media/scenes/trail.webp", posterAlt: "본관 앞 잔디 광장과 공중 브리지 동" },
   chamber: { poster: "/media/scenes/chamber.webp", posterAlt: "십자가 절개 타워와 청록 유리 계단실이 있는 채플 정면" },
   finale: { poster: "/media/scenes/finale.webp", posterAlt: "본관 앞 수공간 테라스 — 재즈 버스킹이 열리는 자리 (다른 앵글)" },
+  "one-more-song": { poster: "/media/scenes/one-more-song.webp", posterMobile: "/media/scenes/one-more-song-m.webp", posterAlt: "저녁 거실에서 스마트폰의 One More Song 플레이어로 그날의 곡과 사진을 다시 보는 장면, 옆에는 다음 초대장" },
 };
 
 export const scenes: readonly CinematicScene[] = base.map((s) => ({

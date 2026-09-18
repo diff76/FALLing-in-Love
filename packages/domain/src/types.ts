@@ -10,10 +10,11 @@ export type SceneId =
   | "garden"
   | "trail"
   | "chamber"
-  | "finale";
+  | "finale"
+  | "one-more-song";
 
 export const SCENE_ORDER: readonly SceneId[] = [
-  "opening-track", "landing", "ascent", "garden", "trail", "chamber", "finale",
+  "opening-track", "landing", "ascent", "garden", "trail", "chamber", "finale", "one-more-song",
 ];
 
 export type CameraMode = "approach" | "dive" | "pause" | "pull-out" | "travel" | "discover";

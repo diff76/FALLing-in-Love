@@ -69,7 +69,7 @@ export function CinematicWorld() {
           body: s.body,
           tags: s.tags,
           cta: i === scenes.length - 1
-            ? { primary: { label: "Plan your day", href: "/apply" }, secondary: { label: "하루의 리듬", href: "#day" } }
+            ? { primary: { label: "좌석 예약하기", href: "/apply" }, secondary: { label: "One More Song 미리 보기", href: "/one-more-song" } }
             : undefined,
         })),
         connectors: connectors.slice(0, scenes.length - 1),

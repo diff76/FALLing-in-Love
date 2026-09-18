@@ -3,7 +3,7 @@
 ## Structure
 1. Overture — static hero (anchor overview), title lockup, date, CTA
 2. Invitation — one paragraph
-3. The world — seven scroll-scrubbed scenes (engine-owned): Opening Track · Landing · Ascent · Garden · Trail · Chamber Concert · Finale
+3. The world — eight scroll-scrubbed scenes (engine-owned): Opening Track · Landing · Ascent · Garden · Trail · Chamber Concert · Finale · One More Song (added 2026-09-18 at the user's request: a post-event evening vignette — smartphone player with the day's tracks, photo slideshow and the next invitation; the separate /one-more-song page remains the real post-event experience)
 4. Standard web content — ACT I (worship), THE TUNING, "그 곡, 사실은" cards, 하루의 리듬 (the only place with clock times), practical info, ONE MORE SONG teaser, footer, sticky 좌석 예약
 5. `/apply` → `/pass/[token]`
 

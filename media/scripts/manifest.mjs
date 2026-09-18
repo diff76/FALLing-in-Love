@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const dir = resolve(root, "apps/web/public/media/clips");
-const order = ["opening-track", "landing", "ascent", "garden", "trail", "chamber", "finale"];
+const order = ["opening-track", "landing", "ascent", "garden", "trail", "chamber", "finale", "one-more-song"];
 const files = existsSync(dir) ? new Set(readdirSync(dir)) : new Set();
 const clips = {}, clipsMobile = {};
 for (const id of order) {

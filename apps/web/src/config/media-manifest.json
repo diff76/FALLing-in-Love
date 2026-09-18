@@ -16,9 +16,11 @@
     "/media/clips/conn3.mp4",
     "/media/clips/conn4.mp4",
     "/media/clips/conn5.mp4",
-    "/media/clips/conn6.mp4"
+    "/media/clips/conn6.mp4",
+    null
   ],
   "connectorsMobile": [
+    null,
     null,
     null,
     null,
