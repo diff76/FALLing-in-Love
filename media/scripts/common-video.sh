@@ -19,5 +19,7 @@ else ASPECT="16:9"; W="$P/work/$TIER"; STILL_PREFIX="still_"; fi
 mkdir -p "$W"
 still_for() { echo "$STILLS/$STILL_PREFIX$1.png"; }
 prompt_for() { # $1 = prompt basename (dive_x | conn_i)
-  if [ "$MOBILE" = "1" ]; then printf '%s %s' "$(cat "$PR/portrait-clause.txt")" "$(cat "$PR/$1.txt")"; else cat "$PR/$1.txt"; fi; }
+  # mobile: an optional <name>-m.txt overrides the landscape prompt (portrait dives can end elsewhere)
+  local f="$PR/$1.txt"; [ "$MOBILE" = "1" ] && [ -f "$PR/$1-m.txt" ] && f="$PR/$1-m.txt"
+  if [ "$MOBILE" = "1" ]; then printf '%s %s' "$(cat "$PR/portrait-clause.txt")" "$(cat "$f")"; else cat "$f"; fi; }
 log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$W/run.log"; }

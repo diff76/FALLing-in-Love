@@ -62,13 +62,13 @@ const base: Omit<CinematicScene, "media">[] & { id: SceneId }[] = [
 ];
 
 const posters: Record<SceneId, { poster: string; posterMobile?: string; posterAlt: string }> = {
-  "opening-track": { poster: "/media/scenes/opening-track.webp", posterAlt: "창동성전 라운지에서 출발하는 셔틀을 예고하는 따뜻한 오후 빛 (임시 플레이트)" },
-  landing: { poster: "/media/scenes/landing.webp", posterAlt: "한신대 서울캠퍼스 흙 운동장과 보도블록 웰컴 스팟 예정지" },
+  "opening-track": { poster: "/media/scenes/opening-track.webp", posterMobile: "/media/scenes/opening-track-m.webp", posterAlt: "창동성전 라운지에서 출발하는 셔틀을 예고하는 따뜻한 오후 빛 (임시 플레이트)" },
+  landing: { poster: "/media/scenes/landing.webp", posterMobile: "/media/scenes/landing-m.webp", posterAlt: "한신대 서울캠퍼스 흙 운동장과 보도블록 웰컴 스팟 예정지" },
   ascent: { poster: "/media/scenes/ascent.webp", posterMobile: "/media/scenes/ascent-m.webp", posterAlt: "소나무 사이로 채플 유리가 보이는 짧은 침목 계단" },
-  garden: { poster: "/media/scenes/garden.webp", posterAlt: "본관 앞 수공간 테라스 (대화와 커피의 자리)" },
-  trail: { poster: "/media/scenes/trail.webp", posterAlt: "본관 앞 잔디 광장과 공중 브리지 동" },
-  chamber: { poster: "/media/scenes/chamber.webp", posterAlt: "십자가 절개 타워와 청록 유리 계단실이 있는 채플 정면" },
-  finale: { poster: "/media/scenes/finale.webp", posterAlt: "본관 앞 수공간 테라스 — 재즈 버스킹이 열리는 자리 (다른 앵글)" },
+  garden: { poster: "/media/scenes/garden.webp", posterMobile: "/media/scenes/garden-m.webp", posterAlt: "본관 앞 수공간 테라스 (대화와 커피의 자리)" },
+  trail: { poster: "/media/scenes/trail.webp", posterMobile: "/media/scenes/trail-m.webp", posterAlt: "본관 앞 잔디 광장과 공중 브리지 동" },
+  chamber: { poster: "/media/scenes/chamber.webp", posterMobile: "/media/scenes/chamber-m.webp", posterAlt: "십자가 절개 타워와 청록 유리 계단실이 있는 채플 정면" },
+  finale: { poster: "/media/scenes/finale.webp", posterMobile: "/media/scenes/finale-m.webp", posterAlt: "본관 앞 수공간 테라스 — 재즈 버스킹이 열리는 자리 (다른 앵글)" },
   "one-more-song": { poster: "/media/scenes/one-more-song.webp", posterMobile: "/media/scenes/one-more-song-m.webp", posterAlt: "저녁 거실에서 스마트폰의 One More Song 플레이어로 그날의 곡과 사진을 다시 보는 장면, 옆에는 다음 초대장" },
 };
 

@@ -10,7 +10,16 @@
     "finale": "/media/clips/finale.mp4",
     "one-more-song": "/media/clips/one-more-song.mp4"
   },
-  "clipsMobile": {},
+  "clipsMobile": {
+    "opening-track": "/media/clips/opening-track-m.mp4",
+    "landing": "/media/clips/landing-m.mp4",
+    "ascent": "/media/clips/ascent-m.mp4",
+    "garden": "/media/clips/garden-m.mp4",
+    "trail": "/media/clips/trail-m.mp4",
+    "chamber": "/media/clips/chamber-m.mp4",
+    "finale": "/media/clips/finale-m.mp4",
+    "one-more-song": "/media/clips/one-more-song-m.mp4"
+  },
   "connectors": [
     "/media/clips/conn1.mp4",
     "/media/clips/conn2.mp4",
@@ -21,12 +30,12 @@
     "/media/clips/conn7.mp4"
   ],
   "connectorsMobile": [
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null
+    "/media/clips/conn1-m.mp4",
+    "/media/clips/conn2-m.mp4",
+    "/media/clips/conn3-m.mp4",
+    "/media/clips/conn4-m.mp4",
+    "/media/clips/conn5-m.mp4",
+    "/media/clips/conn6-m.mp4",
+    "/media/clips/conn7-m.mp4"
   ]
 }

@@ -14,11 +14,11 @@ i=0; prev=""; for n in $NAMES; do if [ -n "$prev" ]; then i=$((i+1)); [ -s "$W/c
 # rendered phone→campus and time-reversed). If frame 0 is the living room, reverse it here.
 if [ -s "$W/conn_7.mp4" ]; then
   ffmpeg -v error -y -ss 0 -i "$W/conn_7.mp4" -frames:v 1 -q:v 2 "$W/_c7_first.png"
-  python3 - "$W/_c7_first.png" "$W/first_one-more-song.png" <<'PY2'
-import sys; from PIL import Image, ImageChops; import math
-a,b=[Image.open(p).convert("L").resize((320,180)) for p in sys.argv[1:3]]
-d=ImageChops.difference(a,b); mse=sum(v*v*c for v,c in enumerate(d.histogram()))/(320*180)
-sys.exit(0 if (99 if mse==0 else 10*math.log10(255**2/mse)) < 18 else 3)   # exit 3 = looks like the living room
+  python3 - "$W/_c7_first.png" "$W/first_one-more-song.png" "$W/last_finale.png" <<'PY2'
+import sys; from PIL import Image, ImageChops, ImageStat
+f,room,aerial=[Image.open(p).convert("L").resize((180,180)) for p in sys.argv[1:4]]
+d=lambda a,b: sum(ImageStat.Stat(ImageChops.difference(a,b)).mean)
+sys.exit(3 if d(f,room) < d(f,aerial) else 0)   # exit 3 = frame 0 looks like the living room → reverse
 PY2
   if [ $? -eq 3 ]; then log "conn 7 starts on the living room — reversing"; ffmpeg -v error -y -i "$W/conn_7.mp4" -vf reverse -an "$W/_c7r.mp4" && mv "$W/_c7r.mp4" "$W/conn_7.mp4"; enc "$W/conn_7.mp4" "$OUT/conn7$SFX.mp4"; fi
 fi

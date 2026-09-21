@@ -32,7 +32,7 @@ Inpainting (2026-09-16): for placement fixes, `gpt_image_2` accepts `--is_inpain
 - 7 dives (1080p, 8 s) + 6 connectors (5 s) on `seedance_2_0` std: `VMODEL=seedance_2_0 TIER=final` with the same scripts; raw renders in `media/work/final` (git-ignored), encodes in `apps/web/public/media/clips`, posters from `POSTER_SOURCE=final`.
 - Cost: 773.5 credits for 13 clips (dive ≈ 72, connector ≈ 45). Two dives hit an `ip_detected` filter on the first try and passed on the automatic retry (no extra charge).
 - Seams: 20–25 dB start / 17–21 dB end — same composition, crossfade covers the residual.
-- Mobile (9:16) chain not yet rendered: budget ≈ 775 credits + portrait canvases; balance after this run 941.
+- Mobile (9:16) chain rendered 2026-09-21 (`MOBILE=1`): portrait canvases = approved stills cropped to a per-scene window and outpainted top/bottom with `flux_2_pro_outpaint` (≈3 credits each, 2560px cap) in `media/work/stills-m/canvas_<scene>.png`; 8 dives (576) + 7 connectors (315) + 2 re-rolls (90) on `seedance_2_0`; encodes `<scene>-m.mp4` / `conn<i>-m.mp4` (720w, GOP 4) and `-m.webp` posters from the portrait first frames. Mobile-only prompt overrides live in `prompts/video/<name>-m.txt` (conn 2 starts at the stair foot, conn 6 is a ground-level walk — the aerial version invented a village). Balance after: 1,901.7.
 
 
 ## Lessons locked in (2026-09-18)
