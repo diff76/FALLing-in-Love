@@ -215,7 +215,8 @@ function mountScrollWorld(container, config) {
         v.className = 'sw-scene__video';
         v.muted = true; v.playsInline = true; v.preload = 'auto';
         v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-        v.src = URL.createObjectURL(blob);
+        s.blobUrl = URL.createObjectURL(blob);
+        v.src = s.blobUrl;
         v.addEventListener('loadedmetadata', () => { s.ready = true; read(); });
         // Reveal the video (hide the still poster) only once a real frame has
         // painted — on iOS a seeked-but-never-played muted video stays blank, so
@@ -224,6 +225,22 @@ function mountScrollWorld(container, config) {
         v.addEventListener('loadeddata', () => { try { v.pause(); } catch (e) {} if (userReady) primeVideo(v); });
         s.el.appendChild(v); s.video = v; s.hasClip = true;
       }).catch(() => { s.loading = false; });
+  }
+
+  // Phones (iOS Safari especially) cap how many <video> elements can hold a decoder at
+  // once; past the cap the extra clips never paint, so their segments fall back to the
+  // still and a connector "does nothing". Keep only the clips near the viewport alive
+  // and release the rest — they reload (HTTP cache) when the reader scrolls back.
+  const UNLOAD_VH = 3.2;
+  function unloadClip(s) {
+    if (!s.video) return;
+    const v = s.video;
+    try { v.pause(); } catch (e) {}
+    s.el.classList.remove('has-clip');
+    try { v.removeAttribute('src'); v.load(); } catch (e) {}
+    if (v.parentNode) v.parentNode.removeChild(v);
+    if (s.blobUrl) { try { URL.revokeObjectURL(s.blobUrl); } catch (e) {} s.blobUrl = null; }
+    s.video = null; s.hasClip = false; s.ready = false; s.loading = false;
   }
 
   function read() {
@@ -236,6 +253,7 @@ function mountScrollWorld(container, config) {
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (y > s.start - 1.6 * vh && y < s.end + 1.6 * vh) loadClip(s);
+      else if (isMobile() && s.video && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
       s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
