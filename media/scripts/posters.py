@@ -39,6 +39,14 @@ def autumn(img):
 STILLS = ROOT / "media/work/stills"   # clay scene stills (Track 2) win over photo plates
 import os
 VIDEO_FRAMES = ROOT / "media/work" / os.environ.get("POSTER_SOURCE", "") / "first_{}.png" if os.environ.get("POSTER_SOURCE") else None
+def mobile_source_for(scene):
+    """Native 9:16 chain (pipeline §6b): the portrait dive's actual first frame, so the phone
+    poster equals frame 0 of the -m clip. Falls back to the landscape crop when absent."""
+    if VIDEO_FRAMES is not None:
+        f = ROOT / "media/work" / (os.environ["POSTER_SOURCE"] + "-m") / f"first_{scene}.png"
+        if f.exists(): return f
+    return None
+
 def source_for(scene):
     """POSTER_SOURCE=previz|final → the dive's actual first frame (so the poster equals frame 0 of the clip)."""
     if VIDEO_FRAMES is not None:
@@ -52,8 +60,9 @@ for scene, (name, ay) in PLATES.items():
     if still is not None:
         src = Image.open(still).convert("RGB")
         cover(src, 1920, 1080, 0.5).save(OUT / f"{scene}.webp", quality=84, method=6)
-        cover(src, 1080, 1920, 0.5).save(OUT / f"{scene}-m.webp", quality=82, method=6)
-        print("poster", scene, "from", still.relative_to(ROOT))
+        mob = mobile_source_for(scene)
+        cover(Image.open(mob).convert("RGB") if mob else src, 1080, 1920, 0.5).save(OUT / f"{scene}-m.webp", quality=82, method=6)
+        print("poster", scene, "from", still.relative_to(ROOT), "| mobile from", mob.relative_to(ROOT) if mob else "landscape crop")
         continue
     if name is None:
         print("poster", scene, "SKIPPED (no still yet)"); continue
@@ -67,7 +76,8 @@ ot = source_for("opening-track")
 if ot is not None:
     src = Image.open(ot).convert("RGB")
     cover(src, 1920, 1080).save(OUT / "opening-track.webp", quality=84, method=6)
-    cover(src, 1080, 1920).save(OUT / "opening-track-m.webp", quality=82, method=6)
+    mob = mobile_source_for("opening-track")
+    cover(Image.open(mob).convert("RGB") if mob else src, 1080, 1920).save(OUT / "opening-track-m.webp", quality=82, method=6)
     print("poster opening-track from", ot.relative_to(ROOT))
 else:
   # no photograph of the Changdong lounge yet — a warm, out-of-focus

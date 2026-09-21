@@ -5,8 +5,8 @@ gen_dive() { local n="$1" out="$W/dive_$1" try=1
   if [ -s "$out.mp4" ]; then log "dive $n present — skip"; return 0; fi
   while [ $try -le 3 ]; do
     log "dive $n attempt $try"
-    higgsfield generate create "$VMODEL" --prompt "$(cat "$PR/dive_$n.txt")" --start-image "$STILLS/still_$n.png" \
-      $VOPTS --aspect_ratio 16:9 --duration "$DIVE_DUR" --wait --wait-timeout 20m --json > "$out.json" 2> "$out.err"
+    higgsfield generate create "$VMODEL" --prompt "$(prompt_for "dive_$n")" --start-image "$(still_for "$n")" \
+      $VOPTS --aspect_ratio "$ASPECT" --duration "$DIVE_DUR" --wait --wait-timeout 20m --json > "$out.json" 2> "$out.err" < /dev/null
     local url; url=$(jq -r '.[0].result_url // empty' "$out.json" 2>/dev/null)
     if [ -n "$url" ] && curl -fsSL "$url" -o "$out.mp4"; then log "dive $n ok"; return 0; fi
     log "dive $n attempt $try failed: $(head -c 160 "$out.err")"; try=$((try+1)); sleep 15
