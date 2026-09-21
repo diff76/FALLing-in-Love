@@ -231,7 +231,7 @@ function mountScrollWorld(container, config) {
   // once; past the cap the extra clips never paint, so their segments fall back to the
   // still and a connector "does nothing". Keep only the clips near the viewport alive
   // and release the rest — they reload (HTTP cache) when the reader scrolls back.
-  const UNLOAD_VH = 3.2;
+  const UNLOAD_VH = 2.2;
   function unloadClip(s) {
     if (!s.video) return;
     const v = s.video;
@@ -250,16 +250,22 @@ function mountScrollWorld(container, config) {
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
 
+    const mobile = isMobile();
+    // Phones keep a tighter working set: load one screen ahead, release two behind.
+    const LOAD_VH = mobile ? 1.0 : 1.6;
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
-      if (y > s.start - 1.6 * vh && y < s.end + 1.6 * vh) loadClip(s);
-      else if (isMobile() && s.video && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
+      if (y > s.start - LOAD_VH * vh && y < s.end + LOAD_VH * vh) loadClip(s);
+      else if (mobile && s.video && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
       s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
       if (y < s.start) outside = s.start - y; else if (y > s.end) outside = y - s.end;
       const op = smooth(1 - outside / fade);
       s.el.style.opacity = op; s.visible = op > 0.001;
+      // Fully faded scenes drop out of compositing entirely (a stack of six video
+      // layers at opacity 0 still costs GPU memory on a phone).
+      s.el.style.visibility = s.visible ? '' : 'hidden';
       s.el.style.zIndex = (i === ci) ? '120' : String(100 + Math.round(op * 10));
       if (!s.hasClip || !s.ready) {
         const sc = reduce ? 1 : 1.03 + local * 0.14;
@@ -297,21 +303,51 @@ function mountScrollWorld(container, config) {
   }
 
   function raf() {
-    const eps = isMobile() ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
+    const mobile = isMobile();
+    const eps = mobile ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
+    const now = performance.now();
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (!s.hasClip || !s.ready || !s.video) continue;
+      const v = s.video;
+      // Phones: only the clips actually on screen get seeks. Off-screen clips just
+      // track the target so they land on the right frame with ONE seek when they
+      // fade in — several videos seeking at once is what stalls the iOS decoder.
+      if (mobile && !s.visible) { s.cur = s.target; continue; }
       // Never queue a seek while the decoder is still resolving the last one.
       // On phones a fast flick would otherwise pile up seeks and freeze the clip;
       // cur keeps lerping, so we snap to the latest target the moment it's free.
-      if (s.video.seeking) continue;
+      if (v.seeking) {
+        // Watchdog: a seek that never resolves is a wedged decoder (iOS does this after
+        // a burst of seeks). Nudge it once, and if it stays stuck, rebuild the element.
+        if (!s.seekAt) s.seekAt = now;
+        else if (now - s.seekAt > 700 && !s.nudged) { s.nudged = true; try { v.currentTime = v.currentTime + 0.001; } catch (e) {} }
+        else if (now - s.seekAt > 2500 && mobile) { unloadClip(s); loadClip(s); }
+        continue;
+      }
+      s.seekAt = 0; s.nudged = false;
       if (!s.visible && Math.abs(s.cur - s.target) < 0.002) continue;
       s.cur += (s.target - s.cur) * (reduce ? 1 : 0.18);
-      const dur = s.video.duration || 1;
+      const dur = v.duration || 1;
       const t = clamp(s.cur, 0, 0.999) * dur;
-      if (Math.abs(s.video.currentTime - t) > eps) { try { s.video.currentTime = t; } catch (e) {} }
+      if (Math.abs(v.currentTime - t) > eps) { try { v.currentTime = t; } catch (e) {} }
     }
+    if (hud) drawHud();
     requestAnimationFrame(raf);
+  }
+
+  // Remote diagnostics: open the page with `#swdebug` to get a small overlay listing
+  // every segment's clip state (loaded / ready / seeking / painted) — lets a phone
+  // tester report exactly which segment wedged without DevTools.
+  const hud = /swdebug/.test(location.hash) ? el('pre', 'sw-hud') : null;
+  if (hud) { hud.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:9999;margin:0;padding:6px 8px;font:10px/1.3 monospace;color:#fff;background:rgba(0,0,0,.6);border-radius:6px;pointer-events:none;white-space:pre;'; container.appendChild(hud); }
+  function drawHud() {
+    const rows = SEGMENTS.map((s, i) => {
+      const v = s.video; const st = !s.hasClip ? (s.loading ? 'load…' : '—') : !s.ready ? 'meta…' : v && v.seeking ? 'SEEK' : 'ok';
+      const painted = s.el.classList.contains('has-clip') ? '●' : '○';
+      return (s.kind === 'dive' ? 'D' : 'c') + String(i).padStart(2) + ' ' + painted + ' ' + st.padEnd(5) + (s.visible ? ' vis ' : '     ') + (v ? (v.currentTime).toFixed(2) : '');
+    });
+    hud.textContent = rows.join('\n');
   }
 
   // iOS needs a user gesture before a muted video will decode/paint reliably. On the
