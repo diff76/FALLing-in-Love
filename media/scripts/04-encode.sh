@@ -4,9 +4,9 @@
 . "$(dirname "$0")/common-video.sh"
 OUT="$P/../apps/web/public/media/clips"; mkdir -p "$OUT"
 # Mobile (§6b): 720 wide, GOP 4 (phone seek cost scales with frames-from-keyframe), crf 23.
-if [ "$MOBILE" = "1" ]; then SFX="-m"; VF="scale=720:-2,unsharp=5:5:0.8:5:5:0.0"; GOP=4; CRF=23
-else SFX=""; VF="unsharp=5:5:0.8:5:5:0.0"; GOP=8; CRF=20; fi
-enc() { ffmpeg -v error -y -i "$1" -an -vf "$VF" -c:v libx264 -preset slow -crf $CRF -pix_fmt yuv420p \
+if [ "$MOBILE" = "1" ]; then SFX="-m"; VF="scale=720:-2,unsharp=5:5:0.8:5:5:0.0"; GOP=4; CRF=26; RATE="-maxrate 2600k -bufsize 5200k"   # ≈2–3 MB per clip: must arrive before the seam on LTE
+else SFX=""; VF="unsharp=5:5:0.8:5:5:0.0"; GOP=8; CRF=20; RATE=""; fi
+enc() { ffmpeg -v error -y -i "$1" -an -vf "$VF" -c:v libx264 -preset slow -crf $CRF $RATE -pix_fmt yuv420p \
   -g $GOP -keyint_min $GOP -sc_threshold 0 -movflags +faststart "$2" && log "enc $(basename "$2") $(du -h "$2" | cut -f1)"; }
 for n in $NAMES; do [ -s "$W/dive_$n.mp4" ] && enc "$W/dive_$n.mp4" "$OUT/$n$SFX.mp4"; done
 i=0; prev=""; for n in $NAMES; do if [ -n "$prev" ]; then i=$((i+1)); [ -s "$W/conn_$i.mp4" ] && enc "$W/conn_$i.mp4" "$OUT/conn$i$SFX.mp4"; fi; prev="$n"; done

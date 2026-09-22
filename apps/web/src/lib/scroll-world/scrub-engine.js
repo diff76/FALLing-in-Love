@@ -231,7 +231,7 @@ function mountScrollWorld(container, config) {
   // once; past the cap the extra clips never paint, so their segments fall back to the
   // still and a connector "does nothing". Keep only the clips near the viewport alive
   // and release the rest — they reload (HTTP cache) when the reader scrolls back.
-  const UNLOAD_VH = 2.2;
+  const UNLOAD_VH = 3.0;
   function unloadClip(s) {
     if (!s.video) return;
     const v = s.video;
@@ -252,7 +252,7 @@ function mountScrollWorld(container, config) {
 
     const mobile = isMobile();
     // Phones keep a tighter working set: load one screen ahead, release two behind.
-    const LOAD_VH = mobile ? 1.0 : 1.6;
+    const LOAD_VH = 1.6;   // clips are light enough now (≈2–3 MB) to fetch a full screen ahead on phones too
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (y > s.start - LOAD_VH * vh && y < s.end + LOAD_VH * vh) loadClip(s);
