@@ -4,7 +4,7 @@
 # Extracts every portrait dive/connector from work/<tier>-m into
 # apps/web/public/media/frames/<id>/fNNN.webp at FPS, WIDTH px wide. Run after 03-connectors.
 . "$(dirname "$0")/common-video.sh"
-SRC="$P/work/${TIER:-final}-m"; OUT="$P/../apps/web/public/media/frames"; FPS="${FPS:-10}"; WIDTH="${WIDTH:-540}"; Q="${Q:-62}"
+SRC="$P/work/${TIER:-final}-m"; OUT="$P/../apps/web/public/media/frames"; FPS="${FPS:-15}"; WIDTH="${WIDTH:-720}"; Q="${Q:-60}"
 ext() { local id="$1" in="$2"; [ -s "$in" ] || return 0
   rm -rf "$OUT/$id"; mkdir -p "$OUT/$id"; local tmp; tmp=$(mktemp -d)
   # ffmpeg here has no libwebp: dump PNGs, then Pillow writes the WebPs.

@@ -41,80 +41,80 @@
   "framesMobile": {
     "opening-track": {
       "base": "/media/frames/opening-track/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "landing": {
       "base": "/media/frames/landing/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "ascent": {
       "base": "/media/frames/ascent/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "garden": {
       "base": "/media/frames/garden/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "trail": {
       "base": "/media/frames/trail/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "chamber": {
       "base": "/media/frames/chamber/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "finale": {
       "base": "/media/frames/finale/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     },
     "one-more-song": {
       "base": "/media/frames/one-more-song/",
-      "count": 80,
-      "fps": 10
+      "count": 121,
+      "fps": 15
     }
   },
   "connectorsFramesMobile": [
     {
       "base": "/media/frames/conn1/",
-      "count": 41,
-      "fps": 10
+      "count": 61,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn2/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn3/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn4/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn5/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn6/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     },
     {
       "base": "/media/frames/conn7/",
-      "count": 50,
-      "fps": 10
+      "count": 76,
+      "fps": 15
     }
   ]
 }
