@@ -37,5 +37,84 @@
     "/media/clips/conn5-m.mp4",
     "/media/clips/conn6-m.mp4",
     "/media/clips/conn7-m.mp4"
+  ],
+  "framesMobile": {
+    "opening-track": {
+      "base": "/media/frames/opening-track/",
+      "count": 80,
+      "fps": 10
+    },
+    "landing": {
+      "base": "/media/frames/landing/",
+      "count": 80,
+      "fps": 10
+    },
+    "ascent": {
+      "base": "/media/frames/ascent/",
+      "count": 80,
+      "fps": 10
+    },
+    "garden": {
+      "base": "/media/frames/garden/",
+      "count": 80,
+      "fps": 10
+    },
+    "trail": {
+      "base": "/media/frames/trail/",
+      "count": 80,
+      "fps": 10
+    },
+    "chamber": {
+      "base": "/media/frames/chamber/",
+      "count": 80,
+      "fps": 10
+    },
+    "finale": {
+      "base": "/media/frames/finale/",
+      "count": 80,
+      "fps": 10
+    },
+    "one-more-song": {
+      "base": "/media/frames/one-more-song/",
+      "count": 80,
+      "fps": 10
+    }
+  },
+  "connectorsFramesMobile": [
+    {
+      "base": "/media/frames/conn1/",
+      "count": 41,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn2/",
+      "count": 50,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn3/",
+      "count": 50,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn4/",
+      "count": 50,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn5/",
+      "count": 50,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn6/",
+      "count": 50,
+      "fps": 10
+    },
+    {
+      "base": "/media/frames/conn7/",
+      "count": 50,
+      "fps": 10
+    }
   ]
 }

@@ -80,6 +80,12 @@ function mountScrollWorld(container, config) {
   const SECTIONS = config.sections || [];
   const CONNECTORS = config.connectors || [];
   const CONNECTORS_M = config.connectorsMobile || [];
+  // Phone image sequences ({base, count, fps} per section / connector). When present,
+  // phones scrub frames on a canvas instead of seeking a <video>: iOS WebKit (Safari AND
+  // Chrome, same engine) caps live video decoders, suspends off-screen media and never
+  // paints a seek on an element that has not been played by a gesture — every one of
+  // those shows up as a scene stuck on its poster. Images have none of these rules.
+  const CONNECTORS_F = config.connectorsFramesMobile || [];
   const DIVE_W = config.diveScroll || 1.3;
   const CONN_W = config.connScroll || 0.9;
   const CROSSFADE = (config.crossfade != null) ? config.crossfade : 0.12;  // seam dissolve width (vh)
@@ -92,7 +98,8 @@ function mountScrollWorld(container, config) {
   // ---- build the interleaved segment chain: dive0, conn0, dive1, … diveN-1 ----
   const SEGMENTS = [];
   SECTIONS.forEach((s, i) => {
-    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, still: s.still, stillM: s.stillMobile,
+    const dive = { kind: 'dive', si: i, clip: s.clip, clipM: s.clipMobile, framesM: s.framesMobile || null,
+                   still: s.still, stillM: s.stillMobile,
                    accent: s.accent, w: s.scroll || DIVE_W, linger: s.linger || 0 };
     SEGMENTS.push(dive);
     s._seg = dive;
@@ -100,7 +107,7 @@ function mountScrollWorld(container, config) {
     // crossfade directly (no fly-over). Lets a page complete even when a
     // connector can't be generated (e.g. a content-filter false-positive).
     if (i < N - 1 && CONNECTORS[i]) {
-      SEGMENTS.push({ kind: 'conn', si: i, clip: CONNECTORS[i], clipM: CONNECTORS_M[i],
+      SEGMENTS.push({ kind: 'conn', si: i, clip: CONNECTORS[i], clipM: CONNECTORS_M[i], framesM: CONNECTORS_F[i] || null,
                       still: SECTIONS[i + 1].still, stillM: SECTIONS[i + 1].stillMobile,
                       accent: SECTIONS[i + 1].accent, w: CONN_W });
     }
@@ -202,7 +209,57 @@ function mountScrollWorld(container, config) {
     window.scrollTo({ top: base + seg.start + (seg.end - seg.start) * 0.5, behavior: reduce ? 'auto' : 'smooth' });
   }
 
+  // ---- phone path: image sequence on a canvas ----
+  const useFrames = (s) => isMobile() && s.framesM && s.framesM.count > 0;
+  function loadFrames(s) {
+    if (s.loading || s.frames) return;
+    const f = s.framesM; s.loading = true;
+    const cv = document.createElement('canvas'); cv.className = 'sw-scene__video';
+    cv.width = 2; cv.height = 2;   // resized to the first decoded frame
+    s.el.appendChild(cv); s.canvas = cv; s.ctx = cv.getContext('2d');
+    s.frames = new Array(f.count).fill(null); s.frameIdx = -1; s.loadedCount = 0; s.hasClip = true;
+    // Fetch in order, a few at a time — the first frames matter most (the scene fades
+    // in on frame ~0), and a phone radio prefers a short queue to 96 parallel requests.
+    const pad = (n) => String(n).padStart(3, '0');
+    let next = 0, inflight = 0; const PAR = 4;
+    const pump = () => {
+      while (inflight < PAR && next < f.count && s.frames) {
+        const k = next++; inflight++;
+        const img = new Image(); img.decoding = 'async';
+        img.onload = img.onerror = () => {
+          inflight--;
+          if (!s.frames) return;                 // unloaded meanwhile
+          if (img.naturalWidth) { s.frames[k] = img; s.loadedCount++; }
+          if (!s.ready) { s.ready = true; cv.width = img.naturalWidth || 540; cv.height = img.naturalHeight || 960; read(); }
+          pump();
+        };
+        img.src = f.base + 'f' + pad(k) + '.webp';
+      }
+      if (next >= f.count && inflight === 0) s.loading = false;
+    };
+    pump();
+  }
+  function drawFrame(s) {
+    const f = s.framesM, fr = s.frames; if (!fr || !s.ready) return;
+    let k = Math.round(clamp(s.cur, 0, 0.999) * (f.count - 1));
+    // Nearest loaded frame at or below the target, so a still-loading tail never
+    // freezes the scene on a blank canvas.
+    let j = k; while (j >= 0 && !fr[j]) j--;
+    if (j < 0) { j = k; while (j < f.count && !fr[j]) j++; if (j >= f.count) return; }
+    if (j === s.frameIdx) return;
+    s.ctx.drawImage(fr[j], 0, 0, s.canvas.width, s.canvas.height); s.frameIdx = j;
+    if (!s.el.classList.contains('has-clip')) s.el.classList.add('has-clip');
+  }
+  function unloadFrames(s) {
+    if (!s.frames) return;
+    s.frames = null; s.loadedCount = 0; s.frameIdx = -1;
+    if (s.canvas && s.canvas.parentNode) s.canvas.parentNode.removeChild(s.canvas);
+    s.canvas = null; s.ctx = null; s.el.classList.remove('has-clip');
+    s.hasClip = false; s.ready = false; s.loading = false;
+  }
+
   function loadClip(s) {
+    if (useFrames(s)) { loadFrames(s); return; }
     // Under prefers-reduced-motion we never load the clips at all — the stills stay up
     // and simply cross-dissolve as you scroll. No scrubbed video motion, no decode cost.
     if (reduce || s.loading || !s.clip) return;
@@ -233,6 +290,7 @@ function mountScrollWorld(container, config) {
   // and release the rest — they reload (HTTP cache) when the reader scrolls back.
   const UNLOAD_VH = 3.0;
   function unloadClip(s) {
+    if (s.frames) { unloadFrames(s); return; }
     if (!s.video) return;
     const v = s.video;
     try { v.pause(); } catch (e) {}
@@ -256,7 +314,7 @@ function mountScrollWorld(container, config) {
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (y > s.start - LOAD_VH * vh && y < s.end + LOAD_VH * vh) loadClip(s);
-      else if (mobile && s.video && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
+      else if (mobile && (s.video || s.frames) && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
       s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
@@ -308,6 +366,11 @@ function mountScrollWorld(container, config) {
     const now = performance.now();
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
+      if (s.frames) {   // image-sequence segment: pick a frame, draw it, done
+        if (!s.visible) { s.cur = s.target; continue; }
+        s.cur += (s.target - s.cur) * (reduce ? 1 : 0.22);
+        drawFrame(s); continue;
+      }
       if (!s.hasClip || !s.ready || !s.video) continue;
       const v = s.video;
       // Phones: only the clips actually on screen get seeks. Off-screen clips just
@@ -343,9 +406,10 @@ function mountScrollWorld(container, config) {
   if (hud) { hud.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:9999;margin:0;padding:6px 8px;font:10px/1.3 monospace;color:#fff;background:rgba(0,0,0,.6);border-radius:6px;pointer-events:none;white-space:pre;'; container.appendChild(hud); }
   function drawHud() {
     const rows = SEGMENTS.map((s, i) => {
-      const v = s.video; const st = !s.hasClip ? (s.loading ? 'load…' : '—') : !s.ready ? 'meta…' : v && v.seeking ? 'SEEK' : 'ok';
+      const v = s.video;
+      const st = s.frames ? ('img ' + s.loadedCount + '/' + s.framesM.count) : !s.hasClip ? (s.loading ? 'load…' : '—') : !s.ready ? 'meta…' : v && v.seeking ? 'SEEK' : 'ok';
       const painted = s.el.classList.contains('has-clip') ? '●' : '○';
-      return (s.kind === 'dive' ? 'D' : 'c') + String(i).padStart(2) + ' ' + painted + ' ' + st.padEnd(5) + (s.visible ? ' vis ' : '     ') + (v ? (v.currentTime).toFixed(2) : '');
+      return (s.kind === 'dive' ? 'D' : 'c') + String(i).padStart(2) + ' ' + painted + ' ' + st.padEnd(10) + (s.visible ? ' vis ' : '     ') + (s.frames ? ('#' + s.frameIdx) : v ? (v.currentTime).toFixed(2) : '');
     });
     hud.textContent = rows.join('\n');
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { connectors, connectorsMobile, scenes } from "@/config/scenes";
+import { connectors, connectorsFramesMobile, connectorsMobile, framesMobile, scenes } from "@/config/scenes";
 import type { ScrollWorldConfig } from "@/lib/scroll-world/scrub-engine";
 
 /**
@@ -82,6 +82,7 @@ export function CinematicWorld() {
           stillMobile: s.media.posterMobile,
           clip: s.media.clip ?? undefined,
           clipMobile: s.media.clipMobile ?? undefined,
+          framesMobile: framesMobile[s.id] ?? undefined,
           accent: s.accent,
           scroll: s.scroll,
           linger: s.linger,
@@ -95,6 +96,7 @@ export function CinematicWorld() {
         })),
         connectors: connectors.slice(0, scenes.length - 1),
         connectorsMobile: connectorsMobile.slice(0, scenes.length - 1),
+        connectorsFramesMobile: connectorsFramesMobile.slice(0, scenes.length - 1),
       };
       mountScrollWorld(host, config);
       dressBrand(host);

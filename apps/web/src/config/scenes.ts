@@ -1,11 +1,14 @@
 import type { CinematicScene, SceneId } from "@fil/domain";
 import manifest from "./media-manifest.json";
 
+export type FrameSet = { base: string; count: number; fps: number };
 type Manifest = {
   clips: Partial<Record<SceneId, string>>;
   clipsMobile: Partial<Record<SceneId, string>>;
   connectors: (string | null)[];
   connectorsMobile: (string | null)[];
+  framesMobile?: Partial<Record<SceneId, FrameSet>>;
+  connectorsFramesMobile?: (FrameSet | null)[];
 };
 const media = manifest as Manifest;
 
@@ -83,4 +86,7 @@ export const scenes: readonly CinematicScene[] = base.map((s) => ({
 
 export const connectors = media.connectors;
 export const connectorsMobile = media.connectorsMobile;
+/** Phone image sequences (canvas scrub) — keyed like clips; connectors by index. */
+export const framesMobile: Partial<Record<SceneId, FrameSet>> = media.framesMobile ?? {};
+export const connectorsFramesMobile: (FrameSet | null)[] = media.connectorsFramesMobile ?? [];
 export const sceneIds = scenes.map((s) => s.id);
