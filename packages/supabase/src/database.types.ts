@@ -36,6 +36,7 @@ export type ReservationRow = {
   updated_at: string;
 };
 
+export type ReservationMemberRow = { id: string; reservation_id: string; position: number; name: string; relation: string | null; age_group: string | null; dietary_note: string | null };
 export type ShuttleRunRow = { id: string; direction: "outbound" | "return"; departs_at: string; label: string; capacity: number | null; active: boolean };
 export type StationRow = { id: string; code: string; name: string };
 export type CheckinRow = {
@@ -136,6 +137,7 @@ export type Database = {
       profiles: { Row: { id: string; display_name: string | null; created_at: string }; Insert: { id: string; display_name?: string | null }; Update: { display_name?: string | null }; Relationships: [] };
       staff_roles: { Row: StaffRoleRow; Insert: StaffRoleRow; Update: Partial<StaffRoleRow>; Relationships: [] };
       reservations: { Row: ReservationRow; Insert: Partial<ReservationRow>; Update: Partial<ReservationRow>; Relationships: [] };
+      reservation_members: { Row: ReservationMemberRow; Insert: Partial<ReservationMemberRow>; Update: Partial<ReservationMemberRow>; Relationships: [] };
       shuttle_runs: { Row: ShuttleRunRow; Insert: Partial<ShuttleRunRow>; Update: Partial<ShuttleRunRow>; Relationships: [] };
       stations: { Row: StationRow; Insert: Partial<StationRow>; Update: Partial<StationRow>; Relationships: [] };
       checkins: { Row: CheckinRow; Insert: Partial<CheckinRow>; Update: Partial<CheckinRow>; Relationships: [] };

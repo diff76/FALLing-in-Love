@@ -186,3 +186,36 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
 /* ---------- display: arm button ---------- */
 .display .arm { position: absolute; inset: 0; z-index: 20; display: grid; place-content: center; gap: 8px; border: 0; background: rgba(46,37,28,.9); color: var(--paper); cursor: pointer; }
 .display .arm b { font-size: 6vh; } .display .arm span { font-size: 2.2vh; color: rgba(247,241,228,.7); }
+
+/* ---------- admin dashboard: light paper theme with bar charts ---------- */
+.opsShell.light { --bg: #F7F1E4; --panel: #FFFDF7; --ink: #2E251C; --ink-soft: #6B584A; --line: rgba(46, 37, 28, .14); background: var(--bg); color: var(--ink); }
+.opsShell.light aside { background: #FFFDF7; }
+.opsShell.light nav a:hover { background: #F1E7D3; }
+.opsShell.light .metricGrid article { background: var(--panel); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(46,37,28,.05); }
+.opsShell.light .metricGrid article h2 { font-family: "Iowan Old Style", Georgia, serif; font-size: 44px; }
+.opsShell.light .metricGrid article.hot h2 { color: var(--brick); }
+.opsShell.light .box { background: var(--panel); box-shadow: 0 10px 30px rgba(46,37,28,.05); }
+.opsShell.light .logout { color: var(--ink); }
+.opsShell.light .tag.in { color: #4d6a33; border-color: rgba(108,138,80,.5); background: rgba(108,138,80,.1); }
+.stamp { display: flex; align-items: center; gap: 8px; margin: -8px 0 18px; font-size: 13px; color: var(--ink-soft); }
+.stamp i { width: 8px; height: 8px; border-radius: 50%; background: var(--olive); }
+.cols.two { grid-template-columns: 1.4fr 1fr; }
+.box .sub { margin: -6px 0 14px; font-size: 13px; color: var(--ink-soft); }
+.box h2.mt { margin-top: 26px; }
+.legend { display: flex; gap: 14px; margin: 0 0 12px; font-size: 12px; color: var(--ink-soft); }
+.legend .sw { display: inline-block; width: 16px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
+.legend .sw.done { background: #6C8A50; } .legend .sw.expected { background: #F1DDB3; }
+ul.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-items: center; gap: 12px; }
+.bar .barLabel { font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .barTrack { position: relative; height: 16px; border-radius: 999px; background: rgba(46,37,28,.06); overflow: hidden; }
+.bar .barTrack i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width .6s cubic-bezier(.22,.8,.28,1); }
+.bar.green .expected { background: #F1DDB3; } .bar.green .done { background: linear-gradient(90deg, #6C8A50, #8CA36E); }
+.bar.gold .expected { background: linear-gradient(90deg, #C9932F, #E0A64A); }
+.bar b { font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; } .bar b i { font-style: normal; color: var(--ink-soft); font-weight: 500; } .bar b em { font-style: normal; font-size: 11px; color: var(--ink-soft); margin-left: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: 13px; color: var(--ink-soft); }
+.chips span b { color: var(--ink); margin: 0 2px; }
+.chips span.warm { border-color: rgba(217,106,78,.5); color: var(--brick); } .chips span.warm b { color: var(--brick); }
+.opsShell.light table td small { margin-left: 6px; font-size: 11px; color: var(--ink-soft); }
+@media (max-width: 900px) { .cols.two { grid-template-columns: 1fr; } }

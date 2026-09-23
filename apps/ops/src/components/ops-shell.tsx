@@ -11,10 +11,10 @@ const nav: { href: string; label: string; roles: StaffRole[] }[] = [
   { href: "/admin/import", label: "엑셀 일괄 등록", roles: ["admin"] },
 ];
 
-export function OpsShell({ title, eyebrow, roles, email, wide, children }: { title: string; eyebrow: string; roles: StaffRole[]; email: string | null; wide?: boolean; children: React.ReactNode }) {
+export function OpsShell({ title, eyebrow, roles, email, wide, light, children }: { title: string; eyebrow: string; roles: StaffRole[]; email: string | null; wide?: boolean; light?: boolean; children: React.ReactNode }) {
   const items = nav.filter((n) => n.roles.some((r) => roles.includes(r)));
   return (
-    <main className={`opsShell ${wide ? "wide" : ""}`}>
+    <main className={`opsShell ${wide ? "wide" : ""} ${light ? "light" : ""}`}>
       <aside>
         <strong><b>FALL</b>ing <em>in</em> Love</strong>
         <span>OPERATIONS · 2026</span>
