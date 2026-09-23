@@ -141,8 +141,9 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
 .seatPick { margin: 12px 22px 0; padding: 12px; border-radius: 14px; background: rgba(0,0,0,.18); border: 1px solid var(--line); }
 .seatPickHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
 .seatPickHead small { display: block; color: var(--ink-soft); font-size: 13px; }
-.seatMap { display: grid; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
-.seatMap .stage { justify-self: center; padding: 6px 40px; border-radius: 8px; background: #111; color: var(--ink); font-size: 12px; letter-spacing: .2em; }
+.seatMap { display: grid; gap: 10px; }
+.seatScroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
+.seatMap .stage { justify-self: stretch; text-align: center; padding: 6px 40px; border-radius: 8px; background: #111; color: var(--ink); font-size: 12px; letter-spacing: .2em; }
 .seatMap .floor h4 { margin: 4px 0 6px; font-size: 12px; letter-spacing: .14em; color: var(--gold); }
 .seatMap .row { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
 .seatMap .rowLabel { width: 22px; font-size: 10px; color: var(--ink-soft); text-align: right; flex: none; }
@@ -258,12 +259,9 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
   .result > *:not(header) { margin-left: 14px; margin-right: 14px; }
   .result > .btn { width: calc(100% - 28px); }
   .seatPick { margin: 12px 14px 0; padding: 10px; }
-  .seatMap { overflow-x: auto; overflow-y: hidden; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
   .seatMap .floor, .seatMap .row { width: max-content; }
-  .seatMap .stage { position: sticky; left: 0; }
   .seatMap.compact .seat, .seatMap.compact .gap { width: 26px; height: 26px; font-size: 10px; }
   .seatMap .block { gap: 3px; } .seatMap .row { gap: 8px; }
-  .seatMap .legend { position: sticky; left: 0; }
   .seatPick::after { content: "좌석표는 좌우로 밀어 볼 수 있습니다"; display: block; margin-top: 6px; font-size: 12px; color: var(--ink-soft); }
   .metricGrid { grid-template-columns: 1fr 1fr; }
   .cols, .cols.two { grid-template-columns: 1fr; }

@@ -60,8 +60,10 @@ export function SeatMap({ cells, selected, ownReservationId, max, onToggle, comp
   return (
     <div className={`seatMap ${compact ? "compact" : ""}`}>
       <div className="stage">무대 · STAGE</div>
-      {floorView(1)}
-      {floorView(2)}
+      <div className="seatScroll">
+        {floorView(1)}
+        {floorView(2)}
+      </div>
       <div className="legend"><i className="seat" /> 빈자리 <i className="seat on" /> 이 팀 <i className="seat taken" /> 배정됨 <i className="seat wc" /> 휠체어석</div>
     </div>
   );
