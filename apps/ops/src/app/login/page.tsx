@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <main className="loginPage">
       <section className="loginHero">
         <p>2026 · 온출전</p>
-        <h1><b>FALL</b>ing <em>in</em> Love</h1>
+        <h1 className="lockup"><span className="fall">FALL</span>ing <em>in</em> Love</h1>
         <span>OPERATIONS</span>
       </section>
       <form className="loginForm" action={signIn}>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import * as XLSX from "xlsx";
 import { eventConfig } from "@fil/config";
 import { normalizePhone, type ReservationInput } from "@fil/domain";
-import { checkDuplicates, importRows, type ImportRowResult } from "./actions";
+import { checkDuplicates, importRows, type DuplicateHit, type ImportRowResult } from "./actions";
 
 /** Excel columns (Korean headers) → reservation input. Kept in ONE place so the template and the parser agree. */
 const COLUMNS = [
@@ -20,7 +20,7 @@ const COLUMNS = [
   ["사후연락동의", "contactConsent", "예 / 아니오"],
 ] as const;
 
-type Draft = ReservationInput & { rowNo: number; problems: string[]; duplicate?: string };
+type Draft = ReservationInput & { rowNo: number; problems: string[]; duplicate?: DuplicateHit; allowSameName?: boolean };
 
 const yes = (v: unknown) => /^(예|y|yes|o|true|1)$/i.test(String(v ?? "").trim());
 const pick = <T extends readonly (readonly [string, string])[]>(table: T, v: unknown): string | undefined => {
@@ -63,8 +63,8 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
 export function downloadTemplate() {
   const header = COLUMNS.map(([h]) => h);
   const hint = COLUMNS.map(([, , h]) => h);
-  const sample = ["김은혜", "010-1234-5678", "초청", "메인", "", "", "11교구", "", "40대", "정민호", "", "", "", "셔틀", "12:30", "16:15", "", "아니오", "", "", "예"];
-  const sample2 = ["박서연", "010-2222-3333", "초청", "예배", "2", "창동", "21교구", "", "", "", "", "", "", "개별", "", "", "", "예", "휠체어", "", "아니오"];
+  const sample = ["예시 홍길동", "010-1234-5678", "초청", "메인", "", "", "11교구", "", "40대", "예시 동행", "", "", "", "셔틀", "12:30", "16:15", "", "아니오", "", "", "예"];
+  const sample2 = ["예시 김영희", "010-2222-3333", "초청", "예배", "2", "창동", "21교구", "", "", "", "", "", "", "개별", "", "", "", "예", "휠체어", "", "아니오"];
   const ws = XLSX.utils.aoa_to_sheet([header, hint, sample, sample2]);
   ws["!cols"] = header.map(() => ({ wch: 16 }));
   const wb = XLSX.utils.book_new();
@@ -86,29 +86,32 @@ export function ImportConsole() {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" });
       // row 2 of the template is the hint line: skip rows whose phone is not numeric-ish
-      const parsed = rows.map((r, i) => toDraft(r, i + 2)).filter((d) => d.applicantName && !/필수/.test(d.applicantName));
-      // duplicates inside the file
-      const seen = new Map<string, number>();
-      parsed.forEach((d) => { const k = `${d.applicantName}|${d.phone}`; if (seen.has(k)) d.problems.push(`파일 안 중복 (${seen.get(k)}행)`); else seen.set(k, d.rowNo); });
-      // duplicates against the database
+      const parsed = rows.map((r, i) => toDraft(r, i + 2)).filter((d) => d.applicantName && !/필수/.test(d.applicantName) && !/^예시 /.test(d.applicantName));
+      // duplicates inside the file: same phone, or same name
+      const seenPhone = new Map<string, number>(), seenName = new Map<string, number>();
+      parsed.forEach((d) => {
+        if (seenPhone.has(d.phone)) d.problems.push(`파일 안 중복 연락처 (${seenPhone.get(d.phone)}행)`); else seenPhone.set(d.phone, d.rowNo);
+        if (seenName.has(d.applicantName)) d.problems.push(`파일 안 같은 성함 (${seenName.get(d.applicantName)}행)`); else seenName.set(d.applicantName, d.rowNo);
+      });
+      // duplicates against the database (phone blocks; same name needs an explicit tick)
       const dups = await checkDuplicates(parsed.map((d) => ({ name: d.applicantName, phone: d.phone })));
-      const dupKey = new Map(dups.map((d) => [`${d.name}|${d.phone}`, d.code]));
-      parsed.forEach((d) => { const c = dupKey.get(`${d.applicantName}|${d.phone}`); if (c) d.duplicate = c; });
+      parsed.forEach((d) => { d.duplicate = dups.find((h) => h.name === d.applicantName && h.phone === d.phone); });
       setDrafts(parsed);
       if (!parsed.length) setError("읽을 수 있는 행이 없습니다. 양식의 1행(제목)을 그대로 두고 3행부터 입력해 주세요.");
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
   async function run() {
-    const ready = drafts.filter((d) => !d.problems.length && !d.duplicate);
+    const ready = drafts.filter(canRegister);
     if (!ready.length) return setError("등록할 수 있는 행이 없습니다.");
     setBusy(true); setError(null);
     try { setResults(await importRows(ready.map((d) => { const rest = { ...d } as Partial<Draft>; delete rest.problems; delete rest.duplicate; return rest as Draft; }))); }
     catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
-  const ok = drafts.filter((d) => !d.problems.length && !d.duplicate).length;
-  const dup = drafts.filter((d) => d.duplicate).length;
+  const canRegister = (d: Draft) => !d.problems.length && (!d.duplicate || (d.duplicate.by === "name" && !!d.allowSameName));
+  const ok = drafts.filter(canRegister).length;
+  const dup = drafts.filter((d) => d.duplicate && !canRegister(d)).length;
   const bad = drafts.filter((d) => d.problems.length).length;
 
   return (
@@ -131,18 +134,21 @@ export function ImportConsole() {
                 <td>{eventConfig.districts.find(([c]) => c === d.districtCode)?.[1] ?? (d.kind === "guest_self" ? `초대: ${d.inviterName ?? ""}` : "—")}</td>
                 <td className="mono">{1 + d.members.length}</td>
                 <td>{d.transport === "shuttle" ? `셔틀 ${d.outboundRun ?? ""}` : d.transport === "car" ? `자차 ${d.vehiclePlate ?? ""}` : "개별"}</td>
-                <td>{d.duplicate ? <span className="tag">중복 · {d.duplicate}</span> : d.problems.length ? <span className="tag bad">{d.problems.join(", ")}</span> : <span className="tag in">등록 가능</span>}</td>
+                <td>{d.problems.length ? <span className="tag bad">{d.problems.join(", ")}</span>
+                  : d.duplicate?.by === "phone" ? <span className="tag bad">중복 · 같은 연락처 {d.duplicate.code}</span>
+                  : d.duplicate?.by === "name" ? <label className="tag same"><input type="checkbox" checked={!!d.allowSameName} onChange={(e) => setDrafts(drafts.map((x) => x.rowNo === d.rowNo ? { ...x, allowSameName: e.target.checked } : x))} /> 같은 성함 {d.duplicate.code} · 동명이인이면 체크</label>
+                  : <span className="tag in">등록 가능</span>}</td>
               </tr>
             ))}</tbody>
           </table></div>
           <button className="btn gold" onClick={run} disabled={busy || !ok}>{busy ? "등록 중…" : `${ok}건 등록하기`}</button>
-          <p className="tiny">중복과 오류 행은 건너뜁니다. 고친 뒤 다시 올리면 새 행만 추가됩니다.</p>
+          <p className="tiny">같은 연락처는 등록되지 않습니다. 같은 성함만 겹치면 동명이인일 때에 한해 체크해 등록하세요. 오류 행은 건너뜁니다.</p>
         </section>
       )}
       {results && (
         <section className="box">
           <h2>4. 등록 결과 <small>성공 {results.filter((r) => r.ok).length} · 실패 {results.filter((r) => !r.ok).length}</small></h2>
-          <ul className="list">{results.map((r) => <li key={r.row}><b>{r.row}행 {r.name}</b><span>{r.ok ? `등록됨 · ${r.code}` : r.message}</span></li>)}</ul>
+          <ul className="list">{results.map((r) => <li key={r.row} className={r.ok ? "" : "skipped"}><b>{r.row}행 {r.name}</b><span>{r.ok ? `등록됨 · ${r.code}` : r.message}</span></li>)}</ul>
           <button className="btn ghost" onClick={() => { setResults(null); setDrafts([]); setFileName(""); }}>다른 파일 올리기</button>
         </section>
       )}

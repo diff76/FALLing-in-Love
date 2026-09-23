@@ -8,6 +8,8 @@ type Welcome = { name: string; seat: string; guests: number };
 const SHOW_MS = 6000;
 /** A check-in is confirmed on a staff phone; the party walks to the lobby. 10 s later the screen greets them. */
 const DELAY_MS = 10_000;
+/** Realtime is the fast path; this poll is the safety net (every 4 s) so a greeting is never lost. */
+const POLL_MS = 4000;
 
 function maskName(name: string) {
   const n = name.trim();
@@ -32,9 +34,13 @@ export function WelcomeDisplay() {
   const [now, setNow] = useState(new Date());
   const [current, setCurrent] = useState<Welcome | null>(null);
   const [armed, setArmed] = useState(false);
+  const [link, setLink] = useState<"connecting" | "live" | "poll">("connecting");
+  const [seen, setSeen] = useState(0);
   const queue = useRef<Welcome[]>([]);
   const showing = useRef(false);
   const audio = useRef<AudioContext | null>(null);
+  const known = useRef<Set<string>>(new Set());
+  const since = useRef<string>(new Date().toISOString());
 
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 15_000); return () => clearInterval(t); }, []);
 
@@ -48,15 +54,30 @@ export function WelcomeDisplay() {
       setCurrent(queue.current.shift()!);
       setTimeout(() => { setCurrent(null); setTimeout(() => { showing.current = false; drain(); }, 600); }, SHOW_MS);
     };
-    const channel = db.channel("display").on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, async (payload) => {
-      const id = (payload.new as { reservation_id: string }).reservation_id;
-      const { data } = await db.rpc("get_reservation_summary", { p_reservation_id: id });
+    // One entry point for both paths, keyed by check-in id so nothing is greeted twice.
+    const enqueue = async (checkinId: string, reservationId: string, checkedInAt: string) => {
+      if (known.current.has(checkinId)) return;
+      known.current.add(checkinId);
+      setSeen((n) => n + 1);
+      const { data } = await db.rpc("get_reservation_summary", { p_reservation_id: reservationId });
       const r = data as ReservationSummary | null;
       if (!r) return;
       const w = { name: maskName(r.applicant_name), seat: r.seat_label ?? "", guests: r.guest_count };
-      setTimeout(() => { queue.current.push(w); drain(); }, DELAY_MS);
-    }).subscribe();
-    return () => { db.removeChannel(channel); };
+      const wait = Math.max(0, DELAY_MS - (Date.now() - new Date(checkedInAt).getTime()));
+      setTimeout(() => { queue.current.push(w); drain(); }, wait);
+    };
+    const channel = db.channel("display")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, (payload) => {
+        const c = payload.new as { id: string; reservation_id: string; checked_in_at: string };
+        enqueue(c.id, c.reservation_id, c.checked_in_at);
+      })
+      .subscribe((status) => setLink(status === "SUBSCRIBED" ? "live" : "poll"));
+    const poll = async () => {
+      const { data } = await db.from("checkins").select("id, reservation_id, checked_in_at").is("voided_at", null).gt("checked_in_at", since.current).order("checked_in_at");
+      (data ?? []).forEach((c) => enqueue(c.id, c.reservation_id, c.checked_in_at));
+    };
+    const timer = setInterval(poll, POLL_MS);
+    return () => { db.removeChannel(channel); clearInterval(timer); };
   }, []);
 
   function arm() {
@@ -75,11 +96,12 @@ export function WelcomeDisplay() {
       )}
       <div className="idle">
         <div className="idleTop"><span>{eventConfig.edition} · {eventConfig.venue.short}</span><b>{hhmm}</b></div>
-        <h1><span>FALL</span>ing <em>in</em> Love</h1>
+        <h1 className="lockup"><span className="fall">FALL</span>ing <em>in</em> Love</h1>
         <p>{eventConfig.subtitle} · {eventConfig.dateLabel}</p>
         <ol className="timeline">
           {eventConfig.schedule.map((s) => <li key={s.time} className={hhmm >= s.time ? "done" : ""}><time>{s.time}</time><span>{s.title}</span></li>)}
         </ol>
+        <div className={`linkDot ${link}`} title={link === "live" ? "실시간 연결" : link === "poll" ? "4초 간격 확인" : "연결 중"}>{link === "live" ? "LIVE" : link === "poll" ? "POLL" : "…"} · {seen}</div>
       </div>
       <div className={`hello ${current ? "on" : ""}`} aria-live="polite">
         {current && (

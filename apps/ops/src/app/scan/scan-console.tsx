@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore } from "react";
+import jsQR from "jsqr";
 import { eventConfig } from "@fil/config";
 import { buildSeatLayout, clampArrivedCount, needsPriorityFloor, seatLabelFor, suggestSeats } from "@fil/domain";
 import type { CheckinResult, ReservationSummary, SeatMapCell } from "@fil/supabase";
@@ -40,7 +41,7 @@ export function ScanConsole() {
   const [done, setDone] = useState<CheckinResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [camera, setCamera] = useState<"idle" | "on" | "unsupported" | "denied">("idle");
+  const [camera, setCamera] = useState<"idle" | "on" | "unsupported" | "insecure" | "denied">("idle");
   const videoRef = useRef<HTMLVideoElement>(null);
   const stopRef = useRef<() => void>(() => {});
 
@@ -81,25 +82,35 @@ export function ScanConsole() {
   }
 
   async function startCamera() {
-    if (!window.BarcodeDetector || !navigator.mediaDevices?.getUserMedia) { setCamera("unsupported"); return; }
+    if (!navigator.mediaDevices?.getUserMedia) { setCamera(window.isSecureContext ? "unsupported" : "insecure"); return; }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       const video = videoRef.current!; video.srcObject = stream; await video.play();
-      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      // Chrome/Android: native BarcodeDetector. iOS Safari: decode frames with jsQR on a canvas.
+      const native = window.BarcodeDetector ? new window.BarcodeDetector({ formats: ["qr_code"] }) : null;
+      const canvas = document.createElement("canvas"); const ctx = canvas.getContext("2d", { willReadFrequently: true });
       let alive = true;
       stopRef.current = () => { alive = false; stream.getTracks().forEach((t) => t.stop()); setCamera("idle"); };
       setCamera("on");
+      const decode = async (): Promise<string | null> => {
+        if (native) { const codes = await native.detect(video); return codes[0]?.rawValue ?? null; }
+        if (!ctx || !video.videoWidth) return null;
+        const w = Math.min(640, video.videoWidth), h = Math.round(video.videoHeight * (w / video.videoWidth));
+        canvas.width = w; canvas.height = h; ctx.drawImage(video, 0, 0, w, h);
+        const img = ctx.getImageData(0, 0, w, h);
+        return jsQR(img.data, w, h, { inversionAttempts: "dontInvert" })?.data ?? null;
+      };
       const tick = async () => {
         if (!alive) return;
         try {
-          const codes = await detector.detect(video);
-          if (codes[0]?.rawValue) {
-            const r = await lookupByPass(codes[0].rawValue);
+          const raw = await decode();
+          if (raw) {
+            const r = await lookupByPass(raw);
             if (r) { open(r, "qr"); return; }
             setError("이 QR은 오늘 행사의 Pass가 아닙니다.");
           }
         } catch { /* keep scanning */ }
-        setTimeout(tick, 350);
+        setTimeout(tick, native ? 350 : 220);
       };
       tick();
     } catch { setCamera("denied"); }
@@ -178,7 +189,8 @@ export function ScanConsole() {
               <button className="btn" onClick={startCamera}>카메라로 QR 스캔</button>
             )}
             {camera === "on" && <button className="btn ghost small" onClick={() => stopRef.current()}>카메라 끄기</button>}
-            {camera === "unsupported" && <p className="tiny">이 브라우저는 카메라 QR 인식을 지원하지 않습니다. 아래 성함 조회를 이용하세요.</p>}
+            {camera === "unsupported" && <p className="tiny">이 브라우저는 카메라를 지원하지 않습니다. 아래 성함 조회를 이용하세요.</p>}
+            {camera === "insecure" && <p className="tiny warn">카메라는 https 주소에서만 열립니다. 터널(https) 주소로 접속하거나 성함 조회를 이용하세요.</p>}
             {camera === "denied" && <p className="tiny">카메라 권한이 거부되었습니다. 브라우저 설정에서 허용한 뒤 다시 시도하세요.</p>}
           </div>
           <div className="or">QR이 없을 때 · 수기 신청자도 여기서</div>

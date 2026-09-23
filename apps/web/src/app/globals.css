@@ -130,7 +130,8 @@ img { max-width: 100%; }
 .subHeader { display: flex; justify-content: space-between; align-items: center; max-width: 760px; margin: 0 auto; padding: 26px 0; font-size: 13px; letter-spacing: .1em; }
 .subHeader a { text-decoration: none; font-weight: 700; }
 .brandLink { font-family: var(--font-syne), "Syne", var(--font-display); font-weight: 600; font-size: clamp(20px, 2vw, 26px); letter-spacing: -.04em; line-height: 1; }
-.brandLink em { font-style: italic; color: var(--persimmon); }
+.brandLink em { font-style: italic; font-weight: 400; color: var(--persimmon); }
+.brandLink .fall { font-weight: 800; }
 .passPage > a.brandLink { justify-self: start; }
 .formIntro { max-width: 760px; margin: 30px auto 40px; }
 .formIntro h1 { margin: 0 0 16px; font-family: var(--font-ko); font-size: clamp(34px, 5vw, 56px); line-height: 1.2; letter-spacing: -.03em; }

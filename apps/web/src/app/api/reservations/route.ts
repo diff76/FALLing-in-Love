@@ -31,6 +31,10 @@ export async function POST(request: Request) {
   const token = generatePassToken();
   const tokenHash = await hashPassToken(token);
   const db = createAdminSupabaseClient();
+  const { data: same } = await db.from("reservations").select("code").eq("status", "active").eq("phone", parsed.data.phone).limit(1);
+  if (same && same.length) {
+    return NextResponse.json({ message: "이 연락처로 이미 신청이 접수되어 있습니다. 변경이 필요하시면 교회로 연락해 주세요.", fieldErrors: { phone: "이미 신청된 연락처입니다" } }, { status: 409 });
+  }
   const { data, error } = await db.rpc("create_reservation", { payload: parsed.data, token_hash: tokenHash });
   if (error || !data) {
     if (error?.message?.includes("duplicate") || error?.code === "P0002" || error?.code === "23505") {

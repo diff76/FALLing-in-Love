@@ -59,7 +59,7 @@ export default async function AdminPage() {
         <section className="box">
           <h2>교구 · 부서별 현황</h2><p className="sub">막대 전체가 신청 인원, 채워진 부분이 체크인</p>
           <p className="legend"><i className="sw done" /> 체크인 완료 <i className="sw expected" /> 아직 미도착</p>
-          <ul className="bars">{(stats?.by_district ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} done={d.arrived} max={districtMax} />)}</ul>
+          <ul className="chart">{(stats?.by_district ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} done={d.arrived} max={districtMax} />)}</ul>
         </section>
         <section className="box">
           <h2>운영 집계</h2><p className="sub">각 부서가 그대로 가져가 쓰는 숫자</p>
@@ -73,11 +73,11 @@ export default async function AdminPage() {
             <span>수기 등록 <b>{rows.filter((r) => r.source === "import").length}</b>팀</span>
           </div>
           <h2 className="mt">연령대</h2><p className="sub">성함을 적어 주신 분 기준</p>
-          <ul className="bars">{[...ages.entries()].map(([label, n]) => <Bar key={label} label={label} value={n} max={ageMax} />)}</ul>
+          <ul className="chart">{[...ages.entries()].map(([label, n]) => <Bar key={label} label={label} value={n} max={ageMax} />)}</ul>
           {(stats?.by_worship?.length ?? 0) > 0 && (
             <>
               <h2 className="mt">예배만 참석</h2>
-              <ul className="bars">{(stats?.by_worship ?? []).map((w) => <Bar key={`${w.site}-${w.service}`} label={`${w.service ?? "?"}부 · ${eventConfig.worshipSites.find(([c]) => c === w.site)?.[1] ?? ""}`} value={w.people} max={Math.max(1, ...(stats?.by_worship ?? []).map((x) => x.people))} tone="gold" />)}</ul>
+              <ul className="chart">{(stats?.by_worship ?? []).map((w) => <Bar key={`${w.site}-${w.service}`} label={`${w.service ?? "?"}부 · ${eventConfig.worshipSites.find(([c]) => c === w.site)?.[1] ?? ""}`} value={w.people} max={Math.max(1, ...(stats?.by_worship ?? []).map((x) => x.people))} tone="gold" />)}</ul>
             </>
           )}
         </section>
@@ -86,12 +86,12 @@ export default async function AdminPage() {
       <div className="cols two">
         <section className="box">
           <h2>셔틀 편별 예약</h2><p className="sub">THE OPENING TRACK · {eventConfig.origin.name} 출발</p>
-          <ul className="bars">{(stats?.by_run ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} max={runMax} tone="gold" />)}</ul>
-          {(stats?.by_return?.length ?? 0) > 0 && <><h3>복귀 편</h3><ul className="bars">{(stats?.by_return ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} max={runMax} tone="gold" />)}</ul></>}
+          <ul className="chart">{(stats?.by_run ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} max={runMax} tone="gold" />)}</ul>
+          {(stats?.by_return?.length ?? 0) > 0 && <><h3>복귀 편</h3><ul className="chart">{(stats?.by_return ?? []).map((d) => <Bar key={d.label} label={d.label} value={d.people} max={runMax} tone="gold" />)}</ul></>}
         </section>
         <section className="box">
           <h2>스테이션별 체크인</h2><p className="sub">봉사자 배치 판단용</p>
-          <ul className="bars">{(stats?.by_station ?? []).map((d) => <Bar key={d.name} label={d.name} value={d.arrived} max={stationMax} />)}</ul>
+          <ul className="chart">{(stats?.by_station ?? []).map((d) => <Bar key={d.name} label={d.name} value={d.arrived} max={stationMax} />)}</ul>
         </section>
       </div>
 

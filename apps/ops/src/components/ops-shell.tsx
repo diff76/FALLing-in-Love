@@ -16,7 +16,7 @@ export function OpsShell({ title, eyebrow, roles, email, wide, light, children }
   return (
     <main className={`opsShell ${wide ? "wide" : ""} ${light ? "light" : ""}`}>
       <aside>
-        <strong><b>FALL</b>ing <em>in</em> Love</strong>
+        <strong className="lockup"><span className="fall">FALL</span>ing <em>in</em> Love</strong>
         <span>OPERATIONS · 2026</span>
         <nav>{items.map((n) => <Link href={n.href} key={n.href}>{n.label}</Link>)}</nav>
         <div className="who"><small>{email ?? ""}</small><small>{roles.join(" · ")}</small></div>

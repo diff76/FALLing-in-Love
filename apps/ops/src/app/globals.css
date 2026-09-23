@@ -205,8 +205,8 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
 .legend { display: flex; gap: 14px; margin: 0 0 12px; font-size: 12px; color: var(--ink-soft); }
 .legend .sw { display: inline-block; width: 16px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
 .legend .sw.done { background: #6C8A50; } .legend .sw.expected { background: #F1DDB3; }
-ul.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-items: center; gap: 12px; }
+ul.chart { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-items: center; gap: 12px; padding: 0; border: 0; }
 .bar .barLabel { font-size: 13px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar .barTrack { position: relative; height: 16px; border-radius: 999px; background: rgba(46,37,28,.06); overflow: hidden; }
 .bar .barTrack i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width .6s cubic-bezier(.22,.8,.28,1); }
@@ -219,3 +219,16 @@ ul.bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .chips span.warm { border-color: rgba(217,106,78,.5); color: var(--brick); } .chips span.warm b { color: var(--brick); }
 .opsShell.light table td small { margin-left: 6px; font-size: 11px; color: var(--ink-soft); }
 @media (max-width: 900px) { .cols.two { grid-template-columns: 1fr; } }
+
+/* ---------- brand lockup: FALL 800 · ing 600 · in italic persimmon · Love 600 (Syne) ---------- */
+.lockup { font-family: var(--font-syne), "Syne", system-ui, sans-serif; font-weight: 600; letter-spacing: -.04em; line-height: 1; white-space: nowrap; }
+.lockup .fall { font-weight: 800; }
+.lockup em { font-style: italic; font-weight: 400; color: #BE5637; }
+.opsShell aside strong.lockup { font-size: 24px; }
+.loginHero h1.lockup { font-size: clamp(44px, 6.5vw, 88px); }
+.display .idle h1.lockup { font-size: 9vh; letter-spacing: -.045em; }
+.display .idle h1.lockup em { color: #BE5637; }
+.tag.same { display: inline-flex; gap: 6px; align-items: center; color: var(--gold); border-color: rgba(224,166,74,.5); cursor: pointer; }
+.list li.skipped span { color: var(--brick); }
+.display .linkDot { position: absolute; right: 2vw; bottom: 2vh; font-size: 1.6vh; letter-spacing: .14em; color: rgba(46,37,28,.35); }
+.display .linkDot.live { color: rgba(108,138,80,.8); }
