@@ -304,9 +304,13 @@ function mountScrollWorld(container, config) {
   function read() {
     const y = (window.scrollY || window.pageYOffset) - base;
     const fade = CROSSFADE * vh;
-    container.classList.toggle('sw-inactive', y < -0.55 * vh || y > totalW * vh + 0.45 * vh);
+    const inactive = y < -0.55 * vh || y > totalW * vh + 0.45 * vh;
+    container.classList.toggle('sw-inactive', inactive);
+    // Glide only while a scene is genuinely on screen (not on the hero, not past the end).
+    worldActive = !inactive && y >= -0.1 * vh && y <= totalW * vh;
     let ci = 0;
     for (let i = 0; i < NSEG; i++) if (y >= SEGMENTS[i].start) ci = i;
+    currentIdx = ci;
 
     const mobile = isMobile();
     // Phones keep a tighter working set: load one screen ahead, release two behind.
@@ -370,6 +374,11 @@ function mountScrollWorld(container, config) {
   // after the last scroll event, autoplay resumes from wherever the playhead is.
   const IDLE_MS = 1000;
   let lastScrollAt = -1e9, lastY = window.scrollY || window.pageYOffset, pendingDy = 0, prevT = 0;
+  // Auto-advance: while idle the page itself glides forward at exactly playback pace, so the
+  // film runs on through connector after scene without a hand on the wheel. `programmatic`
+  // is the scroll distance we asked for and have not yet seen echoed back as scroll events —
+  // those echoes must not count as the reader scrolling.
+  let programmatic = 0, glideAcc = 0, currentIdx = 0, worldActive = false;
   const segDurMs = (s) => {
     if (s.frames && s.framesM) return s.framesM.count / (s.framesM.fps || 12) * 1000;
     if (s.video && s.video.duration) return s.video.duration * 1000;
@@ -385,6 +394,18 @@ function mountScrollWorld(container, config) {
       if (!s.visible) continue;
       if (scrolling) s.target = clamp(s.target + dy / (s.end - s.start));
       else s.target = clamp(s.target + dt / segDurMs(s));
+    }
+    // Idle inside the world: glide the page forward at playback pace (one segment's scroll
+    // length per clip duration) until the last scene has played out.
+    if (!scrolling && worldActive && document.visibilityState === 'visible') {
+      const s = SEGMENTS[currentIdx];
+      if (s && (currentIdx < NSEG - 1 || s.target < 0.999)) {
+        glideAcc += (s.end - s.start) * dt / segDurMs(s);
+        if (glideAcc >= 1) {   // whole pixels only, so every glide step echoes back as a scroll event
+          const step = Math.floor(glideAcc); glideAcc -= step; programmatic += step;
+          window.scrollBy({ top: step, left: 0, behavior: 'instant' });   // never the page's smooth-scroll
+        }
+      }
     }
   }
 
@@ -468,9 +489,20 @@ function mountScrollWorld(container, config) {
   seedParticles(particles, reduce || coarse);
   window.addEventListener('scroll', () => {
     const y = window.scrollY || window.pageYOffset;
-    pendingDy += y - lastY; lastY = y; lastScrollAt = performance.now();
+    const dy = y - lastY; lastY = y;
+    if (programmatic > 0.25 && dy > 0 && dy <= programmatic + 1.5) {
+      programmatic = Math.max(0, programmatic - dy);      // our own glide echoing back
+    } else {
+      programmatic = 0; pendingDy += dy; lastScrollAt = performance.now();   // the reader
+    }
     if (!ticking) { ticking = true; requestAnimationFrame(read); }
   }, { passive: true });
+  // Touch/wheel intent counts as "scrolling" immediately, even before the first scroll event,
+  // so a finger on the glass stops the glide at once.
+  const onIntent = () => { lastScrollAt = performance.now(); programmatic = 0; };
+  window.addEventListener('wheel', onIntent, { passive: true });
+  window.addEventListener('touchstart', onIntent, { passive: true });
+  window.addEventListener('touchmove', onIntent, { passive: true });
   // Mobile browsers fire `resize` every time the URL bar slides in/out. Re-running
   // layout() there rebuilds the track height and yanks the scroll position, so on
   // touch we ignore height-only changes and only relayout when the width actually
