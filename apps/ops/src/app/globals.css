@@ -231,7 +231,7 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
 
 /* ---------- brand lockup: FALL 800 · ing 600 · in italic persimmon · Love 600 (Syne) ---------- */
 .lockup, .opsShell aside strong.lockup, .loginHero h1.lockup, .display .idle h1.lockup { font-family: var(--font-syne), "Syne", system-ui, sans-serif; font-weight: 600; font-variant: normal; text-transform: none; letter-spacing: -.04em; line-height: 1; white-space: nowrap; }
-.lockup .fall, .opsShell aside strong.lockup .fall, .loginHero h1.lockup .fall, .display .idle h1.lockup .fall { font-weight: 800; font-size: inherit; font-family: inherit; }
+.lockup .fall, .opsShell aside strong.lockup .fall, .loginHero h1.lockup .fall, .display .idle h1.lockup .fall { font-weight: 800; font-size: inherit; font-family: inherit; letter-spacing: inherit; color: inherit; text-transform: none; }
 .lockup em, .opsShell aside strong.lockup em, .loginHero h1.lockup em, .loginHero em.lockupEm, .display .idle h1.lockup em { font-style: italic; font-weight: 400; font-family: inherit; color: #BE5637; }
 .opsShell aside strong.lockup { font-size: 24px; }
 .loginHero h1.lockup { font-size: clamp(40px, 6vw, 84px); }
@@ -246,7 +246,9 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
   html, body { overflow-x: hidden; }
   .opsShell { grid-template-columns: 1fr; width: 100%; }
   .opsShell aside { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 10px; padding: 10px 14px; }
-  .opsShell nav { grid-column: 1 / -1; }
+  .opsShell aside strong { grid-column: 1; grid-row: 1; }
+  .opsShell aside .logoutForm { grid-column: 2; grid-row: 1; justify-self: end; }
+  .opsShell nav { grid-column: 1 / -1; grid-row: 2; }
   .opsShell nav { margin: 0; display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .opsShell nav::-webkit-scrollbar { display: none; }
   .opsShell nav a { padding: 9px 12px; font-size: 13px; white-space: nowrap; }
@@ -274,3 +276,40 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
   .loginForm { padding: 24px 20px; max-width: none; }
 }
 .btn.ghost.danger { color: var(--brick); border-color: rgba(217,106,78,.5); }
+
+/* ---------- footer logout (bottom right on every screen) ---------- */
+.opsFoot { display: flex; justify-content: flex-end; margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); }
+.opsFoot .logout { width: auto; padding: 10px 18px; }
+
+/* ---------- welcome desk board ---------- */
+.deskCols { grid-template-columns: 1.15fr 1fr; align-items: start; }
+.stack { display: grid; gap: 14px; }
+.hero { padding: 20px; border-radius: 18px; background: linear-gradient(160deg, #3a2e24, #2A241F); border: 1px solid var(--line); }
+.heroTop { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.heroRun { font-size: 30px; font-weight: 800; line-height: 1.1; } .heroRun small { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+.heroEta { text-align: right; } .heroEta span { display: block; font-size: 11px; letter-spacing: .16em; color: var(--ink-soft); } .heroEta b { font-size: 30px; } .heroEta b.soon { color: var(--gold); }
+.heroNums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.heroNums div { padding: 12px; border-radius: 12px; background: rgba(0,0,0,.18); } .heroNums span { display: block; font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
+.heroNums b { font-size: 26px; } .heroNums em { font-style: normal; font-size: 13px; margin-left: 2px; color: var(--ink-soft); }
+.breakdown { margin: 12px 0 0; font-size: 13px; color: var(--ink-soft); } .breakdown.center { text-align: center; margin-top: 16px; }
+.prep { margin-top: 16px; display: grid; gap: 8px; } .prep .lbl { font-size: 11px; letter-spacing: .16em; color: var(--gold); }
+.prepItem { display: grid; grid-template-columns: 82px 1fr; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px; }
+.prepItem .ic { font-weight: 800; font-size: 12px; letter-spacing: .06em; align-self: start; padding-top: 2px; }
+.prepItem.acc .ic { color: var(--olive); } .prepItem.park .ic { color: #C9A27A; } .prepItem.diet .ic { color: var(--brick); }
+.prepNone { padding: 12px; border-radius: 10px; border: 1px dashed var(--line); font-size: 14px; color: var(--ink-soft); }
+.rrow { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.rrow .nm b { display: block; } .rrow .nm span { font-size: 12px; color: var(--ink-soft); }
+.rrow .cnt { font-size: 22px; font-weight: 800; } .rrow .cnt em { font-style: normal; font-size: 12px; margin-left: 2px; color: var(--ink-soft); }
+.rrow .give { display: flex; gap: 4px; } .rrow .give i { font-style: normal; font-size: 11px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-soft); }
+.rrow .give i.on { border-color: var(--gold); color: var(--gold); }
+.hint { margin: 6px 0; font-size: 13px; color: var(--ink-soft); }
+.statline { display: flex; flex-wrap: wrap; gap: 8px; } .stat { padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); font-size: 13px; color: var(--ink-soft); } .stat b { color: var(--ink); }
+.plist { display: grid; gap: 4px; max-height: 420px; overflow: auto; }
+.prow { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+.prow .nm span { display: block; font-size: 12px; color: var(--ink-soft); }
+.chip { font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid; } .chip.acc { color: var(--olive); border-color: rgba(140,163,110,.5); } .chip.diet { color: var(--brick); border-color: rgba(217,106,78,.5); } .chip.park { color: #C9A27A; border-color: rgba(201,162,122,.5); }
+.prow .sh { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--ink-soft); min-width: 44px; text-align: right; }
+.srow { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.srow .qty { font-size: 20px; font-weight: 800; min-width: 44px; text-align: right; } .srow .qty.low { color: var(--brick); }
+.srow button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 20px; cursor: pointer; }
+@media (max-width: 900px) { .deskCols { grid-template-columns: 1fr; } .heroNums { grid-template-columns: 1fr 1fr; } }

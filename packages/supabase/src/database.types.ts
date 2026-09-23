@@ -43,6 +43,7 @@ export type CheckinRow = {
   id: string; reservation_id: string; station_id: string; staff_id: string | null;
   arrived_count: number; method: "qr" | "manual"; checked_in_at: string; voided_at: string | null; note: string | null;
 };
+export type HospitalityDistributionRow = { id: string; checkin_id: string; item_id: string; qty: number };
 export type HospitalityItemRow = { id: string; code: string; name: string; initial_stock: number; adjustment: number };
 export type SeatRow = { id: string; floor: 1 | 2; row_label: string; row_index: number; num: number; block: number; wheelchair: boolean };
 export type SeatAssignmentRow = { seat_id: string; reservation_id: string; assigned_at: string; assigned_by: string | null; manual: boolean };
@@ -142,6 +143,7 @@ export type Database = {
       stations: { Row: StationRow; Insert: Partial<StationRow>; Update: Partial<StationRow>; Relationships: [] };
       checkins: { Row: CheckinRow; Insert: Partial<CheckinRow>; Update: Partial<CheckinRow>; Relationships: [] };
       hospitality_items: { Row: HospitalityItemRow; Insert: Partial<HospitalityItemRow>; Update: Partial<HospitalityItemRow>; Relationships: [] };
+      hospitality_distributions: { Row: HospitalityDistributionRow; Insert: Partial<HospitalityDistributionRow>; Update: Partial<HospitalityDistributionRow>; Relationships: [] };
       seat_assignments: { Row: SeatAssignmentRow; Insert: Partial<SeatAssignmentRow>; Update: Partial<SeatAssignmentRow>; Relationships: [] };
       seats: { Row: SeatRow; Insert: Partial<SeatRow>; Update: Partial<SeatRow>; Relationships: [] };
       parking_state: { Row: ParkingStateRow; Insert: Partial<ParkingStateRow>; Update: Partial<ParkingStateRow>; Relationships: [] };

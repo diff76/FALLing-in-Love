@@ -20,11 +20,12 @@ export function OpsShell({ title, eyebrow, roles, email, wide, light, children }
         <span>OPERATIONS · 2026</span>
         <nav>{items.map((n) => <Link href={n.href} key={n.href}>{n.label}</Link>)}</nav>
         <div className="who"><small>{email ?? ""}</small><small>{roles.join(" · ")}</small></div>
-        <form action={signOut}><button className="logout" type="submit">로그아웃</button></form>
+        <form action={signOut} className="logoutForm"><button className="logout" type="submit">로그아웃</button></form>
       </aside>
       <section className="opsMain">
         <header><div><p>{eyebrow}</p><h1>{title}</h1></div></header>
         {children}
+        <footer className="opsFoot"><form action={signOut}><button className="logout" type="submit">로그아웃</button></form></footer>
       </section>
     </main>
   );
