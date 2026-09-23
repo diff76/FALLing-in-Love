@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { eventConfig } from "@fil/config";
-import { createBrowserSupabaseClient, isSupabaseConfigured, type ReservationSummary } from "@fil/supabase";
+import { createBrowserSupabaseClient, isSupabaseConfigured, type OpsStats, type ReservationSummary } from "@fil/supabase";
 
 type Welcome = { name: string; seat: string; guests: number };
 const SHOW_MS = 6000;
@@ -35,7 +35,7 @@ export function WelcomeDisplay() {
   const [current, setCurrent] = useState<Welcome | null>(null);
   const [armed, setArmed] = useState(false);
   const [link, setLink] = useState<"connecting" | "live" | "poll">("connecting");
-  const [seen, setSeen] = useState(0);
+  const [arrived, setArrived] = useState<number | null>(null);
   const queue = useRef<Welcome[]>([]);
   const showing = useRef(false);
   const audio = useRef<AudioContext | null>(null);
@@ -47,6 +47,7 @@ export function WelcomeDisplay() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const db = createBrowserSupabaseClient();
+    const refreshCount = async () => { const { data } = await db.rpc("ops_stats"); const s = data as OpsStats | null; if (s) setArrived(s.checked_in_people); };
     const drain = () => {
       if (showing.current || !queue.current.length) return;
       showing.current = true;
@@ -58,7 +59,7 @@ export function WelcomeDisplay() {
     const enqueue = async (checkinId: string, reservationId: string, checkedInAt: string) => {
       if (known.current.has(checkinId)) return;
       known.current.add(checkinId);
-      setSeen((n) => n + 1);
+      refreshCount();
       const { data } = await db.rpc("get_reservation_summary", { p_reservation_id: reservationId });
       const r = data as ReservationSummary | null;
       if (!r) return;
@@ -76,8 +77,10 @@ export function WelcomeDisplay() {
       const { data } = await db.from("checkins").select("id, reservation_id, checked_in_at").is("voided_at", null).gt("checked_in_at", since.current).order("checked_in_at");
       (data ?? []).forEach((c) => enqueue(c.id, c.reservation_id, c.checked_in_at));
     };
+    refreshCount();
     const timer = setInterval(poll, POLL_MS);
-    return () => { db.removeChannel(channel); clearInterval(timer); };
+    const countTimer = setInterval(refreshCount, 60_000);
+    return () => { db.removeChannel(channel); clearInterval(timer); clearInterval(countTimer); };
   }, []);
 
   function arm() {
@@ -87,6 +90,8 @@ export function WelcomeDisplay() {
   }
 
   const hhmm = now.toTimeString().slice(0, 5);
+  const schedule = eventConfig.schedule;
+  const nowIdx = schedule.reduce((idx, s, i) => (hhmm >= s.time ? i : idx), -1);
   return (
     <div className="display">
       {!armed && (
@@ -95,13 +100,20 @@ export function WelcomeDisplay() {
         </button>
       )}
       <div className="idle">
-        <div className="idleTop"><span>{eventConfig.edition} · {eventConfig.venue.short}</span><b>{hhmm}</b></div>
-        <h1 className="lockup"><span className="fall">FALL</span>ing <em>in</em> Love</h1>
+        <div className="idleTop">
+          <span>{eventConfig.edition} · {eventConfig.venue.short}</span>
+          <div className="clock"><b>{hhmm}</b><small>지금까지 <strong>{arrived ?? "—"}</strong>분 오셨습니다</small></div>
+        </div>
+        <h1 className="lockup"><span className="fall hl">FALL</span>ing <em>in</em> Love</h1>
         <p>{eventConfig.subtitle} · {eventConfig.dateLabel}</p>
         <ol className="timeline">
-          {eventConfig.schedule.map((s) => <li key={s.time} className={hhmm >= s.time ? "done" : ""}><time>{s.time}</time><span>{s.title}</span></li>)}
+          {schedule.map((s, i) => (
+            <li key={s.time} className={i < nowIdx ? "done" : i === nowIdx ? "now" : ""}>
+              <i className="dot" /><time>{s.time}</time><span>{s.title}</span>
+            </li>
+          ))}
         </ol>
-        <div className={`linkDot ${link}`} title={link === "live" ? "실시간 연결" : link === "poll" ? "4초 간격 확인" : "연결 중"}>{link === "live" ? "LIVE" : link === "poll" ? "POLL" : "…"} · {seen}</div>
+        <div className={`linkDot ${link}`} title={link === "live" ? "실시간 연결" : link === "poll" ? "4초 간격 확인" : "연결 중"}>{link === "live" ? "LIVE" : link === "poll" ? "POLL" : "…"}</div>
       </div>
       <div className={`hello ${current ? "on" : ""}`} aria-live="polite">
         {current && (

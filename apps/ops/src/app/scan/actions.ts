@@ -50,3 +50,12 @@ export async function reassignSeats(reservationId: string, seatIds: string[]): P
   if (error) throw new Error(error.message);
   return (data as string | null) ?? null;
 }
+
+/** Admin only (RLS): undo a check-in and free its seats. The party can then be checked in again. */
+export async function voidCheckin(checkinId: string, reservationId: string): Promise<void> {
+  const client = await db();
+  const { error } = await client.from("checkins").update({ voided_at: new Date().toISOString() }).eq("id", checkinId);
+  if (error) throw new Error(error.message);
+  const { error: e2 } = await client.rpc("reassign_seats", { p_reservation_id: reservationId, p_seat_ids: [], p_manual: true });
+  if (e2) throw new Error(e2.message);
+}

@@ -6,7 +6,7 @@ import { eventConfig } from "@fil/config";
 import { buildSeatLayout, clampArrivedCount, needsPriorityFloor, seatLabelFor, suggestSeats } from "@fil/domain";
 import type { CheckinResult, ReservationSummary, SeatMapCell } from "@fil/supabase";
 import { SeatMap } from "@/components/seat-map";
-import { confirmCheckin, loadSeatMap, lookupByPass, reassignSeats, searchReservations } from "./actions";
+import { confirmCheckin, loadSeatMap, lookupByPass, reassignSeats, searchReservations, voidCheckin } from "./actions";
 
 type BarcodeDetectorLike = { detect(source: ImageBitmapSource): Promise<{ rawValue: string }[]> };
 declare global { interface Window { BarcodeDetector?: new (opts?: { formats: string[] }) => BarcodeDetectorLike } }
@@ -28,7 +28,7 @@ const worshipLabel = (r: ReservationSummary) => r.attendance === "worship"
   ? `예배만 · ${eventConfig.worshipServices.find(([c]) => c === String(r.worship_service))?.[1] ?? ""} ${eventConfig.worshipSites.find(([c]) => c === r.worship_site)?.[1] ?? ""}`.trim()
   : null;
 
-export function ScanConsole() {
+export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
   const [station, pickStation] = useStation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ReservationSummary[]>([]);
@@ -178,6 +178,14 @@ export function ScanConsole() {
             </div>
           )}
           <button className="btn gold" onClick={confirm} disabled={busy}>{busy ? "기록 중…" : r.checkin ? "좌석 변경 확정" : "체크인 확정"}</button>
+          {r.checkin && isAdmin && (
+            <button className="btn ghost danger" disabled={busy} onClick={async () => {
+              if (!window.confirm(`${r.applicant_name} 님의 체크인을 취소하고 좌석을 비울까요?`)) return;
+              setBusy(true); setError(null);
+              try { await voidCheckin(r.checkin!.id, r.id); setCurrent(null); setResults([]); setQuery(""); }
+              catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+            }}>체크인 취소 (관리자)</button>
+          )}
           <button className="btn ghost" onClick={() => setCurrent(null)}>취소</button>
           {error && <p className="tiny warn">{error}</p>}
         </section>

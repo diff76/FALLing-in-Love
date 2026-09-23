@@ -24,15 +24,14 @@ export const eventConfig = {
   origin: { name: "창동성전", note: "1층 라운지에서 셔틀이 출발합니다" },
   /** Confirmed running order (v3 brief). Listed in ONE place on the public site. */
   schedule: [
-    { time: "12:00", title: "정원·웰컴 오픈", note: "캠퍼스 투어 시작 · 셔틀 운행", place: "한신 전역" },
-    { time: "12:45", title: "입장 안내 · 좌석 안내", place: "Chapel" },
+    { time: "10:00", title: "정원·웰컴 오픈", note: "캠퍼스 투어 시작 · 셔틀 운행", place: "한신 전역" },
     { time: "13:00", title: "ACT I — 특별예배", note: "40분", place: "Chapel" },
     { time: "13:40", title: "THE TUNING", note: "15분", place: "Chapel" },
     { time: "13:55", title: "ACT II — 실내악 챔버 콘서트", note: "40분", place: "Chapel" },
     { time: "14:35", title: "정원으로 이동", note: "15분", place: "→ Garden" },
     { time: "14:50", title: "GARDEN FINALE — 재즈 · 애프터눈 테이블", note: "60분", place: "Garden" },
     { time: "15:50", title: "클로징 메시지", place: "Garden" },
-    { time: "16:00", title: "ONE MORE SONG · 배웅 · 기념품", place: "Garden" },
+    { time: "16:00", title: "ONE MORE SONG", place: "Garden" },
   ],
   districts: [
     ["11", "11교구"], ["12", "12교구"], ["13", "13교구"], ["14", "14교구"], ["15", "15교구"],
