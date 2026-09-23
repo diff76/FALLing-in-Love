@@ -54,7 +54,7 @@ export const eventConfig = {
     rideMinutes: 18,
   },
   /** Main event vs. worship-only attendance (people who only join one of the services). */
-  attendance: [["main", "메인 행사 참여 (13:00–16:00 · 한신성전)"], ["worship", "예배만 참석 (메인 행사 불참)"]] as const,
+  attendance: [["main", "메인 행사 참여 (13:00–16:00 · 한신성전)"], ["worship", "1~3부 예배만 참석 (메인 행사 불참)"]] as const,
   worshipServices: [["1", "1부 예배"], ["2", "2부 예배"], ["3", "3부 예배"]] as const,
   worshipSites: [["changdong", "창동성전"], ["hanshin", "한신성전"]] as const,
   /** Districts / departments seated on the ground floor near the aisles (easy exit). */

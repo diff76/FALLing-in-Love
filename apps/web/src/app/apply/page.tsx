@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BrandLink } from "@/components/brand-link";
 import { eventConfig } from "@fil/config";
 import { ReservationForm } from "@/components/reservation-form";
 
@@ -7,7 +7,7 @@ export const metadata = { title: "참여 신청" };
 export default function ApplyPage() {
   return (
     <main className="subPage">
-      <header className="subHeader"><Link href="/">← FALLing in Love</Link><span>SIGN UP</span></header>
+      <header className="subHeader"><BrandLink /><span>SIGN UP</span></header>
       <section className="formIntro">
         <p className="eyebrow">{eventConfig.edition}</p>
         <h1>함께하실 분을<br />기다리고 있습니다.</h1>

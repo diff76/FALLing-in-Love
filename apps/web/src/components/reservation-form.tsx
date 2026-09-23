@@ -37,7 +37,7 @@ export function ReservationForm() {
       outboundRun: fd.get("outboundRun") ?? "",
       returnRun: fd.get("returnRun") ?? "",
       vehiclePlate: fd.get("vehiclePlate") ?? "",
-      mobilitySupport: fd.get("mobilitySupport") === "on",
+      mobilitySupport: String(fd.get("mobilityNote") ?? "").trim().length > 0,
       mobilityNote: fd.get("mobilityNote") ?? "",
       dietaryNote: fd.get("dietaryNote") ?? "",
       privacyConsent: fd.get("privacyConsent") === "on",
@@ -163,8 +163,7 @@ export function ReservationForm() {
           <select name="returnRun" defaultValue=""><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t}>{t} 출발</option>)}</select>{err("returnRun")}
         </label>
         <label><span>가리시는 음식 <em>선택</em></span><input name="dietaryNote" placeholder="알레르기, 채식 등" /></label>
-        <label className="checkRow"><input type="checkbox" name="mobilitySupport" /> 계단 대신 우회 동선 안내가 필요합니다</label>
-        <label className="full"><span>미리 알려주실 내용 <em>선택</em></span><textarea name="mobilityNote" placeholder="휠체어, 유모차, 그 외 도움이 필요한 일" /></label>
+        <label className="full"><span>도움이 필요한 내용 <em>선택</em></span><textarea name="mobilityNote" placeholder="휠체어, 유모차, 그 외 미리 알려주실 일" /></label>
       </div>
 
       <label className="consent"><input type="checkbox" name="privacyConsent" required /><span>좌석 배정과 행사 안내를 위한 성함·연락처 수집에 동의합니다. 행사 후 {eventConfig.dataRetentionDays}일 안에 삭제됩니다.<b>필수</b></span></label>

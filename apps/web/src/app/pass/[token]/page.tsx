@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BrandLink } from "@/components/brand-link";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { eventConfig } from "@fil/config";
@@ -42,7 +42,7 @@ export default async function PassPage({ params, searchParams }: { params: Promi
 
   return (
     <main className="passPage">
-      <Link href="/">← FALLing in Love</Link>
+      <BrandLink />
       <div className="passHead">
         <p className="eyebrow">Matinée Pass</p>
         <h1>{issuedCount ? `${issuedCount}명의 사전 참여 신청이 완료되었습니다` : "Matinée Pass"}</h1>
@@ -66,7 +66,7 @@ export default async function PassPage({ params, searchParams }: { params: Promi
             {worship && <span>예배만 참석</span>}
             {pass.has_dietary_note && <span>식이 확인</span>}
             {pass.vehicle_plate && <span>주차</span>}
-            {pass.mobility_support && <span>우회 동선</span>}
+            {pass.mobility_support && <span>도움 요청</span>}
             {pass.return_label && <span>복귀 셔틀</span>}
           </div>
           <div className="qrBox">
