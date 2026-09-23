@@ -248,7 +248,7 @@ function mountScrollWorld(container, config) {
   function ensureBitmaps(s, k) {
     if (!HAS_BITMAP || !s.frames) return;
     const f = s.framesM, fr = s.frames, fwd = s.target >= s.cur;
-    const lo = k - (fwd ? 4 : 14), hi = k + (fwd ? 14 : 4);
+    const lo = k - (fwd ? 2 : 9), hi = k + (fwd ? 9 : 2);   // ≈12 bitmaps ≈ 45 MB at 720×1280
     for (let j = Math.max(0, lo); j <= Math.min(f.count - 1, hi); j++) {
       if (s.bitmaps.has(j) || s.decoding.has(j) || !fr[j]) continue;
       s.decoding.add(j);
@@ -258,7 +258,7 @@ function mountScrollWorld(container, config) {
         s.bitmaps.set(j, bm);
       }).catch(() => s.decoding.delete(j));
     }
-    s.bitmaps.forEach((bm, j) => { if (j < k - 22 || j > k + 30) { bm.close(); s.bitmaps.delete(j); } });
+    s.bitmaps.forEach((bm, j) => { if (j < k - 12 || j > k + 16) { bm.close(); s.bitmaps.delete(j); } });
   }
   function drawFrame(s) {
     const f = s.framesM, fr = s.frames; if (!fr || !s.ready) return;
@@ -402,7 +402,7 @@ function mountScrollWorld(container, config) {
   // film runs on through connector after scene without a hand on the wheel. `programmatic`
   // is the scroll distance we asked for and have not yet seen echoed back as scroll events —
   // those echoes must not count as the reader scrolling.
-  let programmatic = 0, glideAcc = 0, glided = 0, currentIdx = 0, worldActive = false, lastErr = '';
+  let programmatic = 0, glideAcc = 0, glided = 0, currentIdx = 0, worldActive = false, lastErr = '', jumpUntil = 0, jumps = 0;
   const segDurMs = (s) => {
     if (s.frames && s.framesM) return s.framesM.count / (s.framesM.fps || 12) * 1000;
     if (s.video && s.video.duration) return s.video.duration * 1000;
@@ -419,11 +419,23 @@ function mountScrollWorld(container, config) {
       if (scrolling) s.target = clamp(s.target + dy / (s.end - s.start));
       else s.target = clamp(s.target + dt / segDurMs(s));
     }
-    // Idle inside the world: glide the page forward at playback pace (one segment's scroll
-    // length per clip duration) until the last scene has played out.
+    // Idle inside the world: keep the film going.
+    //  - Touch devices: no per-frame page glide (iOS turns 60 programmatic scrolls a second
+    //    into stutter). The clip plays in place; when it ends, ONE native smooth scroll
+    //    carries the page to the next segment, which then plays itself.
+    //  - Pointer devices: glide the page forward at playback pace (one segment's scroll
+    //    length per clip duration) until the last scene has played out.
     if (!scrolling && worldActive && document.visibilityState === 'visible') {
       const s = SEGMENTS[currentIdx];
-      if (s && (currentIdx < NSEG - 1 || s.target < 0.999)) {
+      if (coarse) {
+        if (s && s.target >= 0.999 && currentIdx < NSEG - 1 && now > jumpUntil) {
+          const next = SEGMENTS[currentIdx + 1];
+          // Dives land mid-segment (where the copy peaks); connectors at their start.
+          const at = next.kind === 'dive' ? next.start + (next.end - next.start) * 0.5 : next.start + 2;
+          jumpUntil = now + 1400; programmatic = 0; jumps++;
+          window.scrollTo({ top: base + at, behavior: 'smooth' });
+        }
+      } else if (s && (currentIdx < NSEG - 1 || s.target < 0.999)) {
         glideAcc += (s.end - s.start) * dt / segDurMs(s);
         if (glideAcc >= 1) {   // whole pixels only, so every glide step echoes back as a scroll event
           const step = Math.floor(glideAcc); glideAcc -= step; programmatic += step; glided += step;
@@ -496,7 +508,7 @@ function mountScrollWorld(container, config) {
     });
     const idle = Math.round(performance.now() - lastScrollAt);
     const bm = SEGMENTS.reduce((n, s) => n + (s.bitmaps ? s.bitmaps.size : 0), 0);
-    rows.unshift((idle < IDLE_MS ? 'SCROLL' : 'IDLE') + ' idle:' + (idle > 99999 ? '-' : idle) + 'ms world:' + (worldActive ? 'on' : 'off') + ' seg:' + currentIdx + ' glide:' + glided + 'px rm:' + (reduce ? 'ON' : 'off') + ' bm:' + bm + (lastErr ? ' ERR:' + lastErr : ''));
+    rows.unshift((idle < IDLE_MS ? 'SCROLL' : 'IDLE') + ' idle:' + (idle > 99999 ? '-' : idle) + 'ms world:' + (worldActive ? 'on' : 'off') + ' seg:' + currentIdx + (coarse ? ' jumps:' + jumps : ' glide:' + glided + 'px') + ' rm:' + (reduce ? 'ON' : 'off') + ' bm:' + bm + (lastErr ? ' ERR:' + lastErr : ''));
     hud.textContent = rows.join('\n');
   }
 
@@ -523,7 +535,9 @@ function mountScrollWorld(container, config) {
   window.addEventListener('scroll', () => {
     const y = window.scrollY || window.pageYOffset;
     const dy = y - lastY; lastY = y;
-    if (programmatic > 0.25 && dy > 0 && dy <= programmatic + 1.5) {
+    if (performance.now() < jumpUntil) {
+      // our own segment-to-segment smooth scroll (touch devices) — not the reader
+    } else if (programmatic > 0.25 && dy > 0 && dy <= programmatic + 1.5) {
       programmatic = Math.max(0, programmatic - dy);      // our own glide echoing back
     } else {
       programmatic = 0; pendingDy += dy; lastScrollAt = performance.now();   // the reader
@@ -532,7 +546,7 @@ function mountScrollWorld(container, config) {
   }, { passive: true });
   // Touch/wheel intent counts as "scrolling" immediately, even before the first scroll event,
   // so a finger on the glass stops the glide at once.
-  const onIntent = () => { lastScrollAt = performance.now(); programmatic = 0; };
+  const onIntent = () => { lastScrollAt = performance.now(); programmatic = 0; jumpUntil = 0; };
   window.addEventListener('wheel', onIntent, { passive: true });
   window.addEventListener('touchstart', onIntent, { passive: true });
   window.addEventListener('touchmove', onIntent, { passive: true });
