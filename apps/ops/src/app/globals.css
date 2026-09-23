@@ -257,3 +257,9 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
   .cols, .cols.two { grid-template-columns: 1fr; }
   .scroll { overflow-x: auto; }
 }
+@media (max-width: 860px) {
+  .loginPage { grid-template-columns: 1fr; }
+  .loginHero { padding: 28px 20px 22px; }
+  .loginHero h1.lockup { font-size: clamp(30px, 9.5vw, 60px); }
+  .loginForm { padding: 24px 20px; max-width: none; }
+}
