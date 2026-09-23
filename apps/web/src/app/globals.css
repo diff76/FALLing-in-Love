@@ -229,31 +229,40 @@ img { max-width: 100%; }
   .rv, .sw-root .sw-copy > .swa { opacity: 1; transform: none; transition: none; }
 }
 
-/* ---------- section atmosphere (request 4): drifting colour orbs behind every band ---------- */
-.band, .invitation { position: relative; overflow: hidden; isolation: isolate; }
-.fx { position: absolute; inset: -20% -10%; z-index: -1; pointer-events: none; filter: blur(60px); opacity: .55; }
+/* ---------- section atmosphere: drifting colour orbs, light sweep, scroll parallax ---------- */
+.band, .invitation { position: relative; overflow: hidden; isolation: isolate; --vp: 0; }
+.fx { position: absolute; inset: -25% -15%; z-index: -1; pointer-events: none; filter: blur(42px); opacity: .95; transform: translate3d(0, calc(var(--vp) * -90px), 0); }
 .fx i { position: absolute; border-radius: 50%; will-change: transform; }
-.fx i:nth-child(1) { left: 6%; top: 8%; width: 46vmax; height: 46vmax; background: radial-gradient(circle, rgba(201, 147, 47, .55), transparent 62%); animation: orbA 26s ease-in-out infinite alternate; }
-.fx i:nth-child(2) { right: 2%; top: 30%; width: 40vmax; height: 40vmax; background: radial-gradient(circle, rgba(190, 86, 55, .42), transparent 62%); animation: orbB 31s ease-in-out infinite alternate; }
-.fx i:nth-child(3) { left: 34%; bottom: -10%; width: 38vmax; height: 38vmax; background: radial-gradient(circle, rgba(108, 138, 80, .38), transparent 62%); animation: orbC 37s ease-in-out infinite alternate; }
-.memory .fx { opacity: .5; }
-.memory .fx i:nth-child(1) { background: radial-gradient(circle, rgba(228, 192, 142, .45), transparent 62%); }
-.memory .fx i:nth-child(3) { background: radial-gradient(circle, rgba(190, 86, 55, .35), transparent 62%); }
-@keyframes orbA { from { transform: translate(-6%, -4%) scale(1); } to { transform: translate(14%, 12%) scale(1.18); } }
-@keyframes orbB { from { transform: translate(4%, 8%) scale(1.1); } to { transform: translate(-16%, -10%) scale(.92); } }
-@keyframes orbC { from { transform: translate(0, 6%) scale(.95); } to { transform: translate(12%, -14%) scale(1.15); } }
-/* Reveal gets depth: a soft blur-and-rise instead of a plain fade. Headline rules slide in from the left. */
-.rv { filter: blur(8px); transform: translateY(28px) scale(.985); }
+.fx i:nth-child(1) { left: 4%; top: 6%; width: 52vmax; height: 52vmax; background: radial-gradient(circle, rgba(201, 147, 47, .8), transparent 60%); animation: orbA 22s ease-in-out infinite alternate; }
+.fx i:nth-child(2) { right: 0; top: 26%; width: 46vmax; height: 46vmax; background: radial-gradient(circle, rgba(190, 86, 55, .62), transparent 60%); animation: orbB 27s ease-in-out infinite alternate; }
+.fx i:nth-child(3) { left: 30%; bottom: -14%; width: 44vmax; height: 44vmax; background: radial-gradient(circle, rgba(108, 138, 80, .58), transparent 60%); animation: orbC 33s ease-in-out infinite alternate; }
+.memory .fx i:nth-child(1) { background: radial-gradient(circle, rgba(228, 192, 142, .5), transparent 60%); }
+.memory .fx i:nth-child(2) { background: radial-gradient(circle, rgba(190, 86, 55, .45), transparent 60%); }
+.memory .fx i:nth-child(3) { background: radial-gradient(circle, rgba(108, 138, 80, .35), transparent 60%); }
+@keyframes orbA { from { transform: translate(-10%, -8%) scale(1); } to { transform: translate(22%, 18%) scale(1.25); } }
+@keyframes orbB { from { transform: translate(8%, 12%) scale(1.15); } to { transform: translate(-24%, -16%) scale(.9); } }
+@keyframes orbC { from { transform: translate(-4%, 10%) scale(.9); } to { transform: translate(18%, -22%) scale(1.2); } }
+/* A slow diagonal light sweep crossing each section. */
+.band::after, .invitation::after { content: ""; position: absolute; inset: -40% -60%; z-index: -1; pointer-events: none; background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%); animation: sweep 16s linear infinite; }
+.memory::after { background: linear-gradient(115deg, transparent 40%, rgba(228, 192, 142, .1) 50%, transparent 60%); }
+@keyframes sweep { from { transform: translateX(-35%); } to { transform: translateX(35%); } }
+/* Scroll parallax: copy drifts against the scroll, cards a little more. */
+.band > .wrap, .invitation > * { transform: translate3d(0, calc(var(--vp) * 36px), 0); }
+.songCard, .practicalGrid article { transform: translate3d(0, calc(var(--vp) * 22px), 0); }
+/* Reveal: a clear blur-and-rise instead of a plain fade; cards lift, headline rules draw in, schedule rows cascade. */
+.rv { filter: blur(14px); transform: translateY(44px) scale(.975); transition: opacity 1.1s var(--ease), transform 1.1s var(--ease), filter 1.1s var(--ease); }
 .rv.rv-in { filter: blur(0); }
-.songCard.rv, .practicalGrid article.rv { transform: translateY(34px) scale(.96); }
-.schedule.rv li { opacity: 0; transform: translateX(-14px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+.songCard.rv, .practicalGrid article.rv { transform: translateY(54px) scale(.94); }
+.songCard.rv.rv-in, .practicalGrid article.rv.rv-in { transform: translate3d(0, calc(var(--vp) * 22px), 0); }
+.band > .wrap.rv-in { transform: translate3d(0, calc(var(--vp) * 36px), 0); }
+.schedule.rv li { opacity: 0; transform: translateX(-18px); transition: opacity .6s var(--ease), transform .6s var(--ease); transition-delay: calc(.08s * var(--i, 0)); }
 .schedule.rv-in li { opacity: 1; transform: none; }
-.schedule.rv-in li:nth-child(n) { transition-delay: calc(.08s * var(--i, 0)); }
-.head.rv-in::after { transform: scaleX(1); }
 .head::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 14px; background: var(--persimmon); transform-origin: left; transform: scaleX(0); transition: transform .9s var(--ease) .3s; }
+.head.rv-in::after { transform: scaleX(1); }
 .memory .head::after { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .fx i { animation: none; }
+  .fx i, .band::after, .invitation::after { animation: none; }
+  .fx, .band > .wrap, .invitation > *, .songCard, .practicalGrid article { transform: none; }
   .rv { filter: none; }
   .schedule.rv li { opacity: 1; transform: none; transition: none; }
   .head::after { transform: scaleX(1); transition: none; }

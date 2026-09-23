@@ -378,7 +378,7 @@ function mountScrollWorld(container, config) {
   // film runs on through connector after scene without a hand on the wheel. `programmatic`
   // is the scroll distance we asked for and have not yet seen echoed back as scroll events —
   // those echoes must not count as the reader scrolling.
-  let programmatic = 0, glideAcc = 0, currentIdx = 0, worldActive = false;
+  let programmatic = 0, glideAcc = 0, glided = 0, currentIdx = 0, worldActive = false, lastErr = '';
   const segDurMs = (s) => {
     if (s.frames && s.framesM) return s.framesM.count / (s.framesM.fps || 12) * 1000;
     if (s.video && s.video.duration) return s.video.duration * 1000;
@@ -402,14 +402,22 @@ function mountScrollWorld(container, config) {
       if (s && (currentIdx < NSEG - 1 || s.target < 0.999)) {
         glideAcc += (s.end - s.start) * dt / segDurMs(s);
         if (glideAcc >= 1) {   // whole pixels only, so every glide step echoes back as a scroll event
-          const step = Math.floor(glideAcc); glideAcc -= step; programmatic += step;
-          window.scrollBy({ top: step, left: 0, behavior: 'instant' });   // never the page's smooth-scroll
+          const step = Math.floor(glideAcc); glideAcc -= step; programmatic += step; glided += step;
+          // Never the page's smooth-scroll: 'instant' where supported, else force it via the style.
+          try { window.scrollBy({ top: step, left: 0, behavior: 'instant' }); }
+          catch (e) { const h = document.documentElement, prev = h.style.scrollBehavior; h.style.scrollBehavior = 'auto'; window.scrollBy(0, step); h.style.scrollBehavior = prev; }
         }
       }
     }
   }
 
   function raf() {
+    // One bad frame must never kill the loop (a dead loop = no scrub, no autoplay, forever).
+    try { frame(); } catch (e) { lastErr = String(e && e.message || e).slice(0, 60); }
+    if (hud) { try { drawHud(); } catch (e) {} }
+    requestAnimationFrame(raf);
+  }
+  function frame() {
     const mobile = isMobile();
     const eps = mobile ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
     const now = performance.now();
@@ -448,8 +456,6 @@ function mountScrollWorld(container, config) {
       const step = Math.max(eps, 1 / 24);   // seconds
       if (Math.abs(v.currentTime - t) > step) { try { v.currentTime = t; } catch (e) {} }
     }
-    if (hud) drawHud();
-    requestAnimationFrame(raf);
   }
 
   // Remote diagnostics: open the page with `#swdebug` to get a small overlay listing
@@ -464,6 +470,8 @@ function mountScrollWorld(container, config) {
       const painted = s.el.classList.contains('has-clip') ? '●' : '○';
       return (s.kind === 'dive' ? 'D' : 'c') + String(i).padStart(2) + ' ' + painted + ' ' + st.padEnd(10) + (s.visible ? ' vis ' : '     ') + (s.frames ? ('#' + s.frameIdx) : v ? (v.currentTime).toFixed(2) : '');
     });
+    const idle = Math.round(performance.now() - lastScrollAt);
+    rows.unshift((idle < IDLE_MS ? 'SCROLL' : 'IDLE') + ' idle:' + (idle > 99999 ? '-' : idle) + 'ms world:' + (worldActive ? 'on' : 'off') + ' seg:' + currentIdx + ' glide:' + glided + 'px' + (lastErr ? ' ERR:' + lastErr : ''));
     hud.textContent = rows.join('\n');
   }
 

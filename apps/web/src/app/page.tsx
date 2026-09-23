@@ -3,6 +3,7 @@ import Link from "next/link";
 import { eventConfig } from "@fil/config";
 import { CinematicWorld } from "@/components/cinematic-world";
 import { AfterWorld, Invitation } from "@/components/site-sections";
+import { Parallax } from "@/components/parallax";
 import { heroImage } from "@/config/hero";
 
 export default function HomePage() {
@@ -31,6 +32,7 @@ export default function HomePage() {
       <Invitation />
       <CinematicWorld />
       <AfterWorld />
+      <Parallax />
     </>
   );
 }
