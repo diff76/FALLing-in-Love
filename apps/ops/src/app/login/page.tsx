@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </section>
       <form className="loginForm" action={signIn}>
         <h2>운영진 로그인</h2>
-        <p>스태프 · 데스크 · 관리자 전용 입구입니다.</p>
+        <p>스태프 · 데스크 · 관리자 전용 앱입니다.</p>
         <input type="hidden" name="next" value={sp.next ?? "/"} />
         <label>이메일<input name="email" type="email" autoComplete="email" required disabled={unconfigured} /></label>
         <label>비밀번호<input name="password" type="password" autoComplete="current-password" required disabled={unconfigured} /></label>

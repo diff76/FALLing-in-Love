@@ -177,21 +177,6 @@ img { max-width: 100%; }
 .passHead { text-align: center; }
 .passHead h1 { margin: 10px 0 6px; font-family: var(--font-ko); font-size: clamp(28px, 4vw, 40px); }
 .passHead p { margin: 0; color: var(--ink-soft); }
-.ticket { width: min(100%, 440px); border-radius: 22px; background: linear-gradient(160deg, #FFFDF7, #F6EBD3); border: 1px solid rgba(46, 37, 28, .12); box-shadow: 0 30px 60px rgba(46, 37, 28, .16), inset 0 1px 0 rgba(255,255,255,.7); overflow: hidden; }
-.ticket header { display: flex; justify-content: space-between; padding: 18px 22px; font-size: 11px; letter-spacing: .18em; font-weight: 800; color: var(--ink-soft); border-bottom: 1px dashed var(--line); }
-.ticket header b { color: var(--persimmon); }
-.ticketBody { padding: 24px 22px; display: grid; gap: 18px; }
-.ticketBody h2 { margin: 0; font-family: var(--font-ko); font-size: 28px; }
-.ticketBody .party { margin: 4px 0 0; color: var(--ink-soft); }
-.ticketGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.ticketGrid dt { font-size: 10px; letter-spacing: .18em; color: var(--amber); font-weight: 800; }
-.ticketGrid dd { margin: 3px 0 0; font-weight: 700; }
-.badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.badges span { padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--line); }
-.qrBox { display: grid; justify-items: center; gap: 10px; padding: 18px; background: #fff; border-radius: 16px; }
-.qrBox svg { width: 180px; height: 180px; }
-.qrBox p { margin: 0; text-align: center; font-size: 13px; color: var(--ink-soft); }
-.ticket footer { padding: 14px 22px; text-align: center; font-size: 11px; letter-spacing: .18em; color: var(--ink-soft); border-top: 1px dashed var(--line); }
 .passNote { width: min(100%, 440px); padding: 16px 18px; border-radius: 14px; background: var(--paper-deep); font-size: 15px; }
 .passNote b { display: block; margin-bottom: 4px; }
 
@@ -361,3 +346,51 @@ img { max-width: 100%; }
   .sw-root .sw-brand:hover em { color: var(--amber); }
   .memory .button.ghost:hover { border-color: var(--paper-warm); color: var(--paper-warm); }
 }
+
+/* ---------- Matinée Pass ticket (scallop stub · tear line · double frame · holographic sheen) ---------- */
+@property --sheen { syntax: "<percentage>"; inherits: true; initial-value: 50%; }
+.ticketShell { position: relative; width: min(100%, 440px); perspective: 1000px; animation: ticketIn .62s cubic-bezier(.16, .84, .3, 1) both; }
+.ticket3d { transform-style: preserve-3d; transition: transform .16s ease-out; will-change: transform; }
+.ticket3d.shimmer { animation: sheenIdle 6s ease-in-out infinite; }
+@keyframes sheenIdle { 0%, 100% { --sheen: 32%; } 50% { --sheen: 68%; } }
+@keyframes ticketIn { from { opacity: 0; transform: translateY(30px) scale(.985); } to { opacity: 1; transform: none; } }
+.burst { position: absolute; left: 0; right: 0; top: 0; height: 1px; pointer-events: none; z-index: 9; }
+.burst i { position: absolute; left: 50%; top: 60px; border-radius: 1px; opacity: 0; animation: burstOut 1.5s cubic-bezier(.15, .7, .35, 1) forwards; }
+@keyframes burstOut { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 12% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); } }
+.scallop { height: 10px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'><path d='M0 10 V4.5 A10 10 0 0 1 20 4.5 V10 Z' fill='%23FFFDF7'/></svg>"); background-size: 20px 10px; background-repeat: repeat-x; }
+.ticket { position: relative; overflow: hidden; border-radius: 0 0 6px 6px; background: #FFFDF7; box-shadow: 0 26px 48px -28px rgba(46, 37, 28, .55), 0 2px 0 rgba(255,255,255,.7) inset; }
+.ticket::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(112deg, rgba(255,255,255,0) 18%, rgba(201,147,47,.22) 34%, rgba(190,86,55,.14) 44%, rgba(108,138,80,.15) 53%, rgba(201,147,47,.20) 62%, rgba(255,255,255,0) 80%);
+  background-size: 280% 100%; background-position: var(--sheen, 50%) 0; transition: background-position .14s linear; }
+.tIn { position: relative; z-index: 2; }
+.tStub { padding: 16px 20px 12px; text-align: center; }
+.tNo { font-family: ui-monospace, "IBM Plex Mono", Menlo, monospace; font-size: 12.5px; letter-spacing: .2em; color: var(--ink); }
+.tPill { display: inline-block; margin-top: 8px; padding: 5px 17px; border-radius: 99px; background: linear-gradient(135deg, #E4C08E, var(--amber)); color: #fff; font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .24em; }
+.tear { position: relative; height: 24px; }
+.tear::before { content: ""; position: absolute; left: 14px; right: 14px; top: 50%; border-top: 2px dashed rgba(46, 37, 28, .2); }
+.tear span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #FFFDF7; padding: 0 11px; font-family: ui-monospace, Menlo, monospace; font-size: 9px; letter-spacing: .24em; color: var(--ink-soft); z-index: 3; }
+.tear i { position: absolute; top: 50%; width: 20px; height: 20px; border-radius: 50%; background: var(--paper); transform: translateY(-50%); }
+.tear i.l { left: -10px; } .tear i.r { right: -10px; }
+.tBody { padding: 2px 16px 18px; }
+.tFrame { position: relative; padding: 18px 16px; border: 1px solid rgba(201, 147, 47, .45); border-radius: 4px; }
+.tFrame::before { content: ""; position: absolute; inset: 4px; border: 1px solid rgba(201, 147, 47, .22); border-radius: 2px; pointer-events: none; }
+.tName { margin: 0; font-family: var(--font-ko); font-size: 24px; font-weight: 700; text-align: center; line-height: 1.3; }
+.tParty { margin: 4px 0 0; text-align: center; font-size: 12.5px; color: var(--ink-soft); }
+.tGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin: 18px 0 0; }
+.tGrid dt { font-family: ui-monospace, Menlo, monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); margin-bottom: 3px; }
+.tGrid dd { margin: 0; font-size: 14px; font-weight: 600; }
+.tBadges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+.badge { font-family: ui-monospace, Menlo, monospace; font-size: 10px; padding: 4px 9px; border-radius: 99px; border: 1px solid; }
+.badge.diet { color: #7A2E1D; border-color: rgba(163, 59, 42, .35); background: rgba(163, 59, 42, .07); }
+.badge.park { color: #8C6239; border-color: rgba(140, 98, 62, .35); background: rgba(140, 98, 62, .07); }
+.badge.acc { color: var(--pine); border-color: rgba(94, 110, 74, .4); background: rgba(94, 110, 74, .08); }
+.badge.ret { color: var(--amber); border-color: rgba(201, 147, 47, .35); background: rgba(201, 147, 47, .07); }
+.badge.plain { color: var(--ink-soft); border-color: var(--line); }
+.tQr { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
+.tQr .qr { width: 136px; height: 136px; padding: 6px; background: #fff; border-radius: 3px; box-shadow: 0 0 0 1px rgba(201, 147, 47, .35); }
+.tQr .qr svg { width: 100%; height: 100%; display: block; }
+.tQr p { margin: 11px 0 0; max-width: 270px; font-size: 12px; line-height: 1.6; text-align: center; color: var(--ink-soft); }
+.tFoot { position: relative; z-index: 2; padding: 12px 0 16px; text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; letter-spacing: .16em; color: var(--ink-soft); }
+.tiltBtn { margin: 0 auto; padding: 8px 16px; border-radius: 99px; border: 1px solid var(--line); background: transparent; font: inherit; font-size: 12.5px; color: var(--ink-soft); cursor: pointer; }
+.tiltOn { margin: 0; font-size: 12.5px; color: var(--ink-soft); }
+@media (prefers-reduced-motion: reduce) { .ticketShell { animation: none; } .ticket3d { transition: none; } .ticket3d.shimmer { animation: none; } .burst i { display: none; } }

@@ -121,7 +121,7 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
   .loginPage { grid-template-columns: 1fr; } .loginHero { padding: 40px 28px 20px; }
   .opsShell { grid-template-columns: 1fr; }
   .opsShell aside { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 18px; gap: 10px; }
-  .opsShell aside strong { font-size: 20px; } .opsShell aside > span, .who { display: none; }
+  .opsShell aside strong, .opsShell aside strong.lockup { font-size: 20px; } .opsShell aside > span, .who { display: none; }
   .opsShell nav { display: flex; margin: 0; overflow-x: auto; } .opsShell nav a { padding: 8px 10px; font-size: 14px; white-space: nowrap; }
   .logout { width: auto; padding: 8px 12px; font-size: 13px; }
   .opsMain { padding: 18px 16px 80px; }
@@ -148,7 +148,6 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
 .seatMap.compact .seat, .seatMap.compact .gap { width: 18px; height: 18px; font-size: 8px; }
 .seatMap .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12px; color: var(--ink-soft); }
 .seatMap .legend i { display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: middle; }
-@media (max-width: 720px) { .seatMap .row { gap: 6px; } .seatMap .block { gap: 2px; } .seatMap.compact .seat, .seatMap.compact .gap { width: 13px; height: 13px; font-size: 0; } }
 
 /* ---------- parking desk ---------- */
 .parking { display: grid; gap: 14px; }
@@ -221,14 +220,40 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
 @media (max-width: 900px) { .cols.two { grid-template-columns: 1fr; } }
 
 /* ---------- brand lockup: FALL 800 · ing 600 · in italic persimmon · Love 600 (Syne) ---------- */
-.lockup { font-family: var(--font-syne), "Syne", system-ui, sans-serif; font-weight: 600; letter-spacing: -.04em; line-height: 1; white-space: nowrap; }
-.lockup .fall { font-weight: 800; }
-.lockup em { font-style: italic; font-weight: 400; color: #BE5637; }
+.lockup, .opsShell aside strong.lockup, .loginHero h1.lockup, .display .idle h1.lockup { font-family: var(--font-syne), "Syne", system-ui, sans-serif; font-weight: 600; font-variant: normal; text-transform: none; letter-spacing: -.04em; line-height: 1; white-space: nowrap; }
+.lockup .fall, .opsShell aside strong.lockup .fall, .loginHero h1.lockup .fall, .display .idle h1.lockup .fall { font-weight: 800; font-size: inherit; font-family: inherit; }
+.lockup em, .opsShell aside strong.lockup em, .loginHero h1.lockup em, .loginHero em.lockupEm, .display .idle h1.lockup em { font-style: italic; font-weight: 400; font-family: inherit; color: #BE5637; }
 .opsShell aside strong.lockup { font-size: 24px; }
-.loginHero h1.lockup { font-size: clamp(44px, 6.5vw, 88px); }
+.loginHero h1.lockup { font-size: clamp(40px, 6vw, 84px); }
 .display .idle h1.lockup { font-size: 9vh; letter-spacing: -.045em; }
-.display .idle h1.lockup em { color: #BE5637; }
 .tag.same { display: inline-flex; gap: 6px; align-items: center; color: var(--gold); border-color: rgba(224,166,74,.5); cursor: pointer; }
 .list li.skipped span { color: var(--brick); }
 .display .linkDot { position: absolute; right: 2vw; bottom: 2vh; font-size: 1.6vh; letter-spacing: .14em; color: rgba(46,37,28,.35); }
 .display .linkDot.live { color: rgba(108,138,80,.8); }
+
+/* ---------- phones: nothing wider than the screen (except the seat chart, which scrolls inside its box) ---------- */
+@media (max-width: 860px) {
+  html, body { overflow-x: hidden; }
+  .opsShell { grid-template-columns: 1fr; width: 100%; }
+  .opsShell aside { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 14px; }
+  .opsShell nav { margin: 0; display: flex; gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .opsShell nav::-webkit-scrollbar { display: none; }
+  .opsShell nav a { padding: 9px 12px; font-size: 13px; white-space: nowrap; }
+  .opsShell aside form { margin: 0; } .logout { width: auto; padding: 8px 10px; font-size: 12px; }
+  .opsMain { padding: 16px 14px 90px; max-width: 100%; min-width: 0; }
+  .opsMain header h1 { font-size: 22px; }
+  .stations button { padding: 10px 4px; font-size: 12px; }
+  .result header h2 { font-size: 22px; }
+  .kv { margin: 10px 14px 0; }
+  .seatPick { margin: 12px 14px 0; padding: 10px; }
+  .seatMap { overflow-x: auto; overflow-y: hidden; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+  .seatMap .floor, .seatMap .row { width: max-content; }
+  .seatMap .stage { position: sticky; left: 0; }
+  .seatMap.compact .seat, .seatMap.compact .gap { width: 26px; height: 26px; font-size: 10px; }
+  .seatMap .block { gap: 3px; } .seatMap .row { gap: 8px; }
+  .seatMap .legend { position: sticky; left: 0; }
+  .seatPick::after { content: "좌석표는 좌우로 밀어 볼 수 있습니다"; display: block; margin-top: 6px; font-size: 12px; color: var(--ink-soft); }
+  .metricGrid { grid-template-columns: 1fr 1fr; }
+  .cols, .cols.two { grid-template-columns: 1fr; }
+  .scroll { overflow-x: auto; }
+}
