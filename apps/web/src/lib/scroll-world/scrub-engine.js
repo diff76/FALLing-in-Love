@@ -218,6 +218,7 @@ function mountScrollWorld(container, config) {
     cv.width = 2; cv.height = 2;   // resized to the first decoded frame
     s.el.appendChild(cv); s.canvas = cv; s.ctx = cv.getContext('2d');
     s.frames = new Array(f.count).fill(null); s.frameIdx = -1; s.loadedCount = 0; s.hasClip = true;
+    s.bitmaps = new Map(); s.decoding = new Set();   // decode-ahead ring (see ensureBitmaps)
     // Fetch in order, a few at a time — the first frames matter most (the scene fades
     // in on frame ~0), and a phone radio prefers a short queue to 96 parallel requests.
     const pad = (n) => String(n).padStart(3, '0');
@@ -239,19 +240,42 @@ function mountScrollWorld(container, config) {
     };
     pump();
   }
+  // Decoding a 720×1280 WebP on the main thread costs a phone 15–30 ms — at 15 fps that is
+  // the "lag" you feel during autoplay. So frames around the playhead are decoded AHEAD,
+  // off the main thread, into ImageBitmaps (a GPU blit to draw); the ring follows the
+  // playback direction and evicts what falls behind. Missing bitmap → sync decode fallback.
+  const HAS_BITMAP = typeof createImageBitmap === 'function';
+  function ensureBitmaps(s, k) {
+    if (!HAS_BITMAP || !s.frames) return;
+    const f = s.framesM, fr = s.frames, fwd = s.target >= s.cur;
+    const lo = k - (fwd ? 4 : 14), hi = k + (fwd ? 14 : 4);
+    for (let j = Math.max(0, lo); j <= Math.min(f.count - 1, hi); j++) {
+      if (s.bitmaps.has(j) || s.decoding.has(j) || !fr[j]) continue;
+      s.decoding.add(j);
+      createImageBitmap(fr[j]).then((bm) => {
+        s.decoding.delete(j);
+        if (!s.frames || s.frames !== fr) { bm.close(); return; }   // segment was unloaded meanwhile
+        s.bitmaps.set(j, bm);
+      }).catch(() => s.decoding.delete(j));
+    }
+    s.bitmaps.forEach((bm, j) => { if (j < k - 22 || j > k + 30) { bm.close(); s.bitmaps.delete(j); } });
+  }
   function drawFrame(s) {
     const f = s.framesM, fr = s.frames; if (!fr || !s.ready) return;
     let k = Math.round(clamp(s.cur, 0, 0.999) * (f.count - 1));
+    ensureBitmaps(s, k);
     // Nearest loaded frame at or below the target, so a still-loading tail never
     // freezes the scene on a blank canvas.
     let j = k; while (j >= 0 && !fr[j]) j--;
     if (j < 0) { j = k; while (j < f.count && !fr[j]) j++; if (j >= f.count) return; }
     if (j === s.frameIdx) return;
-    s.ctx.drawImage(fr[j], 0, 0, s.canvas.width, s.canvas.height); s.frameIdx = j;
+    const src = (s.bitmaps && s.bitmaps.get(j)) || fr[j];
+    s.ctx.drawImage(src, 0, 0, s.canvas.width, s.canvas.height); s.frameIdx = j;
     if (!s.el.classList.contains('has-clip')) s.el.classList.add('has-clip');
   }
   function unloadFrames(s) {
     if (!s.frames) return;
+    if (s.bitmaps) { s.bitmaps.forEach((bm) => { try { bm.close(); } catch (e) {} }); s.bitmaps = null; s.decoding = null; }
     s.frames = null; s.loadedCount = 0; s.frameIdx = -1;
     if (s.canvas && s.canvas.parentNode) s.canvas.parentNode.removeChild(s.canvas);
     s.canvas = null; s.ctx = null; s.el.classList.remove('has-clip');
@@ -260,9 +284,9 @@ function mountScrollWorld(container, config) {
 
   function loadClip(s) {
     if (useFrames(s)) { loadFrames(s); return; }
-    // Under prefers-reduced-motion we never load the clips at all — the stills stay up
-    // and simply cross-dissolve as you scroll. No scrubbed video motion, no decode cost.
-    if (reduce || s.loading || !s.clip) return;
+    // prefers-reduced-motion no longer blanks the film: the clips still load and follow the
+    // scroll (the reader is in control); only autoplay/glide and the ambient motion are off.
+    if (s.loading || !s.clip) return;
     s.loading = true;
     // Serve the lighter mobile encode on phones when one was provided.
     const url = (isMobile() && s.clipM) ? s.clipM : s.clip;
@@ -471,7 +495,8 @@ function mountScrollWorld(container, config) {
       return (s.kind === 'dive' ? 'D' : 'c') + String(i).padStart(2) + ' ' + painted + ' ' + st.padEnd(10) + (s.visible ? ' vis ' : '     ') + (s.frames ? ('#' + s.frameIdx) : v ? (v.currentTime).toFixed(2) : '');
     });
     const idle = Math.round(performance.now() - lastScrollAt);
-    rows.unshift((idle < IDLE_MS ? 'SCROLL' : 'IDLE') + ' idle:' + (idle > 99999 ? '-' : idle) + 'ms world:' + (worldActive ? 'on' : 'off') + ' seg:' + currentIdx + ' glide:' + glided + 'px' + (lastErr ? ' ERR:' + lastErr : ''));
+    const bm = SEGMENTS.reduce((n, s) => n + (s.bitmaps ? s.bitmaps.size : 0), 0);
+    rows.unshift((idle < IDLE_MS ? 'SCROLL' : 'IDLE') + ' idle:' + (idle > 99999 ? '-' : idle) + 'ms world:' + (worldActive ? 'on' : 'off') + ' seg:' + currentIdx + ' glide:' + glided + 'px rm:' + (reduce ? 'ON' : 'off') + ' bm:' + bm + (lastErr ? ' ERR:' + lastErr : ''));
     hud.textContent = rows.join('\n');
   }
 

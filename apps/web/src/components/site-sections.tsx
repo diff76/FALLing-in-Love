@@ -4,8 +4,18 @@ import { eventConfig } from "@fil/config";
 import { Reveal } from "./reveal";
 import { Clauses } from "./clauses";
 
-/** Animated background layer for a section: three slow-drifting colour orbs (CSS only). */
-const Fx = () => <div className="fx" aria-hidden="true"><i /><i /><i /></div>;
+const LEAF = "M12 2C7 4 3 9 3 15c0 3 2 6 5 7 4-2 9-5 12-11C18 6 15 3 12 2z";
+/** Animated background for a section: three drifting colour orbs plus a fall of autumn leaves (CSS only). */
+const Fx = () => (
+  <div className="fx" aria-hidden="true">
+    <i /><i /><i />
+    <div className="leaves">
+      {Array.from({ length: 10 }, (_, i) => (
+        <svg key={i} viewBox="0 0 24 24" className={`leaf l${i}`}><path d={LEAF} /></svg>
+      ))}
+    </div>
+  </div>
+);
 
 const songCards = [
   { hint: "이 선율, 어디선가 들으셨을 겁니다.", title: "영화 속의 그 곡", body: "선곡이 확정되면 이 자리에서 이야기가 열립니다." },
