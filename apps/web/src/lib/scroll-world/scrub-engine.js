@@ -316,7 +316,9 @@ function mountScrollWorld(container, config) {
       if (y > s.start - LOAD_VH * vh && y < s.end + LOAD_VH * vh) loadClip(s);
       else if (mobile && (s.video || s.frames) && (y < s.start - UNLOAD_VH * vh || y > s.end + UNLOAD_VH * vh)) unloadClip(s);
       const local = clamp((y - s.start) / (s.end - s.start), 0, 1);
-      s.target = s.linger ? lingerEase(local, s.linger) : local;
+      // Reduced motion keeps the pure scroll→time mapping. Otherwise the playhead lives in
+      // raf(): it auto-plays while the segment is on screen and scroll only nudges it.
+      if (reduce) s.target = s.linger ? lingerEase(local, s.linger) : local;
       let outside = 0;
       if (y < s.start) outside = s.start - y; else if (y > s.end) outside = y - s.end;
       const op = smooth(1 - outside / fade);
@@ -360,10 +362,37 @@ function mountScrollWorld(container, config) {
     ticking = false;
   }
 
+  // ---- playhead: auto-play + scroll nudges ----
+  // Each on-screen segment plays itself at 1× (its clip's real duration) and holds on the
+  // last frame. While the reader scrolls, autoplay pauses and the playhead follows the
+  // scroll instead: down = forward, up = backward, faster scroll = faster playback (one
+  // segment's scroll length still equals one full clip, like a pure scrub). One second
+  // after the last scroll event, autoplay resumes from wherever the playhead is.
+  const IDLE_MS = 1000;
+  let lastScrollAt = -1e9, lastY = window.scrollY || window.pageYOffset, pendingDy = 0, prevT = 0;
+  const segDurMs = (s) => {
+    if (s.frames && s.framesM) return s.framesM.count / (s.framesM.fps || 12) * 1000;
+    if (s.video && s.video.duration) return s.video.duration * 1000;
+    return s.kind === 'dive' ? 8000 : 5000;
+  };
+  function advance(now) {
+    if (reduce) return;
+    const dt = prevT ? Math.min(now - prevT, 100) : 0; prevT = now;
+    const scrolling = now - lastScrollAt < IDLE_MS;
+    const dy = pendingDy; pendingDy = 0;
+    for (let i = 0; i < NSEG; i++) {
+      const s = SEGMENTS[i];
+      if (!s.visible) continue;
+      if (scrolling) s.target = clamp(s.target + dy / (s.end - s.start));
+      else s.target = clamp(s.target + dt / segDurMs(s));
+    }
+  }
+
   function raf() {
     const mobile = isMobile();
     const eps = mobile ? 0.02 : 0.008;   // coarser seek step on phones = fewer decodes
     const now = performance.now();
+    advance(now);
     for (let i = 0; i < NSEG; i++) {
       const s = SEGMENTS[i];
       if (s.frames) {   // image-sequence segment: pick a frame, draw it, done
@@ -393,7 +422,10 @@ function mountScrollWorld(container, config) {
       s.cur += (s.target - s.cur) * (reduce ? 1 : 0.18);
       const dur = v.duration || 1;
       const t = clamp(s.cur, 0, 0.999) * dur;
-      if (Math.abs(v.currentTime - t) > eps) { try { v.currentTime = t; } catch (e) {} }
+      // While auto-playing, step at the clip's own frame cadence (24 fps) so the seeks
+      // read as playback rather than a jittery scrub.
+      const step = Math.max(eps, 1 / 24);   // seconds
+      if (Math.abs(v.currentTime - t) > step) { try { v.currentTime = t; } catch (e) {} }
     }
     if (hud) drawHud();
     requestAnimationFrame(raf);
@@ -434,7 +466,11 @@ function mountScrollWorld(container, config) {
 
   // Particles are a per-frame cost we can't afford alongside video scrubbing on a phone.
   seedParticles(particles, reduce || coarse);
-  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(read); } }, { passive: true });
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || window.pageYOffset;
+    pendingDy += y - lastY; lastY = y; lastScrollAt = performance.now();
+    if (!ticking) { ticking = true; requestAnimationFrame(read); }
+  }, { passive: true });
   // Mobile browsers fire `resize` every time the URL bar slides in/out. Re-running
   // layout() there rebuilds the track height and yanks the scroll position, so on
   // touch we ignore height-only changes and only relayout when the width actually

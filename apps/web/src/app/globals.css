@@ -12,7 +12,11 @@
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.75; -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: break-word; }
+/* Wrap units: a clause / sentence moves to the next line whole; only a unit wider than the line wraps inside itself. */
+.clause, .sent { display: inline-block; max-width: 100%; }
+p, .lede, .invitationText, blockquote { text-wrap: pretty; }
+.head, h1, h2, h3 { text-wrap: balance; }
 a { color: inherit; }
 img { max-width: 100%; }
 .eyebrow { margin: 0 0 18px; color: var(--persimmon); font-size: 12px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
@@ -223,4 +227,34 @@ img { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .heroReveal > *, .heroReveal h1 .line, .scrollCue { animation: none; opacity: 1; transform: none; }
   .rv, .sw-root .sw-copy > .swa { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------- section atmosphere (request 4): drifting colour orbs behind every band ---------- */
+.band, .invitation { position: relative; overflow: hidden; isolation: isolate; }
+.fx { position: absolute; inset: -20% -10%; z-index: -1; pointer-events: none; filter: blur(60px); opacity: .55; }
+.fx i { position: absolute; border-radius: 50%; will-change: transform; }
+.fx i:nth-child(1) { left: 6%; top: 8%; width: 46vmax; height: 46vmax; background: radial-gradient(circle, rgba(201, 147, 47, .55), transparent 62%); animation: orbA 26s ease-in-out infinite alternate; }
+.fx i:nth-child(2) { right: 2%; top: 30%; width: 40vmax; height: 40vmax; background: radial-gradient(circle, rgba(190, 86, 55, .42), transparent 62%); animation: orbB 31s ease-in-out infinite alternate; }
+.fx i:nth-child(3) { left: 34%; bottom: -10%; width: 38vmax; height: 38vmax; background: radial-gradient(circle, rgba(108, 138, 80, .38), transparent 62%); animation: orbC 37s ease-in-out infinite alternate; }
+.memory .fx { opacity: .5; }
+.memory .fx i:nth-child(1) { background: radial-gradient(circle, rgba(228, 192, 142, .45), transparent 62%); }
+.memory .fx i:nth-child(3) { background: radial-gradient(circle, rgba(190, 86, 55, .35), transparent 62%); }
+@keyframes orbA { from { transform: translate(-6%, -4%) scale(1); } to { transform: translate(14%, 12%) scale(1.18); } }
+@keyframes orbB { from { transform: translate(4%, 8%) scale(1.1); } to { transform: translate(-16%, -10%) scale(.92); } }
+@keyframes orbC { from { transform: translate(0, 6%) scale(.95); } to { transform: translate(12%, -14%) scale(1.15); } }
+/* Reveal gets depth: a soft blur-and-rise instead of a plain fade. Headline rules slide in from the left. */
+.rv { filter: blur(8px); transform: translateY(28px) scale(.985); }
+.rv.rv-in { filter: blur(0); }
+.songCard.rv, .practicalGrid article.rv { transform: translateY(34px) scale(.96); }
+.schedule.rv li { opacity: 0; transform: translateX(-14px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+.schedule.rv-in li { opacity: 1; transform: none; }
+.schedule.rv-in li:nth-child(n) { transition-delay: calc(.08s * var(--i, 0)); }
+.head.rv-in::after { transform: scaleX(1); }
+.head::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 14px; background: var(--persimmon); transform-origin: left; transform: scaleX(0); transition: transform .9s var(--ease) .3s; }
+.memory .head::after { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .fx i { animation: none; }
+  .rv { filter: none; }
+  .schedule.rv li { opacity: 1; transform: none; transition: none; }
+  .head::after { transform: scaleX(1); transition: none; }
 }

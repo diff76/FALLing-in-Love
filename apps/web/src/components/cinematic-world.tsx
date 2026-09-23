@@ -25,12 +25,29 @@ function dressBrand(host: HTMLElement) {
   });
 }
 
-/** One sentence per line in scene bodies (the engine escapes HTML, so we split the text after mount). */
-function breakSentences(host: HTMLElement) {
+/**
+ * Line-break hygiene for the scene copy (the engine escapes HTML, so we restructure after mount).
+ * Titles: each sentence becomes an unbreakable unit — a sentence that does not fit drops to the
+ * next line whole ("The Day Is Over." / "The Playlist Isn't.") instead of splitting mid-sentence.
+ * Bodies: one sentence per line, and within a sentence each comma-clause is a unit, so wraps
+ * land on commas or sentence ends rather than in the middle of a phrase.
+ */
+function shapeSceneCopy(host: HTMLElement) {
+  const unit = (text: string, cls: string) => { const s = document.createElement("span"); s.className = cls; s.textContent = text; return s; };
+  host.querySelectorAll<HTMLElement>(".sw-copy__title").forEach((el) => {
+    if (el.classList.contains("lockup")) return;
+    const sentences = (el.textContent ?? "").split(/(?<=[.!?…])\s+/).filter(Boolean);
+    el.replaceChildren(...sentences.flatMap((p, i) => (i ? [document.createTextNode(" "), unit(p, "sent")] : [unit(p, "sent")])));
+  });
   host.querySelectorAll<HTMLElement>(".sw-copy__body").forEach((el) => {
-    const parts = (el.textContent ?? "").split(/(?<=[.!?…])\s+/).filter(Boolean);
-    if (parts.length < 2) return;
-    el.replaceChildren(...parts.flatMap((p, i) => (i ? [document.createElement("br"), document.createTextNode(p)] : [document.createTextNode(p)])));
+    const sentences = (el.textContent ?? "").split(/(?<=[.!?…])\s+/).filter(Boolean);
+    const nodes: Node[] = [];
+    sentences.forEach((sentence, i) => {
+      if (i) nodes.push(document.createElement("br"));
+      const clauses = sentence.split(/(?<=[,、，])\s+/).filter(Boolean);
+      clauses.forEach((c, j) => { if (j) nodes.push(document.createTextNode(" ")); nodes.push(unit(c, "clause")); });
+    });
+    el.replaceChildren(...nodes);
   });
 }
 
@@ -100,7 +117,7 @@ export function CinematicWorld() {
       };
       mountScrollWorld(host, config);
       dressBrand(host);
-      breakSentences(host);
+      shapeSceneCopy(host);
       animateSceneCopy(host);
     }).catch((error) => console.error("scroll-world failed to mount", error));
     return () => {
