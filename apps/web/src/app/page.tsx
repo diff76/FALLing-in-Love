@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="overtureWash" aria-hidden="true" />
         <header className="topbar">
           <span className="brand">{eventConfig.edition}</span>
-          <Link className="topCta" href="/apply">좌석 예약</Link>
+          <Link className="topCta" href="/apply">참여 신청</Link>
         </header>
         <div className="overtureCopy heroReveal">
           <p className="eyebrow light">Chamber Concert &amp; Garden Party</p>

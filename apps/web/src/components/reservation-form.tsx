@@ -142,7 +142,7 @@ export function ReservationForm() {
       {err("privacyConsent")}
       <label className="consent"><input type="checkbox" name="contactConsent" /><span>행사 후 플레이리스트와 사진, 다음 소식을 받아보겠습니다.<b className="opt">선택</b></span></label>
 
-      <button className="submitButton" type="submit" disabled={busy}>{busy ? "자리를 마련하는 중…" : "좌석 예약하기 →"}</button>
+      <button className="submitButton" type="submit" disabled={busy}>{busy ? "자리를 마련하는 중…" : "참여 신청하기 →"}</button>
       {message && <p className={`formMessage ${message.kind === "error" ? "error" : ""}`} role="status">{message.text}</p>}
     </form>
   );

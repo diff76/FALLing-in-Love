@@ -85,7 +85,7 @@ export function CinematicWorld() {
       if (cancelled) return;
       const config: ScrollWorldConfig = {
         brand: { name: "FALLing in Love", href: "#top" },
-        cta: { label: "좌석 예약", href: "/apply" },
+        cta: { label: "참여 신청", href: "/apply" },
         hint: "스크롤해서 하루를 따라가 보세요",
         nav: true,
         atmosphere: true,
@@ -108,7 +108,7 @@ export function CinematicWorld() {
           body: s.body,
           tags: s.tags,
           cta: i === scenes.length - 1
-            ? { primary: { label: "좌석 예약하기", href: "/apply" }, secondary: { label: "One More Song 미리 보기", href: "/one-more-song" } }
+            ? { primary: { label: "참여 신청하기", href: "/apply" }, secondary: { label: "One More Song 미리 보기", href: "/one-more-song" } }
             : undefined,
         })),
         connectors: connectors.slice(0, scenes.length - 1),

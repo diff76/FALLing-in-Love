@@ -98,7 +98,7 @@ export function AfterWorld() {
             <p className="eyebrow">Sunday, October 11</p>
             <h2 className="head">하루의 리듬</h2>
             <p className="lede"><Clauses text={"정오의 밝은 빛에서 시작해 오후 네 시의 낮은 금빛으로 마무리됩니다. 시각은 이 표에만 적어 두었습니다."} /></p>
-            <Link className="button primary" href="/apply">좌석 예약하기 <span aria-hidden="true">→</span></Link>
+            <Link className="button primary" href="/apply">참여 신청하기 <span aria-hidden="true">→</span></Link>
           </div>
           <ol className="schedule">
             {eventConfig.schedule.map((s, i) => (
@@ -117,7 +117,7 @@ export function AfterWorld() {
           <h2 className="head">알아두시면 좋은 것들</h2>
           <div className="practicalGrid">
             <article><span>01</span><h3>오시는 길</h3><p>{eventConfig.venue.name}<br />{eventConfig.venue.address}</p></article>
-            <article><span>02</span><h3>셔틀</h3><p>{eventConfig.origin.name} {eventConfig.origin.note}. 정확한 시각은 좌석 예약 후 Matinée Pass에 담아 안내드립니다.</p></article>
+            <article><span>02</span><h3>셔틀</h3><p>{eventConfig.origin.name} {eventConfig.origin.note}. 정확한 시각은 참여 신청 후 Matinée Pass에 담아 안내드립니다.</p></article>
             <article><span>03</span><h3>편안한 하루</h3><p><Clauses text="야외 정원 시간이 있어 걷기 편한 신발을 권해드립니다. 짧은 숲 계단 대신 이용할 수 있는 우회 동선도 준비합니다." /></p></article>
             <article><span>04</span><h3>개인정보</h3><p>좌석 배정과 안내를 위해 성함과 연락처만 받습니다. 행사 후 {eventConfig.dataRetentionDays}일 안에 모두 삭제합니다.</p></article>
           </div>
@@ -141,7 +141,7 @@ export function AfterWorld() {
         <div><strong>FALLing in Love</strong><span>{eventConfig.edition} · {eventConfig.host}</span></div>
         <p>{eventConfig.dateLabel} · {eventConfig.venue.short} Chapel &amp; Garden</p>
       </footer>
-      <Link className="stickyApply" href="/apply">좌석 예약</Link>
+      <Link className="stickyApply" href="/apply">참여 신청</Link>
     </main>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { eventConfig } from "@fil/config";
 import { ReservationForm } from "@/components/reservation-form";
 
-export const metadata = { title: "좌석 예약" };
+export const metadata = { title: "참여 신청" };
 
 export default function ApplyPage() {
   return (
