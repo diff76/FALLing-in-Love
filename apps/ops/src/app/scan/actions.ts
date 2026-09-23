@@ -1,7 +1,7 @@
 "use server";
 
 import { hashPassToken, isPassTokenShape } from "@fil/domain";
-import type { CheckinResult, ReservationSummary } from "@fil/supabase";
+import type { CheckinResult, ReservationSummary, SeatMapCell } from "@fil/supabase";
 import { supabaseServer } from "@/lib/supabase-server";
 
 async function db() {
@@ -25,11 +25,28 @@ export async function lookupByPass(scanned: string): Promise<ReservationSummary 
   return (data as ReservationSummary | null) ?? null;
 }
 
-export async function confirmCheckin(input: { reservationId: string; stationCode: string; arrivedCount: number; method: "qr" | "manual"; distributions: Record<string, number> }): Promise<CheckinResult> {
+/** The whole chart with current assignments — refreshed every time a party is opened. */
+export async function loadSeatMap(): Promise<SeatMapCell[]> {
+  const { data, error } = await (await db()).rpc("seat_map");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as SeatMapCell[];
+}
+
+export async function confirmCheckin(input: {
+  reservationId: string; stationCode: string; arrivedCount: number; method: "qr" | "manual";
+  distributions: Record<string, number>; seatIds: string[]; manual: boolean;
+}): Promise<CheckinResult> {
   const { data, error } = await (await db()).rpc("perform_checkin", {
     p_reservation_id: input.reservationId, p_station_code: input.stationCode, p_arrived_count: input.arrivedCount,
-    p_method: input.method, p_distributions: input.distributions,
+    p_method: input.method, p_distributions: input.distributions, p_seat_ids: input.seatIds, p_manual: input.manual,
   });
   if (error) throw new Error(error.message);
   return data as CheckinResult;
+}
+
+/** Move an already checked-in party (staff picked new seats on the chart). */
+export async function reassignSeats(reservationId: string, seatIds: string[]): Promise<string | null> {
+  const { data, error } = await (await db()).rpc("reassign_seats", { p_reservation_id: reservationId, p_seat_ids: seatIds, p_manual: true });
+  if (error) throw new Error(error.message);
+  return (data as string | null) ?? null;
 }

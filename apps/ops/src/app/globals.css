@@ -127,3 +127,62 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
   .opsMain { padding: 18px 16px 80px; }
   .timeline { grid-template-columns: 1fr; }
 }
+
+/* ---------- seat chart (scan console) ---------- */
+.seatPick { margin: 12px 22px 0; padding: 12px; border-radius: 14px; background: rgba(0,0,0,.18); border: 1px solid var(--line); }
+.seatPickHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+.seatPickHead small { display: block; color: var(--ink-soft); font-size: 13px; }
+.seatMap { display: grid; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+.seatMap .stage { justify-self: center; padding: 6px 40px; border-radius: 8px; background: #111; color: var(--ink); font-size: 12px; letter-spacing: .2em; }
+.seatMap .floor h4 { margin: 4px 0 6px; font-size: 12px; letter-spacing: .14em; color: var(--gold); }
+.seatMap .row { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.seatMap .rowLabel { width: 22px; font-size: 10px; color: var(--ink-soft); text-align: right; flex: none; }
+.seatMap .block { display: flex; gap: 3px; }
+.seatMap .seat, .seatMap .gap { width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(245,238,227,.25); background: transparent; color: var(--ink-soft); font-size: 9px; padding: 0; cursor: pointer; flex: none; }
+.seatMap .gap { visibility: hidden; }
+.seatMap .seat.taken { background: rgba(245,238,227,.18); color: rgba(245,238,227,.35); border-color: transparent; cursor: not-allowed; }
+.seatMap .seat.on { background: var(--gold); color: #1F1A16; border-color: var(--gold); font-weight: 800; }
+.seatMap .seat.mine { outline: 2px solid var(--gold); }
+.seatMap .seat.wc { border-style: dashed; border-color: var(--olive); }
+.seatMap .seat[disabled]:not(.taken) { opacity: .5; cursor: default; }
+.seatMap.compact .seat, .seatMap.compact .gap { width: 18px; height: 18px; font-size: 8px; }
+.seatMap .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12px; color: var(--ink-soft); }
+.seatMap .legend i { display: inline-block; width: 14px; height: 14px; margin-right: 4px; vertical-align: middle; }
+@media (max-width: 720px) { .seatMap .row { gap: 6px; } .seatMap .block { gap: 2px; } .seatMap.compact .seat, .seatMap.compact .gap { width: 13px; height: 13px; font-size: 0; } }
+
+/* ---------- parking desk ---------- */
+.parking { display: grid; gap: 14px; }
+.parkBig { padding: 26px; border-radius: 18px; background: #2f4a35; display: grid; gap: 2px; text-align: center; }
+.parkBig.low { background: #5a2f26; }
+.parkBig small { letter-spacing: .12em; color: rgba(245,238,227,.7); font-size: 12px; }
+.parkBig b { font-size: 64px; line-height: 1; font-variant-numeric: tabular-nums; } .parkBig em { font-style: normal; font-size: 22px; margin-left: 4px; }
+.parkBig p { margin: 6px 0 0; color: rgba(245,238,227,.7); }
+.parkControls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.parkCounter, .parkCapacity { padding: 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 8px; }
+.parkCounter > span, .parkCapacity > span { font-size: 12px; letter-spacing: .1em; color: var(--ink-soft); }
+.stepper.big { justify-content: space-between; } .stepper.big button { width: 64px; height: 64px; font-size: 34px; } .stepper.big span { font-size: 36px; }
+.parkCapacity input { width: 100%; }
+.box h2 small { margin-left: 8px; font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+.box h3 { margin: 16px 0 8px; font-size: 13px; color: var(--ink-soft); letter-spacing: .1em; }
+.plateGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.plate { padding: 14px 12px; border-radius: 14px; border: 1px solid var(--gold); background: rgba(224,166,74,.08); color: var(--ink); display: grid; gap: 4px; text-align: left; cursor: pointer; }
+.plate b { font-size: 20px; letter-spacing: .04em; } .plate span { font-size: 12px; color: var(--ink-soft); }
+.plate.done { border-color: var(--olive); background: rgba(140,163,110,.12); }
+.modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 20px; }
+.modalCard { width: min(100%, 420px); padding: 24px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 8px; }
+.modalCard small { letter-spacing: .12em; color: var(--gold); font-size: 12px; } .modalCard h2 { margin: 0; font-size: 34px; } .modalCard p { margin: 0; color: var(--ink-soft); }
+@media (max-width: 600px) { .parkControls { grid-template-columns: 1fr; } }
+
+/* ---------- excel import ---------- */
+.importSteps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.importSteps .box p { margin: 0 0 12px; }
+.fileDrop { display: block; padding: 18px; border: 1px dashed var(--gold); border-radius: 12px; text-align: center; cursor: pointer; color: var(--ink-soft); }
+.fileDrop input { display: none; }
+.importConsole table tr.dup td { color: var(--ink-soft); } .importConsole table tr.bad td { color: var(--brick); }
+.tag.bad { background: rgba(217,106,78,.18); color: var(--brick); }
+.importConsole .btn { margin-top: 14px; }
+@media (max-width: 800px) { .importSteps { grid-template-columns: 1fr; } }
+
+/* ---------- display: arm button ---------- */
+.display .arm { position: absolute; inset: 0; z-index: 20; display: grid; place-content: center; gap: 8px; border: 0; background: rgba(46,37,28,.9); color: var(--paper); cursor: pointer; }
+.display .arm b { font-size: 6vh; } .display .arm span { font-size: 2.2vh; color: rgba(247,241,228,.7); }

@@ -46,20 +46,25 @@ export const eventConfig = {
     { code: "landing", name: "주차장 THE LANDING" },
     { code: "chapel", name: "채플 웰컴센터" },
   ] as const,
-  /** Provisional until the church confirms first/last departures and the return runs. */
+  /** Confirmed 2026-09-24: every 50 minutes from 10:00, last outbound 15:00; two return runs. */
   shuttle: {
-    provisional: true,
-    outbound: ["10:40", "11:10", "11:40", "12:00", "12:15", "12:30"],
-    return: ["16:10", "16:40"],
+    provisional: false,
+    outbound: ["10:00", "10:50", "11:40", "12:30", "13:20", "14:10", "15:00"],
+    return: ["16:15", "17:00"],
     rideMinutes: 18,
   },
+  /** Main event vs. worship-only attendance (people who only join one of the services). */
+  attendance: [["main", "메인 행사 참여 (13:00–16:00 · 한신성전)"], ["worship", "예배만 참석 (메인 행사 불참)"]] as const,
+  worshipServices: [["1", "1부 예배"], ["2", "2부 예배"], ["3", "3부 예배"]] as const,
+  worshipSites: [["changdong", "창동성전"], ["hanshin", "한신성전"]] as const,
+  /** Districts / departments seated on the ground floor near the aisles (easy exit). */
+  priorityDistricts: ["11", "21", "JB", "ED"] as const,
   hospitalityItems: [
     { code: "brochure", name: "캠퍼스 맵 브로셔" },
     { code: "stamp", name: "THE TRAIL 스탬프 카드" },
     { code: "drink", name: "웰컴 드링크 쿠폰" },
     { code: "pouch", name: "어메니티 파우치" },
   ] as const,
-  seatBlocks: ["A", "B", "C"] as const,
   /** host + up to 4 invited guests */
   maxPartySize: 5,
   /** Personal data is deleted within this many days after the event (documented policy). */

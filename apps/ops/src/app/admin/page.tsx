@@ -23,13 +23,13 @@ export default async function AdminPage() {
       <LiveRefresh />
       <div className="metricGrid four">
         <article><span>RESERVATIONS</span><h2>{stats?.reservations ?? "—"}</h2><p>신청 팀</p></article>
-        <article><span>PEOPLE</span><h2>{stats?.people ?? "—"}</h2><p>게스트 {stats?.guests ?? "—"}명 포함</p></article>
-        <article className="hot"><span>CHECKED IN</span><h2>{stats?.checked_in_people ?? "—"}</h2><p>실참률 {rate}%</p></article>
+        <article><span>PEOPLE</span><h2>{stats?.people ?? "—"}</h2><p>메인 {stats?.main_people ?? "—"} · 예배만 {stats?.worship_people ?? "—"} · 게스트 {stats?.guests ?? "—"}</p></article>
+        <article className="hot"><span>CHECKED IN</span><h2>{stats?.checked_in_people ?? "—"}</h2><p>실참률 {rate}% · 좌석 배정 {stats?.seated_people ?? "—"}석</p></article>
         <article><span>CONSENT</span><h2>{stats?.contact_consent_people ?? "—"}</h2><p>사후 발송 대상</p></article>
       </div>
       <div className="cols">
         <section className="box"><h2>교구 · 부서별</h2><ul className="bars">{(stats?.by_district ?? []).map((d) => <li key={d.label}><span>{d.label}</span><b>{d.arrived}<i>/{d.people}</i></b></li>)}</ul></section>
-        <section className="box"><h2>셔틀 편별</h2><ul className="bars">{(stats?.by_run ?? []).map((d) => <li key={d.label}><span>{d.label}</span><b>{d.people}</b></li>)}</ul></section>
+        <section className="box"><h2>셔틀 편별</h2><ul className="bars">{(stats?.by_run ?? []).map((d) => <li key={d.label}><span>{d.label}</span><b>{d.people}</b></li>)}{(stats?.by_return ?? []).map((d) => <li key={`r${d.label}`}><span>복귀 {d.label}</span><b>{d.people}</b></li>)}</ul></section>
         <section className="box"><h2>스테이션별 체크인</h2><ul className="bars">{(stats?.by_station ?? []).map((d) => <li key={d.name}><span>{d.name}</span><b>{d.arrived}</b></li>)}</ul></section>
       </div>
       <section className="box">

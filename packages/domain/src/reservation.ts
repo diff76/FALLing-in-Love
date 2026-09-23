@@ -32,6 +32,10 @@ export const reservationMemberSchema = z.object({
 export const reservationInputSchema = z
   .object({
     kind: z.enum(["host", "guest_self"]),
+    /** main = the 13:00–16:00 matinée at Hanshin; worship = one of the services only */
+    attendance: z.enum(["main", "worship"]).default("main"),
+    worshipService: z.enum(["1", "2", "3"]).optional().or(z.literal("")).transform((v) => v || undefined),
+    worshipSite: z.enum(["changdong", "hanshin"]).optional().or(z.literal("")).transform((v) => v || undefined),
     applicantName: name,
     phone,
     districtCode: optionalText(4),
@@ -39,8 +43,8 @@ export const reservationInputSchema = z
     ageGroup: z.enum(eventConfig.ageGroups).optional().or(z.literal("")).transform((v) => v || undefined),
     members: z.array(reservationMemberSchema).max(eventConfig.maxPartySize - 1).default([]),
     transport: z.enum(["shuttle", "car", "other"]),
-    outboundRun: optionalText(5),
-    returnRun: optionalText(5),
+    outboundRun: optionalText(5).refine((t) => !t || (eventConfig.shuttle.outbound as readonly string[]).includes(t), "운행하지 않는 시각입니다"),
+    returnRun: optionalText(5).refine((t) => !t || (eventConfig.shuttle.return as readonly string[]).includes(t), "운행하지 않는 시각입니다"),
     vehiclePlate: optionalText(12),
     mobilitySupport: z.boolean().default(false),
     mobilityNote: optionalText(160),
@@ -57,6 +61,10 @@ export const reservationInputSchema = z
     }
     if (v.transport === "shuttle" && !v.outboundRun) {
       ctx.addIssue({ code: "custom", path: ["outboundRun"], message: "탑승하실 셔틀 편을 골라주세요" });
+    }
+    if (v.attendance === "worship") {
+      if (!v.worshipService) ctx.addIssue({ code: "custom", path: ["worshipService"], message: "참석하시는 예배를 골라주세요" });
+      if (!v.worshipSite) ctx.addIssue({ code: "custom", path: ["worshipSite"], message: "참석 장소를 골라주세요" });
     }
   });
 

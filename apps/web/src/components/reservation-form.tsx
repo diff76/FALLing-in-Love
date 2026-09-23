@@ -12,6 +12,7 @@ const ORD = ["첫 번째", "두 번째", "세 번째", "네 번째"];
 export function ReservationForm() {
   const router = useRouter();
   const [mode, setMode] = useState<"host" | "guest_self">("host");
+  const [attendance, setAttendance] = useState<"main" | "worship">("main");
   const [guests, setGuests] = useState<Guest[]>([emptyGuest()]);
   const [transport, setTransport] = useState<"shuttle" | "car" | "other">("shuttle");
   const [busy, setBusy] = useState(false);
@@ -23,6 +24,9 @@ export function ReservationForm() {
     const fd = new FormData(event.currentTarget);
     const body: Record<string, unknown> = {
       kind: mode,
+      attendance,
+      worshipService: attendance === "worship" ? fd.get("worshipService") ?? "" : "",
+      worshipSite: attendance === "worship" ? fd.get("worshipSite") ?? "" : "",
       applicantName: fd.get("applicantName"),
       phone: fd.get("phone"),
       districtCode: fd.get("districtCode") ?? "",
@@ -49,7 +53,7 @@ export function ReservationForm() {
         setMessage({ kind: "error", text: data.message ?? "신청을 접수하지 못했습니다." });
         return;
       }
-      router.push(`/pass/${data.token}?issued=1`);
+      router.push(`/pass/${data.token}?issued=${data.partySize ?? 1}`);
     } catch {
       setMessage({ kind: "error", text: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." });
     } finally {
@@ -58,6 +62,8 @@ export function ReservationForm() {
   }
 
   const err = (k: string) => fieldErrors[k] ? <span className="fieldError">{fieldErrors[k]}</span> : null;
+  const stepNo = (n: number) => String(n).padStart(2, "0");
+  let step = 0;
 
   return (
     <form className="reservationForm" onSubmit={submit} noValidate>
@@ -67,7 +73,30 @@ export function ReservationForm() {
         <button type="button" aria-pressed={mode === "guest_self"} onClick={() => setMode("guest_self")}>초대를 받았습니다</button>
       </fieldset>
 
-      <div className="formSection"><span>01</span><div><h2>{mode === "host" ? "초청하시는 분" : "당신을 알려주세요"}</h2><p>좌석과 안내를 위해 필요한 정보만 받습니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>어디까지 함께하시나요?</h2><p>메인 행사는 오후 1시부터 4시까지 {eventConfig.venue.short}에서 열립니다. 예배만 참석하시는 분도 신청해 주세요.</p></div></div>
+      <fieldset className="modeSwitch attendance">
+        {eventConfig.attendance.map(([code, label]) => (
+          <button type="button" key={code} aria-pressed={attendance === code} onClick={() => setAttendance(code)}>{label}</button>
+        ))}
+      </fieldset>
+      {attendance === "worship" && (
+        <div className="formGrid">
+          <label><span>참석하시는 예배</span>
+            <select name="worshipService" defaultValue="">
+              <option value="">선택해 주세요</option>
+              {eventConfig.worshipServices.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+            </select>{err("worshipService")}
+          </label>
+          <label><span>참석 장소</span>
+            <select name="worshipSite" defaultValue="">
+              <option value="">선택해 주세요</option>
+              {eventConfig.worshipSites.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+            </select>{err("worshipSite")}
+          </label>
+        </div>
+      )}
+
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
       <div className="formGrid">
         <label><span>성함</span><input name="applicantName" autoComplete="name" required />{err("applicantName")}</label>
         <label><span>연락처</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="010-0000-0000" required />{err("phone")}</label>
@@ -96,7 +125,7 @@ export function ReservationForm() {
 
       {mode === "host" && (
         <>
-          <div className="formSection"><span>02</span><div><h2>함께 오시는 분</h2><p>최대 네 분까지, 나란히 앉으실 수 있도록 한 팀으로 좌석을 마련합니다.</p></div></div>
+          <div className="formSection"><span>{stepNo(++step)}</span><div><h2>함께 오시는 분</h2><p>최대 네 분까지. 당일 체크인 때 한 팀으로 나란히 앉으실 수 있도록 좌석을 배정합니다.</p></div></div>
           <div className="formGrid">
             {guests.map((g, i) => (
               <div className="guestCard" key={i}>
@@ -114,7 +143,7 @@ export function ReservationForm() {
         </>
       )}
 
-      <div className="formSection"><span>{mode === "host" ? "03" : "02"}</span><div><h2>오시는 길과 편의</h2><p>{eventConfig.origin.name}에서 {eventConfig.venue.short}까지 셔틀로 {eventConfig.shuttle.rideMinutes}분 안팎입니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>오시는 길과 편의</h2><p>{eventConfig.origin.name}에서 {eventConfig.venue.short}까지 셔틀로 {eventConfig.shuttle.rideMinutes}분 안팎입니다. 셔틀은 {eventConfig.shuttle.outbound[0]}부터 50분 간격, 막차 {eventConfig.shuttle.outbound[eventConfig.shuttle.outbound.length - 1]}입니다.</p></div></div>
       <div className="formGrid">
         <label><span>이동 수단</span>
           <select name="transport" value={transport} onChange={(e) => setTransport(e.target.value as typeof transport)}>
@@ -122,16 +151,16 @@ export function ReservationForm() {
           </select>
         </label>
         {transport === "shuttle" ? (
-          <label><span>탑승 예정 편 {eventConfig.shuttle.provisional && <em>시각은 확정 전 임시 안내입니다</em>}</span>
+          <label><span>탑승 예정 편</span>
             <select name="outboundRun" defaultValue={eventConfig.shuttle.outbound[3]}>
               {eventConfig.shuttle.outbound.map((t) => <option key={t} value={t}>{t} 출발</option>)}
             </select>{err("outboundRun")}
           </label>
         ) : transport === "car" ? (
-          <label><span>차량 번호 <em>주차 안내용</em></span><input name="vehiclePlate" /></label>
+          <label><span>차량 번호 <em>주차 안내용</em></span><input name="vehiclePlate" placeholder="12가 3456" />{err("vehiclePlate")}</label>
         ) : <div />}
         <label><span>돌아가는 셔틀 <em>{eventConfig.origin.name} 방면 · 선택</em></span>
-          <select name="returnRun" defaultValue=""><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t}>{t}</option>)}</select>
+          <select name="returnRun" defaultValue=""><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t}>{t} 출발</option>)}</select>{err("returnRun")}
         </label>
         <label><span>가리시는 음식 <em>선택</em></span><input name="dietaryNote" placeholder="알레르기, 채식 등" /></label>
         <label className="checkRow"><input type="checkbox" name="mobilitySupport" /> 계단 대신 우회 동선 안내가 필요합니다</label>
@@ -142,7 +171,8 @@ export function ReservationForm() {
       {err("privacyConsent")}
       <label className="consent"><input type="checkbox" name="contactConsent" /><span>행사 후 플레이리스트와 사진, 다음 소식을 받아보겠습니다.<b className="opt">선택</b></span></label>
 
-      <button className="submitButton" type="submit" disabled={busy}>{busy ? "자리를 마련하는 중…" : "참여 신청하기 →"}</button>
+      <p className="formNote">좌석은 당일 현장 체크인 때 배정됩니다. 신청만으로는 좌석이 확정되지 않습니다.</p>
+      <button className="submitButton" type="submit" disabled={busy}>{busy ? "접수하는 중…" : "참여 신청하기 →"}</button>
       {message && <p className={`formMessage ${message.kind === "error" ? "error" : ""}`} role="status">{message.text}</p>}
     </form>
   );

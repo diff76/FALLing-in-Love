@@ -5,7 +5,9 @@ import { eventConfig } from "@fil/config";
 import { createBrowserSupabaseClient, isSupabaseConfigured, type ReservationSummary } from "@fil/supabase";
 
 type Welcome = { name: string; seat: string; guests: number };
-const SHOW_MS = 4600;
+const SHOW_MS = 6000;
+/** A check-in is confirmed on a staff phone; the party walks to the lobby. 10 s later the screen greets them. */
+const DELAY_MS = 10_000;
 
 function maskName(name: string) {
   const n = name.trim();
@@ -13,12 +15,26 @@ function maskName(name: string) {
   return n[0] + "○".repeat(Math.max(1, n.length - 1));
 }
 
-/** Lobby screen: idle programme + a brief, masked welcome whenever staff confirms a check-in. */
+/** Two soft chime notes (no audio file needed). Needs one user gesture first — hence the start overlay. */
+function chime(ctx: AudioContext) {
+  const play = (freq: number, at: number, dur: number) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.35, at + 0.02); g.gain.exponentialRampToValueAtTime(0.001, at + dur);
+    o.connect(g).connect(ctx.destination); o.start(at); o.stop(at + dur);
+  };
+  const t = ctx.currentTime;
+  play(784, t, 1.2); play(1046.5, t + 0.28, 1.6);
+}
+
+/** Lobby screen: idle programme + a masked welcome 10 s after each staff-confirmed check-in, with a chime. */
 export function WelcomeDisplay() {
   const [now, setNow] = useState(new Date());
   const [current, setCurrent] = useState<Welcome | null>(null);
+  const [armed, setArmed] = useState(false);
   const queue = useRef<Welcome[]>([]);
   const showing = useRef(false);
+  const audio = useRef<AudioContext | null>(null);
 
   useEffect(() => { const t = setInterval(() => setNow(new Date()), 15_000); return () => clearInterval(t); }, []);
 
@@ -28,23 +44,35 @@ export function WelcomeDisplay() {
     const drain = () => {
       if (showing.current || !queue.current.length) return;
       showing.current = true;
+      if (audio.current) { try { chime(audio.current); } catch { /* muted */ } }
       setCurrent(queue.current.shift()!);
-      setTimeout(() => { setCurrent(null); setTimeout(() => { showing.current = false; drain(); }, 500); }, SHOW_MS);
+      setTimeout(() => { setCurrent(null); setTimeout(() => { showing.current = false; drain(); }, 600); }, SHOW_MS);
     };
     const channel = db.channel("display").on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, async (payload) => {
       const id = (payload.new as { reservation_id: string }).reservation_id;
       const { data } = await db.rpc("get_reservation_summary", { p_reservation_id: id });
       const r = data as ReservationSummary | null;
       if (!r) return;
-      queue.current.push({ name: maskName(r.applicant_name), seat: r.seat_label ?? "", guests: r.guest_count });
-      drain();
+      const w = { name: maskName(r.applicant_name), seat: r.seat_label ?? "", guests: r.guest_count };
+      setTimeout(() => { queue.current.push(w); drain(); }, DELAY_MS);
     }).subscribe();
     return () => { db.removeChannel(channel); };
   }, []);
 
+  function arm() {
+    try { const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext; audio.current = new Ctx(); audio.current.resume(); } catch { /* no audio */ }
+    setArmed(true);
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+
   const hhmm = now.toTimeString().slice(0, 5);
   return (
     <div className="display">
+      {!armed && (
+        <button className="arm" onClick={arm}>
+          <b>화면 시작</b><span>한 번 누르면 환영 메시지와 알림음이 켜집니다</span>
+        </button>
+      )}
       <div className="idle">
         <div className="idleTop"><span>{eventConfig.edition} · {eventConfig.venue.short}</span><b>{hhmm}</b></div>
         <h1><span>FALL</span>ing <em>in</em> Love</h1>

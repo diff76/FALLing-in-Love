@@ -5,7 +5,7 @@ import { makeReservationCode, normalizePhone, partySize, phoneLast4, reservation
 const valid = {
   kind: "host", applicantName: "김은혜", phone: "010-2841-7730", districtCode: "11",
   members: [{ name: "정민호", relation: "직장 동료", ageGroup: "40대" }],
-  transport: "shuttle", outboundRun: "12:00", privacyConsent: true, contactConsent: true,
+  transport: "shuttle", outboundRun: "12:30", privacyConsent: true, contactConsent: true,
 };
 
 test("valid host reservation parses and normalises the phone", () => {

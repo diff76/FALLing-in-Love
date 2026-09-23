@@ -6,7 +6,9 @@ const nav: { href: string; label: string; roles: StaffRole[] }[] = [
   { href: "/scan", label: "스캔·체크인", roles: ["staff", "admin"] },
   { href: "/desk", label: "웰컴 데스크", roles: ["desk", "admin"] },
   { href: "/display", label: "웰컴 디스플레이", roles: ["desk", "admin"] },
+  { href: "/parking", label: "주차 관리", roles: ["staff", "desk", "admin"] },
   { href: "/admin", label: "관리자", roles: ["admin"] },
+  { href: "/admin/import", label: "엑셀 일괄 등록", roles: ["admin"] },
 ];
 
 export function OpsShell({ title, eyebrow, roles, email, wide, children }: { title: string; eyebrow: string; roles: StaffRole[]; email: string | null; wide?: boolean; children: React.ReactNode }) {
