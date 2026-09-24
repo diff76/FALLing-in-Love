@@ -42,79 +42,104 @@
     "opening-track": {
       "base": "/media/frames/opening-track/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "be96c563"
     },
     "landing": {
       "base": "/media/frames/landing/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "3f31fe1a"
     },
     "ascent": {
       "base": "/media/frames/ascent/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "de9c556f"
     },
     "garden": {
       "base": "/media/frames/garden/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "4fef6b07"
     },
     "trail": {
       "base": "/media/frames/trail/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "c8b0bcf7"
     },
     "chamber": {
       "base": "/media/frames/chamber/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "bbcb15a1"
     },
     "finale": {
       "base": "/media/frames/finale/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "36f5ab41"
     },
     "one-more-song": {
       "base": "/media/frames/one-more-song/",
       "count": 121,
-      "fps": 15
+      "fps": 15,
+      "v": "6b2a4e2b"
     }
   },
   "connectorsFramesMobile": [
     {
       "base": "/media/frames/conn1/",
       "count": 61,
-      "fps": 15
+      "fps": 15,
+      "v": "9405f1d5"
     },
     {
       "base": "/media/frames/conn2/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "7ab8af6a"
     },
     {
       "base": "/media/frames/conn3/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "1cfdc1a1"
     },
     {
       "base": "/media/frames/conn4/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "2174f3d0"
     },
     {
       "base": "/media/frames/conn5/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "82047ede"
     },
     {
       "base": "/media/frames/conn6/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "e8cefb53"
     },
     {
       "base": "/media/frames/conn7/",
       "count": 76,
-      "fps": 15
+      "fps": 15,
+      "v": "7f4af9e9"
     }
-  ]
+  ],
+  "posterV": {
+    "opening-track": "82e819c3",
+    "landing": "dd958718",
+    "ascent": "e0f72b80",
+    "garden": "262daf3f",
+    "trail": "a839fe4f",
+    "chamber": "4e68c18c",
+    "finale": "627e9cad",
+    "one-more-song": "538eead4"
+  }
 }

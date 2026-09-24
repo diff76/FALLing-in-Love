@@ -1,7 +1,7 @@
 import type { CinematicScene, SceneId } from "@fil/domain";
 import manifest from "./media-manifest.json";
 
-export type FrameSet = { base: string; count: number; fps: number };
+export type FrameSet = { base: string; count: number; fps: number; v?: string };
 type Manifest = {
   clips: Partial<Record<SceneId, string>>;
   clipsMobile: Partial<Record<SceneId, string>>;
@@ -9,6 +9,7 @@ type Manifest = {
   connectorsMobile: (string | null)[];
   framesMobile?: Partial<Record<SceneId, FrameSet>>;
   connectorsFramesMobile?: (FrameSet | null)[];
+  posterV?: Partial<Record<SceneId, string>>;
 };
 const media = manifest as Manifest;
 
@@ -79,6 +80,9 @@ export const scenes: readonly CinematicScene[] = base.map((s) => ({
   ...s,
   media: {
     ...posters[s.id],
+    // cache-busting: posters keep their paths across re-renders (see manifest.mjs)
+    poster: posters[s.id].poster + (media.posterV?.[s.id] ? `?v=${media.posterV[s.id]}` : ""),
+    posterMobile: posters[s.id].posterMobile ? posters[s.id].posterMobile + (media.posterV?.[s.id] ? `?v=${media.posterV[s.id]}` : "") : undefined,
     clip: media.clips[s.id] ?? null,
     clipMobile: media.clipsMobile[s.id] ?? null,
   },

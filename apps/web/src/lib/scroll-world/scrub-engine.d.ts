@@ -1,5 +1,5 @@
 export type ScrollWorldSection = {
-  id: string; label: string; still: string; stillMobile?: string; clip?: string; clipMobile?: string; framesMobile?: { base: string; count: number; fps: number };
+  id: string; label: string; still: string; stillMobile?: string; clip?: string; clipMobile?: string; framesMobile?: { base: string; count: number; fps: number; v?: string };
   accent?: string; scroll?: number; linger?: number; eyebrow?: string; title?: string; body?: string; tags?: string[];
   cta?: { primary?: { label: string; href: string }; secondary?: { label: string; href: string } };
 };
@@ -11,6 +11,6 @@ export type ScrollWorldConfig = {
   sections: ScrollWorldSection[];
   connectors?: (string | null)[];
   connectorsMobile?: (string | null)[];
-  connectorsFramesMobile?: ({ base: string; count: number; fps: number } | null)[];
+  connectorsFramesMobile?: ({ base: string; count: number; fps: number; v?: string } | null)[];
 };
 export function mountScrollWorld(container: HTMLElement, config: ScrollWorldConfig): void;

@@ -234,7 +234,7 @@ function mountScrollWorld(container, config) {
           if (!s.ready) { s.ready = true; cv.width = img.naturalWidth || 540; cv.height = img.naturalHeight || 960; read(); }
           pump();
         };
-        img.src = f.base + 'f' + pad(k) + '.webp';
+        img.src = f.base + 'f' + pad(k) + '.webp' + (f.v ? '?v=' + f.v : '');
       }
       if (next >= f.count && inflight === 0) s.loading = false;
     };
