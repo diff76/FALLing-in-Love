@@ -4,8 +4,10 @@
 
 | 프로젝트 | Root Directory | 용도 | 접근 |
 |---|---|---|---|
-| `falling-in-love-web` | `apps/web` | 공개 사이트 · 참여 신청 · Matinée Pass | 누구나 |
-| `falling-in-love-ops` | `apps/ops` | 스캔·체크인 · 데스크 · 디스플레이 · 주차 · 관리자 | 스태프 로그인 |
+| `fal-ling-in-love-web` → https://fall-ing-in-love-web.vercel.app | `apps/web` | 공개 사이트 · 참여 신청 · Matinée Pass | 누구나 |
+| `fal-ling-in-love-ops` → https://fall-ing-in-love-ops.vercel.app | `apps/ops` | 스캔·체크인 · 데스크 · 디스플레이 · 주차 · 관리자 | 스태프 로그인 |
+
+배포 완료 2026-09-24. `NEXT_PUBLIC_SITE_URL` = `https://fall-ing-in-love-web.vercel.app` (Pass QR 링크 확인됨).
 
 GitHub `diff76/FALLing-in-Love`의 `main` 브랜치에 푸시할 때마다 두 프로젝트가 자동으로 다시 배포됩니다.
 
@@ -51,7 +53,15 @@ Vercel 프로젝트 → Settings → Domains 에서 교회 도메인을 붙일 �
 코드 수정 → 커밋 → `git push origin main` → 1~2분 뒤 자동 반영. 문제가 있으면 Vercel → Deployments 에서 이전 배포를 **Promote to Production** 으로 즉시 되돌립니다.
 DB 변경(마이그레이션)은 배포와 별개로 Supabase SQL Editor에서 실행합니다.
 
-## 5. 참고
+## 5. 배운 것 (2026-09-24 첫 배포)
+
+- `typescript`/`@types/*`는 각 앱의 devDependencies에 있어야 한다(루트만으로는 실패).
+- `output: "standalone"`은 Vercel에서 끈다(`process.env.VERCEL` 분기).
+- **Redeploy**는 그 배포의 옛 커밋을 다시 빌드한다. 코드 수정 뒤에는 푸시로 생기는 새 배포를 기다릴 것. Redeploy는 환경 변수 반영용.
+- 프로젝트 이름을 바꿔도 `*.vercel.app` 주소는 따라오지 않는다 → Settings → Domains 에서 추가.
+- 환경 변수 Type: `NEXT_PUBLIC_*`는 Config, `SUPABASE_SECRET_KEY`만 Secret.
+
+## 6. 참고
 
 - `output: "standalone"` 설정은 Docker용이며 Vercel에서는 무시됩니다.
 - 로컬 확인용 cloudflared 임시 터널과 `next start` 서버는 배포 뒤 필요 없습니다.
