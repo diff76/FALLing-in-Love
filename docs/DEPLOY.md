@@ -60,6 +60,7 @@ DB 변경(마이그레이션)은 배포와 별개로 Supabase SQL Editor에서 �
 - **Redeploy**는 그 배포의 옛 커밋을 다시 빌드한다. 코드 수정 뒤에는 푸시로 생기는 새 배포를 기다릴 것. Redeploy는 환경 변수 반영용.
 - 프로젝트 이름을 바꿔도 `*.vercel.app` 주소는 따라오지 않는다 → Settings → Domains 에서 추가.
 - 환경 변수 Type: `NEXT_PUBLIC_*`는 Config, `SUPABASE_SECRET_KEY`만 Secret.
+- 서버 함수 리전은 기본이 미국 동부(`iad1`)라 서울 사용자·서울 Supabase와 태평양을 왕복했다. `apps/*/vercel.json`의 `"regions": ["icn1"]`로 서울에 고정(응답 헤더 `x-vercel-id`가 `icn1::icn1::…`이면 적용된 것).
 
 ## 6. 참고
 
