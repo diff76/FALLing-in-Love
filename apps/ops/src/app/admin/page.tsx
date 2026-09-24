@@ -23,12 +23,16 @@ function Bar({ label, value, done, max, unit, tone }: { label: string; value: nu
 export default async function AdminPage() {
   const session = await requireRole("admin");
   const db = await supabaseServer();
-  const stats = db ? ((await db.rpc("ops_stats")).data as OpsStats | null) : null;
-  const rows = db
-    ? (await db.from("reservations").select("id, code, applicant_name, kind, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000)).data ?? []
-    : [];
-  const members = db ? (await db.from("reservation_members").select("reservation_id, age_group")).data ?? [] : [];
-  const checkins = db ? (await db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null)).data ?? [] : [];
+  const [statsRes, rowsRes, membersRes, checkinsRes] = db ? await Promise.all([
+    db.rpc("ops_stats"),
+    db.from("reservations").select("id, code, applicant_name, kind, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
+    db.from("reservation_members").select("reservation_id, age_group"),
+    db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null),
+  ]) : [null, null, null, null];
+  const stats = (statsRes?.data ?? null) as OpsStats | null;
+  const rows = rowsRes?.data ?? [];
+  const members = membersRes?.data ?? [];
+  const checkins = checkinsRes?.data ?? [];
   const arrived = new Map(checkins.map((c) => [c.reservation_id, c.arrived_count]));
   const rate = stats && stats.people ? Math.round((stats.checked_in_people / stats.people) * 100) : 0;
   const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });

@@ -16,16 +16,24 @@ export const dynamic = "force-dynamic";
 export default async function DeskPage() {
   const session = await requireRole("desk", "admin");
   const db = await supabaseServer();
-  const stats = db ? ((await db.rpc("ops_stats")).data as OpsStats | null) : null;
-  const rows = db
-    ? (await db.from("reservations").select("id, code, applicant_name, party_size, district_code, mobility_support, mobility_note, dietary_note, vehicle_plate, outbound_run_id, transport, attendance, worship_service, worship_site").eq("status", "active").order("created_at").limit(1000)).data ?? []
-    : [];
-  const runs = db ? (await db.from("shuttle_runs").select("id, label, direction, active").eq("direction", "outbound").eq("active", true).order("departs_at")).data ?? [] : [];
-  const checkins = db ? (await db.from("checkins").select("id, arrived_count, checked_in_at, reservation_id, station_id").is("voided_at", null).order("checked_in_at", { ascending: false })).data ?? [] : [];
-  const stations = db ? (await db.from("stations").select("id, name")).data ?? [] : [];
-  const items = db ? (await db.from("hospitality_items").select("id, code, name, initial_stock, adjustment").order("code")).data ?? [] : [];
-  const given = db ? (await db.from("hospitality_distributions").select("checkin_id, item_id, qty")).data ?? [] : [];
-  const seatRows = db ? (await db.from("seat_assignments").select("reservation_id, seat_id")).data ?? [] : [];
+  const [statsRes, rowsRes, runsRes, checkinsRes, stationsRes, itemsRes, givenRes, seatRes] = db ? await Promise.all([
+    db.rpc("ops_stats"),
+    db.from("reservations").select("id, code, applicant_name, party_size, district_code, mobility_support, mobility_note, dietary_note, vehicle_plate, outbound_run_id, transport, attendance, worship_service, worship_site").eq("status", "active").order("created_at").limit(1000),
+    db.from("shuttle_runs").select("id, label, direction, active").eq("direction", "outbound").eq("active", true).order("departs_at"),
+    db.from("checkins").select("id, arrived_count, checked_in_at, reservation_id, station_id").is("voided_at", null).order("checked_in_at", { ascending: false }),
+    db.from("stations").select("id, name"),
+    db.from("hospitality_items").select("id, code, name, initial_stock, adjustment").order("code"),
+    db.from("hospitality_distributions").select("checkin_id, item_id, qty"),
+    db.from("seat_assignments").select("reservation_id, seat_id"),
+  ]) : [null, null, null, null, null, null, null, null];
+  const stats = (statsRes?.data ?? null) as OpsStats | null;
+  const rows = rowsRes?.data ?? [];
+  const runs = runsRes?.data ?? [];
+  const checkins = checkinsRes?.data ?? [];
+  const stations = stationsRes?.data ?? [];
+  const items = itemsRes?.data ?? [];
+  const given = givenRes?.data ?? [];
+  const seatRows = seatRes?.data ?? [];
 
   const byId = new Map(rows.map((r) => [r.id, r]));
   const stationName = new Map(stations.map((s) => [s.id, s.name]));
