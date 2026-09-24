@@ -14,7 +14,8 @@ GitHub `diff76/FALLing-in-Love`의 `main` 브랜치에 푸시할 때마다 두 �
 1. https://vercel.com/new → **Import Git Repository** → `diff76/FALLing-in-Love` 선택 (처음이면 GitHub 연결 승인).
 2. **Root Directory** → `Edit` → `apps/web` (두 번째 프로젝트는 `apps/ops`).
 3. Framework Preset은 자동으로 **Next.js** 로 잡힙니다. Build/Install 명령은 그대로 둡니다
-   (저장소 루트의 `package-lock.json`으로 workspace 전체가 설치되고, `@fil/*` 패키지는 `transpilePackages`로 함께 빌드됩니다).
+   (npm이 저장소 루트의 workspace를 인식해 설치하고, `@fil/*` 패키지는 `transpilePackages`로 함께 빌드됩니다.
+   `typescript`와 `@types/*`는 각 앱의 devDependencies에 직접 선언되어 있어야 합니다 — 루트에만 있으면 Vercel 빌드가 "TypeScript package not installed"로 실패합니다).
 4. **Environment Variables** 에 아래 값을 넣습니다 (로컬 `apps/*/.env.local`과 같은 값).
 
 ### web 프로젝트
