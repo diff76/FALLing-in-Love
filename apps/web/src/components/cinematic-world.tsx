@@ -81,6 +81,7 @@ export function CinematicWorld() {
     // cleanup below cancels a pending mount and empties the container, so the second
     // run rebuilds the world from scratch instead of finding a half-mounted one.
     let cancelled = false;
+    let world: { destroy(): void } | null = null;
     import("@/lib/scroll-world/scrub-engine").then(({ mountScrollWorld }) => {
       if (cancelled) return;
       const config: ScrollWorldConfig = {
@@ -115,13 +116,16 @@ export function CinematicWorld() {
         connectorsMobile: connectorsMobile.slice(0, scenes.length - 1),
         connectorsFramesMobile: connectorsFramesMobile.slice(0, scenes.length - 1),
       };
-      mountScrollWorld(host, config);
+      world = mountScrollWorld(host, config);
       dressBrand(host);
       shapeSceneCopy(host);
       animateSceneCopy(host);
     }).catch((error) => console.error("scroll-world failed to mount", error));
     return () => {
       cancelled = true;
+      // Stop the engine's rAF loop and window listeners: otherwise its idle autoplay keeps
+      // scrolling whatever page comes next (the apply form) after a client-side navigation.
+      world?.destroy(); world = null;
       host.replaceChildren();
       host.classList.remove("sw-root", "sw-inactive");
     };

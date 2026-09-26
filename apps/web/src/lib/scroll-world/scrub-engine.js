@@ -70,6 +70,13 @@
      so the fixed chrome (stage, scrim, nav, route, hint) yields to surrounding sections.
    Everything else is upstream. */
 function mountScrollWorld(container, config) {
+  // Teardown bookkeeping: every window listener goes through on() so destroy() can remove it,
+  // and the rAF loop stops when destroy() runs or the container leaves the document. Without
+  // this, a client-side navigation (world → /apply) left the loop alive and its idle autoplay
+  // kept scrolling the NEXT page to the "next segment" every second (2026-09-27 bug).
+  let alive = true;
+  const offs = [];
+  const on = (target, ev, fn, opts) => { target.addEventListener(ev, fn, opts); offs.push(() => target.removeEventListener(ev, fn, opts)); };
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // Phone detection. `coarse` is captured once (input type doesn't change mid-session);
   // the ≤860px query is read live via isMobile() so a desktop resize/DevTools toggle
@@ -448,6 +455,7 @@ function mountScrollWorld(container, config) {
   }
 
   function raf() {
+    if (!alive || !container.isConnected) { alive = false; return; }
     // One bad frame must never kill the loop (a dead loop = no scrub, no autoplay, forever).
     try { frame(); } catch (e) { lastErr = String(e && e.message || e).slice(0, 60); }
     if (hud) { try { drawHud(); } catch (e) {} }
@@ -527,12 +535,12 @@ function mountScrollWorld(container, config) {
     userReady = true;
     SEGMENTS.forEach(s => primeVideo(s.video));
   }
-  window.addEventListener('pointerdown', onFirstGesture, { once: true, passive: true });
-  window.addEventListener('touchstart', onFirstGesture, { once: true, passive: true });
+  on(window, 'pointerdown', onFirstGesture, { once: true, passive: true });
+  on(window, 'touchstart', onFirstGesture, { once: true, passive: true });
 
   // Particles are a per-frame cost we can't afford alongside video scrubbing on a phone.
   seedParticles(particles, reduce || coarse);
-  window.addEventListener('scroll', () => {
+  on(window, 'scroll', () => {
     const y = window.scrollY || window.pageYOffset;
     const dy = y - lastY; lastY = y;
     if (performance.now() < jumpUntil) {
@@ -547,9 +555,9 @@ function mountScrollWorld(container, config) {
   // Touch/wheel intent counts as "scrolling" immediately, even before the first scroll event,
   // so a finger on the glass stops the glide at once.
   const onIntent = () => { lastScrollAt = performance.now(); programmatic = 0; jumpUntil = 0; };
-  window.addEventListener('wheel', onIntent, { passive: true });
-  window.addEventListener('touchstart', onIntent, { passive: true });
-  window.addEventListener('touchmove', onIntent, { passive: true });
+  on(window, 'wheel', onIntent, { passive: true });
+  on(window, 'touchstart', onIntent, { passive: true });
+  on(window, 'touchmove', onIntent, { passive: true });
   // Mobile browsers fire `resize` every time the URL bar slides in/out. Re-running
   // layout() there rebuilds the track height and yanks the scroll position, so on
   // touch we ignore height-only changes and only relayout when the width actually
@@ -559,11 +567,20 @@ function mountScrollWorld(container, config) {
     if (coarse && window.innerWidth === laidOutW) return;
     layout();
   }
-  window.addEventListener('resize', onResize);
-  window.addEventListener('orientationchange', layout);
-  window.addEventListener('load', layout);
+  on(window, 'resize', onResize);
+  on(window, 'orientationchange', layout);
+  on(window, 'load', layout);
   layout();
   requestAnimationFrame(raf);
+
+  function destroy() {
+    alive = false;
+    offs.forEach((off) => { try { off(); } catch (e) {} });
+    offs.length = 0;
+    SEGMENTS.forEach((s) => { try { unloadClip(s); } catch (e) {} try { if (typeof unloadFrames === 'function') unloadFrames(s); } catch (e) {} });
+    container.classList.remove('sw-inactive');
+  }
+  return { destroy };
 
   // ---- helpers ----
   function el(tag, cls) { const n = document.createElement(tag); if (cls) n.className = cls; return n; }

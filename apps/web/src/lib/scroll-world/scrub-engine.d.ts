@@ -13,4 +13,5 @@ export type ScrollWorldConfig = {
   connectorsMobile?: (string | null)[];
   connectorsFramesMobile?: ({ base: string; count: number; fps: number; v?: string } | null)[];
 };
-export function mountScrollWorld(container: HTMLElement, config: ScrollWorldConfig): void;
+export type ScrollWorldHandle = { destroy(): void };
+export function mountScrollWorld(container: HTMLElement, config: ScrollWorldConfig): ScrollWorldHandle;
