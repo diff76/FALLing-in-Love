@@ -13,11 +13,11 @@ const COLUMNS = [
   ["예배", "worshipService", "예배만: 1 / 2 / 3"], ["장소", "worshipSite", "예배만: 창동 / 한신"],
   ["교구부서", "districtCode", eventConfig.districts.map(([, l]) => l).join(", ")],
   ["초대자", "inviterName", "초대받음일 때"], ["연령대", "ageGroup", eventConfig.ageGroups.join(" / ")],
-  ["동행1", "member1", "성함"], ["동행2", "member2", "성함"], ["동행3", "member3", "성함"], ["동행4", "member4", "성함"],
+  ["동행1", "member1", "성함"], ["동행2", "member2", "성함"], ["동행3", "member3", "성함"], ["동행4", "member4", "성함"], ["동행5", "member5", "성함"],
   ["이동", "transport", "셔틀 / 자차 / 개별 (기본 셔틀)"], ["셔틀편", "outboundRun", eventConfig.shuttle.outbound.join(" / ")],
   ["복귀셔틀", "returnRun", eventConfig.shuttle.return.join(" / ")], ["차량번호", "vehiclePlate", "자차일 때"],
   ["우회동선", "mobilitySupport", "예 / 아니오"], ["도움요청", "mobilityNote", ""], ["식이", "dietaryNote", ""],
-  ["사후연락동의", "contactConsent", "예 / 아니오"],
+  ["초대장수신", "contactConsent", "예 / 아니오 (기본 예)"],
 ] as const;
 
 type Draft = ReservationInput & { rowNo: number; problems: string[]; duplicate?: DuplicateHit; allowSameName?: boolean };
@@ -37,7 +37,7 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
   const attendance: ReservationInput["attendance"] = /예배|worship/i.test(g("참여")) ? "worship" : "main";
   const transportRaw = g("이동");
   const transport: ReservationInput["transport"] = /자차|car/i.test(transportRaw) ? "car" : /개별|other/i.test(transportRaw) ? "other" : "shuttle";
-  const members = ["동행1", "동행2", "동행3", "동행4"].map(g).filter(Boolean).map((name) => ({ name, relation: undefined, ageGroup: undefined, dietaryNote: undefined }));
+  const members = ["동행1", "동행2", "동행3", "동행4", "동행5"].map(g).filter(Boolean).map((name) => ({ name, relation: undefined, ageGroup: undefined, dietaryNote: undefined }));
   const district = pick(eventConfig.districts, g("교구부서"));
   if (!g("성함")) problems.push("성함 없음");
   const phone = normalizePhone(g("연락처"));
@@ -56,15 +56,15 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
     ageGroup: (eventConfig.ageGroups as readonly string[]).includes(g("연령대")) ? (g("연령대") as ReservationInput["ageGroup"]) : undefined,
     members, transport, outboundRun: outboundRun || undefined, returnRun: returnRun || undefined,
     vehiclePlate: g("차량번호") || undefined, mobilitySupport: yes(g("우회동선")), mobilityNote: g("도움요청") || undefined,
-    dietaryNote: g("식이") || undefined, privacyConsent: true, contactConsent: yes(g("사후연락동의")),
+    dietaryNote: g("식이") || undefined, privacyConsent: true, contactConsent: g("초대장수신") ? yes(g("초대장수신")) : true,
   };
 }
 
 export function downloadTemplate() {
   const header = COLUMNS.map(([h]) => h);
   const hint = COLUMNS.map(([, , h]) => h);
-  const sample = ["예시 홍길동", "010-1234-5678", "초청", "메인", "", "", "11교구", "", "40대", "예시 동행", "", "", "", "셔틀", "12:30", "16:15", "", "아니오", "", "", "예"];
-  const sample2 = ["예시 김영희", "010-2222-3333", "초청", "예배", "2", "창동", "21교구", "", "", "", "", "", "", "개별", "", "", "", "예", "휠체어", "", "아니오"];
+  const sample = ["예시 홍길동", "010-1234-5678", "초청", "메인", "", "", "11교구", "", "40대", "예시 동행", "", "", "", "", "셔틀", "12:30", "16:15", "", "아니오", "", "", "예"];
+  const sample2 = ["예시 김영희", "010-2222-3333", "초청", "예배", "2", "창동", "21교구", "", "60대", "", "", "", "", "", "개별", "", "", "", "예", "휠체어", "", "아니오"];
   const ws = XLSX.utils.aoa_to_sheet([header, hint, sample, sample2]);
   ws["!cols"] = header.map(() => ({ wch: 16 }));
   const wb = XLSX.utils.book_new();

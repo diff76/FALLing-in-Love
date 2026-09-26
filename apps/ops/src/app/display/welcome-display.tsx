@@ -6,8 +6,8 @@ import { createBrowserSupabaseClient, isSupabaseConfigured, type OpsStats, type 
 
 type Welcome = { name: string; seat: string; guests: number };
 const SHOW_MS = 6000;
-/** A check-in is confirmed on a staff phone; the party walks to the lobby. 10 s later the screen greets them. */
-const DELAY_MS = 10_000;
+/** Greet the moment a staff phone confirms the check-in (was 10 s; changed 2026-09-27). */
+const DELAY_MS = 0;
 /** Realtime is the fast path; this poll is the safety net (every 4 s) so a greeting is never lost. */
 const POLL_MS = 4000;
 
@@ -29,7 +29,7 @@ function chime(ctx: AudioContext) {
   play(784, t, 1.2); play(1046.5, t + 0.28, 1.6);
 }
 
-/** Lobby screen: idle programme + a masked welcome 10 s after each staff-confirmed check-in, with a chime. */
+/** Lobby screen: idle programme + a masked welcome right after each staff-confirmed check-in, with a chime. */
 export function WelcomeDisplay() {
   const [now, setNow] = useState(new Date());
   const [current, setCurrent] = useState<Welcome | null>(null);

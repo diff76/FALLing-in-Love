@@ -39,7 +39,7 @@ export const eventConfig = {
     ["31", "31교구"], ["32", "32교구"], ["33", "33교구"], ["35", "35교구"],
     ["JB", "장애인부"], ["ED", "교육부"],
   ] as const,
-  ageGroups: ["30대", "40대", "50대", "60대 이상"] as const,
+  ageGroups: ["30대", "40대", "50대", "60대", "70대 이상"] as const,
   stations: [
     { code: "gate", name: "창동 THE GATE" },
     { code: "landing", name: "주차장 THE LANDING" },
@@ -64,8 +64,8 @@ export const eventConfig = {
     { code: "drink", name: "웰컴 드링크 쿠폰" },
     { code: "pouch", name: "어메니티 파우치" },
   ] as const,
-  /** host + up to 4 invited guests */
-  maxPartySize: 5,
+  /** host + up to 5 invited guests (raised from 4 on 2026-09-27) */
+  maxPartySize: 6,
   /** Personal data is deleted within this many days after the event (documented policy). */
   dataRetentionDays: 30,
 } as const;

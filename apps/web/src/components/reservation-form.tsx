@@ -7,7 +7,7 @@ import type { ReservationInput } from "@fil/domain";
 
 type Guest = { name: string; relation: string; ageGroup: string; dietaryNote: string };
 const emptyGuest = (): Guest => ({ name: "", relation: "", ageGroup: "", dietaryNote: "" });
-const ORD = ["첫 번째", "두 번째", "세 번째", "네 번째"];
+const ORD = ["첫 번째", "두 번째", "세 번째", "네 번째", "다섯 번째"];
 
 export function ReservationForm() {
   const router = useRouter();
@@ -37,11 +37,13 @@ export function ReservationForm() {
       outboundRun: fd.get("outboundRun") ?? "",
       returnRun: fd.get("returnRun") ?? "",
       vehiclePlate: fd.get("vehiclePlate") ?? "",
-      mobilitySupport: String(fd.get("mobilityNote") ?? "").trim().length > 0,
-      mobilityNote: fd.get("mobilityNote") ?? "",
+      // No wheelchair/stroller service this year: the "help needed" field was removed (2026-09-27).
+      mobilitySupport: false,
+      mobilityNote: "",
       dietaryNote: fd.get("dietaryNote") ?? "",
       privacyConsent: fd.get("privacyConsent") === "on",
-      contactConsent: fd.get("contactConsent") === "on",
+      // Playlist + photos go to everyone; the next invitation is opt-OUT (ticked = do not send).
+      contactConsent: fd.get("inviteOptOut") !== "on",
     } satisfies Partial<Record<keyof ReservationInput, unknown>>;
 
     setBusy(true); setMessage(null); setFieldErrors({});
@@ -125,7 +127,7 @@ export function ReservationForm() {
 
       {mode === "host" && (
         <>
-          <div className="formSection"><span>{stepNo(++step)}</span><div><h2>함께 오시는 분</h2><p>최대 네 분까지. 당일 체크인 때 한 팀으로 나란히 앉으실 수 있도록 좌석을 배정합니다.</p></div></div>
+          <div className="formSection"><span>{stepNo(++step)}</span><div><h2>함께 오시는 분</h2><p>최대 다섯 분까지. 당일 체크인 때 한 팀으로 나란히 앉으실 수 있도록 좌석을 배정합니다.</p></div></div>
           <div className="formGrid">
             {guests.map((g, i) => (
               <div className="guestCard" key={i}>
@@ -163,12 +165,12 @@ export function ReservationForm() {
           <select name="returnRun" defaultValue=""><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t}>{t} 출발</option>)}</select>{err("returnRun")}
         </label>
         <label><span>가리시는 음식 <em>선택</em></span><input name="dietaryNote" placeholder="알레르기, 채식 등" /></label>
-        <label className="full"><span>도움이 필요한 내용 <em>선택</em></span><textarea name="mobilityNote" placeholder="휠체어, 유모차, 그 외 미리 알려주실 일" /></label>
       </div>
 
       <label className="consent"><input type="checkbox" name="privacyConsent" required /><span>좌석 배정과 행사 안내를 위한 성함·연락처 수집에 동의합니다. 행사 후 {eventConfig.dataRetentionDays}일 안에 삭제됩니다.<b>필수</b></span></label>
       {err("privacyConsent")}
-      <label className="consent"><input type="checkbox" name="contactConsent" /><span>행사 후 플레이리스트와 사진, 다음 소식을 받아보겠습니다.<b className="opt">선택</b></span></label>
+      <p className="consentNote">행사 후 그날의 플레이리스트와 사진은 신청하신 모든 분께 보내드립니다. 다음에 좋은 자리가 생기면 초대장도 함께 전해드리려 합니다.</p>
+      <label className="consent"><input type="checkbox" name="inviteOptOut" /><span>다음 초대장은 받지 않겠습니다.<b className="opt">선택</b></span></label>
 
       <p className="formNote">좌석은 당일 현장 체크인 때 배정됩니다. 신청만으로는 좌석이 확정되지 않습니다.</p>
       <button className="submitButton" type="submit" disabled={busy}>{busy ? "접수하는 중…" : "참여 신청하기 →"}</button>

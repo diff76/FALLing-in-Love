@@ -35,6 +35,7 @@ GitHub `diff76/FALLing-in-Love`의 `main` 브랜치에 푸시할 때마다 두 �
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | 위와 동일 |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | 위와 동일 |
+| `SUPABASE_SECRET_KEY` | web과 동일 (Type: Secret) — 관리자 탭의 **계정 관리**(계정 생성·권한·비밀번호·삭제)에 필요. 없으면 그 화면만 안내 문구를 보여준다 |
 
 5. **Deploy**. 첫 배포는 미디어(약 250MB, 1,500여 파일) 업로드 때문에 5~8분 걸릴 수 있습니다.
 

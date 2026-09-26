@@ -5,6 +5,7 @@ import { hashPassToken, isPassTokenShape, passUrl } from "@fil/domain";
 import { createAdminSupabaseClient, isSupabaseAdminConfigured, type PassLookup } from "@fil/supabase";
 import { BrandLink } from "@/components/brand-link";
 import { TicketCard, type TicketBadge } from "@/components/ticket-card";
+import { PassActions } from "@/components/pass-actions";
 
 export const metadata = { title: "Matinée Pass" };
 export const dynamic = "force-dynamic";
@@ -75,6 +76,11 @@ export default async function PassPage({ params, searchParams }: { params: Promi
         qrSvg={qr}
         qrNote={<>웰컴 스팟이나 채플 로비에서 이 화면을 보여주세요.<br />일행 모두가 한 번에 확인됩니다.</>}
       />
+      <PassActions url={url} code={pass.code} />
+      <aside className="passNote">
+        <b>이 페이지 주소가 곧 Pass입니다.</b>
+        링크를 저장해 두시면 언제든 다시 열 수 있고, 일행에게 보내도 같은 QR이 뜹니다.
+      </aside>
       <aside className="passNote">
         <b>가벼운 식사가 준비되어 있습니다.</b>
         오후 1시에 특별예배로 문을 열고, 실내악을 지나 정원에서 마무리합니다. 편한 신발을 신고 오시면 좋습니다.

@@ -28,6 +28,32 @@ button { font: inherit; }
 .opsShell nav { display: grid; gap: 4px; margin-top: 12px; }
 .opsShell nav a { padding: 12px 14px; border-radius: 10px; font-weight: 600; }
 .opsShell nav a:hover { background: var(--panel); }
+/* current tab: solid gold pill so it reads at a glance on a phone strip */
+.opsShell nav a.active, .opsShell nav a.active:hover { background: var(--gold); color: #1F1A16; font-weight: 800; box-shadow: 0 2px 10px rgba(224, 166, 74, .35); }
+.opsShell aside strong.lockup a { color: inherit; text-decoration: none; }
+.opsShell aside strong.lockup a:hover { opacity: .85; }
+/* falling leaves (fixed layer behind everything; transform/opacity only) */
+.opsShell, .loginPage { position: relative; isolation: isolate; }
+.opsLeaves { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.opsShell > aside, .opsShell > .opsMain, .loginPage > section, .loginPage > form { position: relative; z-index: 1; }
+.opsLeaves svg { position: absolute; top: -6%; width: 18px; height: 18px; opacity: 0; fill: var(--gold); animation: opsLeafFall var(--d, 14s) linear var(--delay, 0s) infinite; will-change: transform; }
+.opsLeaves svg path { transform-origin: 50% 50%; animation: opsLeafSway 2.8s ease-in-out infinite alternate; }
+.opsLeaves .l0 { left: 5%;  --d: 13s; --delay: -3s; }
+.opsLeaves .l1 { left: 19%; --d: 16s; --delay: -9s; fill: var(--brick); width: 15px; height: 15px; }
+.opsLeaves .l2 { left: 34%; --d: 14s; --delay: -5s; fill: var(--olive); }
+.opsLeaves .l3 { left: 51%; --d: 17s; --delay: -12s; width: 21px; height: 21px; }
+.opsLeaves .l4 { left: 66%; --d: 12s; --delay: -1s; fill: var(--brick); }
+.opsLeaves .l5 { left: 80%; --d: 15s; --delay: -7s; fill: var(--olive); width: 16px; height: 16px; }
+.opsLeaves .l6 { left: 92%; --d: 13.5s; --delay: -10s; width: 20px; height: 20px; }
+@keyframes opsLeafFall {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  8%   { opacity: .55; }
+  50%  { transform: translate3d(-36px, 55vh, 0) rotate(150deg); }
+  92%  { opacity: .55; }
+  100% { transform: translate3d(28px, 112vh, 0) rotate(320deg); opacity: 0; }
+}
+@keyframes opsLeafSway { from { transform: rotateY(0deg); } to { transform: rotateY(65deg); } }
+@media (prefers-reduced-motion: reduce) { .opsLeaves { display: none; } }
 .who { margin-top: auto; display: grid; font-size: 12px; color: var(--ink-soft); }
 .logout { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; width: 100%; }
 .opsMain { padding: 28px clamp(18px, 3vw, 40px) 80px; max-width: 760px; }
@@ -200,6 +226,8 @@ th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); }
 .opsShell.light { --bg: #F7F1E4; --panel: #FFFDF7; --ink: #2E251C; --ink-soft: #6B584A; --line: rgba(46, 37, 28, .14); background: var(--bg); color: var(--ink); }
 .opsShell.light aside { background: #FFFDF7; }
 .opsShell.light nav a:hover { background: #F1E7D3; }
+.opsShell.light nav a.active, .opsShell.light nav a.active:hover { background: #BE5637; color: #fff; box-shadow: 0 2px 10px rgba(190, 86, 55, .3); }
+.opsShell.light .opsLeaves svg { opacity: 0; }
 .opsShell.light .metricGrid article { background: var(--panel); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(46,37,28,.05); }
 .opsShell.light .metricGrid article h2 { font-family: "Iowan Old Style", Georgia, serif; font-size: 44px; }
 .opsShell.light .metricGrid article.hot h2 { color: var(--brick); }
@@ -313,3 +341,26 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
 .srow .qty { font-size: 20px; font-weight: 800; min-width: 44px; text-align: right; } .srow .qty.low { color: var(--brick); }
 .srow button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 20px; cursor: pointer; }
 @media (max-width: 900px) { .deskCols { grid-template-columns: 1fr; } .heroNums { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- accounts (admin) ---------- */
+.accounts { display: grid; gap: 16px; max-width: 760px; }
+.accounts .okMsg { color: #3E7A3E; }
+.acctForm { display: grid; gap: 12px; }
+.acctForm label, .acct label { display: grid; gap: 6px; font-size: 14px; }
+.acctForm input, .acct input { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 16px; }
+.opsShell.light .acctForm input, .opsShell.light .acct input { background: #fff; border-color: rgba(0,0,0,.14); color: #1F1A16; }
+.acctForm fieldset, .acct fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; }
+.acctForm legend, .acct legend { font-size: 12px; letter-spacing: .08em; color: var(--ink-soft); padding: 0 4px; }
+.chk { display: flex !important; align-items: center; gap: 8px; font-size: 14px; }
+.acctList { display: grid; gap: 12px; }
+.acct { padding: 14px; border-radius: 14px; border: 1px solid var(--line); display: grid; gap: 10px; }
+.acct.self { border-color: var(--gold); }
+.acct header b { font-size: 16px; margin-right: 8px; }
+.acct header small { display: block; color: var(--ink-soft); font-size: 12px; }
+.acctRow { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.acctRow .grow { flex: 1 1 220px; }
+.acctRow.danger { justify-content: flex-end; align-items: center; }
+.btn.del { background: #BE5637; color: #fff; }
+.opsShell.light .btn.ghost { color: #1F1A16; border-color: rgba(0,0,0,.18); }
+@media (max-width: 860px) { .acctRow .btn { width: 100%; } }
+

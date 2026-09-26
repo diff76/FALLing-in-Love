@@ -1,4 +1,5 @@
 import { signIn } from "./actions";
+import { Leaves } from "@/components/leaves";
 
 // Never prerender: the session decides what this route does.
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const unconfigured = sp.reason === "unconfigured";
   return (
     <main className="loginPage">
+      <Leaves />
       <section className="loginHero">
         <p>2026 · 온출전</p>
         <h1 className="lockup"><span className="fall">FALL</span>ing <em>in</em> Love</h1>

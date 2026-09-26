@@ -145,7 +145,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
           <header><small>{done.already ? "이미 확인된 일행 · 좌석 갱신" : "체크인 확정"}</small><h2>{done.applicant_name} 님</h2><p>{done.station_name} · {new Date(done.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</p></header>
           <div className="seatBig"><small>자리로 안내해 주세요</small><b>{done.seat_label ?? "좌석 미배정"}</b></div>
           <p className="kv"><span>확인된 인원</span><b>{done.arrived_count}명</b></p>
-          {!done.already && <p className="tiny">10초 뒤 로비 디스플레이에 환영 메시지가 소리와 함께 나옵니다.</p>}
+          {!done.already && <p className="tiny">로비 디스플레이에 환영 메시지가 소리와 함께 바로 나옵니다.</p>}
           <button className="btn" onClick={() => { setDone(null); setCurrent(null); setResults([]); setQuery(""); }}>다음 팀</button>
         </section>
       ) : r ? (

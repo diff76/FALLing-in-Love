@@ -39,8 +39,10 @@ export default async function AdminPage() {
 
   // Age groups: every named person we know an age for (hosts + companions)
   const ages = new Map<string, number>(eventConfig.ageGroups.map((a) => [a, 0]));
-  rows.forEach((r) => { if (r.age_group && ages.has(r.age_group)) ages.set(r.age_group, ages.get(r.age_group)! + 1); });
-  members.forEach((m) => { if (m.age_group && ages.has(m.age_group)) ages.set(m.age_group, ages.get(m.age_group)! + 1); });
+  // Rows saved before 2026-09-27 carry the old top bucket "60대 이상"; count them under 60대.
+  const bucket = (a: string | null) => (a === "60대 이상" ? "60대" : a);
+  rows.forEach((r) => { const a = bucket(r.age_group); if (a && ages.has(a)) ages.set(a, ages.get(a)! + 1); });
+  members.forEach((m) => { const a = bucket(m.age_group); if (a && ages.has(a)) ages.set(a, ages.get(a)! + 1); });
   const ageMax = Math.max(1, ...ages.values());
   const parkingCars = rows.filter((r) => r.vehicle_plate).length;
   const returnPeople = rows.filter((r) => r.return_run_id).reduce((n, r) => n + r.party_size, 0);
@@ -56,7 +58,7 @@ export default async function AdminPage() {
         <article><span>신청 팀</span><h2>{stats?.reservations ?? "—"}</h2><p>메인 {stats?.main_people ?? "—"}명 · 예배만 {stats?.worship_people ?? "—"}명</p></article>
         <article><span>신청 인원</span><h2>{stats?.people ?? "—"}</h2><p>게스트 {stats?.guests ?? "—"}명 포함</p></article>
         <article className="hot"><span>현재 체크인</span><h2>{stats?.checked_in_people ?? "—"}</h2><p>실참률 {rate}% · 좌석 배정 {stats?.seated_people ?? "—"}석</p></article>
-        <article><span>연락 수신 동의</span><h2>{stats?.contact_consent_people ?? "—"}</h2><p>사후 발송 대상</p></article>
+        <article><span>다음 초대장 수신</span><h2>{stats?.contact_consent_people ?? "—"}</h2><p>플레이리스트·사진은 전원 발송</p></article>
       </div>
 
       <div className="cols two">

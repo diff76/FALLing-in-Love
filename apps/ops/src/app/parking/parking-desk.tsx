@@ -43,7 +43,13 @@ export function ParkingDesk({ initial }: { initial: ParkingBoard | null }) {
   }
   async function confirmArrival(v: ParkingBoard["vehicles"][number], arrived: boolean) {
     setBusy(true); setError(null);
-    try { await markVipArrived(v.reservation_id, arrived); if (arrived) await adjustParking(1); setAsk(null); await reload(); }
+    try {
+      await markVipArrived(v.reservation_id, arrived);
+      // arrival = one more car in; cancelling an arrival gives the bay back (the count never goes below 0 server-side)
+      const state = await adjustParking(arrived ? 1 : -1);
+      setBoard((b) => b ? { ...b, state } : b);
+      setAsk(null); await reload();
+    }
     catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
@@ -108,7 +114,7 @@ export function ParkingDesk({ initial }: { initial: ParkingBoard | null }) {
             <small>{ask.arrived_at ? "도착 취소" : "도착 확인"}</small>
             <h2>{ask.plate}</h2>
             <p>{ask.name} 님 · {ask.party_size}명{ask.district_label ? ` · ${ask.district_label}` : ""}</p>
-            <p>{ask.arrived_at ? "이 차량의 도착 기록을 지울까요?" : "이 차량이 지금 도착한 것이 맞습니까? 확인하면 주차 대수도 1 늘어납니다."}</p>
+            <p>{ask.arrived_at ? "이 차량의 도착 기록을 지울까요? 현재 주차 대수도 1 줄어듭니다." : "이 차량이 지금 도착한 것이 맞습니까? 확인하면 주차 대수도 1 늘어납니다."}</p>
             <button className="btn gold" disabled={busy} onClick={() => confirmArrival(ask, !ask.arrived_at)}>{ask.arrived_at ? "도착 취소" : "네, 도착했습니다"}</button>
             <button className="btn ghost" onClick={() => setAsk(null)}>닫기</button>
           </div>
