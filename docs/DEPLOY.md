@@ -77,3 +77,10 @@ DB 변경(마이그레이션)은 배포와 별개로 Supabase SQL Editor에서 �
 - `output: "standalone"` 설정은 Docker용이며 Vercel에서는 무시됩니다.
 - 로컬 확인용 cloudflared 임시 터널과 `next start` 서버는 배포 뒤 필요 없습니다.
 - 행사 뒤: Supabase secret 키 교체(대화에 노출된 적 있음), 30일 후 개인정보 삭제 작업.
+
+## 7. 운영앱 계정 (2026-09-28)
+
+- 로그인은 이메일이 아니라 짧은 아이디(`admin`, `staff`, `desk`, `diff76`)로 한다. 내부적으로 `<아이디>@ops.eventgo.kr`로 매핑되며 그 주소로 메일은 보내지 않는다 (`apps/ops/src/lib/login-id.ts`).
+- 계정 생성·아이디/이름 변경·권한·비밀번호·삭제는 관리자 → **계정 관리**에서 한다.
+- **바로 접속 링크**: 같은 화면에서 계정별로 `https://ops.eventgo.kr/go/<토큰>` 링크를 만들어 공유한다. 열면 그 계정으로 바로 로그인된다(토큰은 해시로만 저장, 만료·무효화 가능). 사용하려면 Supabase SQL Editor에서 `supabase/migrations/0005_access_links.sql`을 한 번 실행해야 한다.
+

@@ -8,8 +8,14 @@ button { font: inherit; }
 .note { margin: 0 0 18px; color: var(--ink-soft); }
 
 .loginPage { min-height: 100svh; display: grid; grid-template-columns: 1.1fr 1fr; }
-.loginHero { padding: 48px; display: grid; align-content: center; gap: 8px; background: linear-gradient(160deg, #3a2e24, #1F1A16); }
-.loginHero p, .loginHero span { letter-spacing: .2em; font-size: 12px; color: var(--gold); }
+.loginHero { padding: 48px; display: grid; align-content: center; background: linear-gradient(160deg, #3a2e24, #1F1A16); }
+.loginHero .heroBlock { display: grid; gap: 10px; width: max-content; max-width: 100%; }
+.loginHero p, .loginHero span { margin: 0; letter-spacing: .2em; font-size: 16px; color: var(--gold); }
+.loginHero .ops { text-align: right; }
+.loginHero .tagline { font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
+.loginHero h1 { position: relative; isolation: isolate; }
+.loginHero h1 .hl { position: relative; }
+.loginHero h1 .hl::after { content: ""; position: absolute; left: -.02em; right: -.02em; bottom: .02em; height: .22em; background: linear-gradient(90deg, rgba(201,147,47,.55), rgba(228,192,142,.35)); z-index: -1; border-radius: .04em; }
 .loginHero h1 { margin: 0; font-family: "Iowan Old Style", Georgia, serif; font-weight: 400; font-size: clamp(48px, 7vw, 96px); letter-spacing: -.04em; }
 .loginHero em { font-style: italic; color: var(--gold); }
 .loginForm { padding: 48px; display: grid; align-content: center; gap: 12px; max-width: 460px; }
@@ -364,3 +370,15 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
 .opsShell.light .btn.ghost { color: #1F1A16; border-color: rgba(0,0,0,.18); }
 @media (max-width: 860px) { .acctRow .btn { width: 100%; } }
 
+/* one-tap access links */
+.linkBox { border-top: 1px dashed var(--line); padding-top: 10px; display: grid; gap: 10px; }
+.linkHead b { display: block; font-size: 14px; } .linkHead small { color: var(--ink-soft); font-size: 12px; }
+.acct select { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 15px; }
+.opsShell.light .acct select { background: #fff; border-color: rgba(0,0,0,.14); color: #1F1A16; }
+.minted { padding: 12px; border-radius: 12px; background: rgba(224,166,74,.12); border: 1px solid rgba(224,166,74,.5); display: grid; gap: 8px; }
+.minted code { font-size: 13px; word-break: break-all; }
+.linkList { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.linkList li { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); }
+.linkList li span { display: grid; } .linkList li b { font-size: 14px; } .linkList li small { color: var(--ink-soft); font-size: 12px; }
+.linkList.dead li { opacity: .6; }
+.linkList .btn { width: auto; padding: 10px 12px; font-size: 13px; }

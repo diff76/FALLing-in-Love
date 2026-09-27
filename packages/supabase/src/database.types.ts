@@ -137,6 +137,12 @@ export type Database = {
     Tables: {
       profiles: { Row: { id: string; display_name: string | null; created_at: string }; Insert: { id: string; display_name?: string | null }; Update: { display_name?: string | null }; Relationships: [] };
       staff_roles: { Row: StaffRoleRow; Insert: StaffRoleRow; Update: Partial<StaffRoleRow>; Relationships: [] };
+      access_links: {
+        Row: { id: string; profile_id: string; token_hash: string; label: string | null; created_by: string | null; created_at: string; expires_at: string; revoked_at: string | null; last_used_at: string | null; use_count: number };
+        Insert: { id?: string; profile_id: string; token_hash: string; label?: string | null; created_by?: string | null; created_at?: string; expires_at: string; revoked_at?: string | null; last_used_at?: string | null; use_count?: number };
+        Update: { label?: string | null; expires_at?: string; revoked_at?: string | null; last_used_at?: string | null; use_count?: number };
+        Relationships: [];
+      };
       reservations: { Row: ReservationRow; Insert: Partial<ReservationRow>; Update: Partial<ReservationRow>; Relationships: [] };
       reservation_members: { Row: ReservationMemberRow; Insert: Partial<ReservationMemberRow>; Update: Partial<ReservationMemberRow>; Relationships: [] };
       shuttle_runs: { Row: ShuttleRunRow; Insert: Partial<ShuttleRunRow>; Update: Partial<ShuttleRunRow>; Relationships: [] };

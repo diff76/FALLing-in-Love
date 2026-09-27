@@ -11,3 +11,5 @@ Data retention: personal data (names, phones, notes) is deleted within 30 days a
 
 ## 0004 — seats at check-in, worship-only, import, parking (2026-09-24)
 Run `migrations/0004_seats_checkin_parking.sql` in the Supabase SQL editor (after 0001–0003). It seeds the chapel chart (`seats`), replaces `seat_assignments` with per-seat rows, moves seat assignment from reservation time to `perform_checkin` / `reassign_seats`, adds `attendance` / `worship_service` / `worship_site` / `source` to reservations with a (name, phone) dedupe index, confirms the shuttle runs (10:00–15:00 every 50 min; return 16:15, 17:00), and adds the parking desk (`parking_state`, `vip_arrivals`, `parking_board`, `parking_adjust`, `vip_mark`) and the admin import RPCs (`admin_create_reservation`, `find_duplicates`).
+
+5. **0005_access_links.sql** (2026-09-28): run once in the SQL Editor to enable one-tap access links (관리자 → 계정 관리 → 바로 접속 링크). Staff sign in with a short id (`admin`, `staff`, …) that maps to `<id>@ops.eventgo.kr`; no mail is ever sent to those addresses.

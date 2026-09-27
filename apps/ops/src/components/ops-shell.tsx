@@ -3,6 +3,7 @@ import type { StaffRole } from "@fil/domain";
 import { signOut } from "@/app/login/actions";
 import { OpsNav } from "./ops-nav";
 import { Leaves } from "./leaves";
+import { toLoginId } from "@/lib/login-id";
 
 const nav: { href: string; label: string; roles: StaffRole[] }[] = [
   { href: "/scan", label: "스캔·체크인", roles: ["staff", "admin"] },
@@ -24,7 +25,7 @@ export function OpsShell({ title, eyebrow, roles, email, wide, light, children }
         <strong className="lockup"><Link href="/" aria-label="처음 화면으로"><span className="fall">FALL</span>ing <em>in</em> Love</Link></strong>
         <span>OPERATIONS · 2026</span>
         <OpsNav items={items.map(({ href, label }) => ({ href, label }))} />
-        <div className="who"><small>{email ?? ""}</small><small>{roles.join(" · ")}</small></div>
+        <div className="who"><small>{toLoginId(email)}</small><small>{roles.join(" · ")}</small></div>
         <form action={signOut} className="logoutForm"><button className="logout" type="submit">로그아웃</button></form>
       </aside>
       <section className="opsMain">

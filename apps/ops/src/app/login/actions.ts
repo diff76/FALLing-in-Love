@@ -2,11 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
+import { toEmail } from "@/lib/login-id";
 
 export async function signIn(formData: FormData) {
   const db = await supabaseServer();
   if (!db) redirect("/login?reason=unconfigured");
-  const email = String(formData.get("email") ?? "").trim();
+  const email = toEmail(String(formData.get("login") ?? formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
   const next = String(formData.get("next") ?? "/");
   const { error } = await db.auth.signInWithPassword({ email, password });
