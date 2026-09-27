@@ -1,3 +1,6 @@
+@property --u1 { syntax: "<color>"; inherits: false; initial-value: #E0A64A; }
+@property --u2 { syntax: "<color>"; inherits: false; initial-value: #BE5637; }
+@property --u3 { syntax: "<color>"; inherits: false; initial-value: #E4C08E; }
 :root { --bg: #1F1A16; --panel: #2A241F; --ink: #F5EEE3; --ink-soft: rgba(245, 238, 227, .62); --line: rgba(245, 238, 227, .14); --gold: #E0A64A; --olive: #8CA36E; --brick: #D96A4E; --paper: #F7F1E4; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: Pretendard, "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -12,10 +15,24 @@ button { font: inherit; }
 .loginHero .heroBlock { display: grid; gap: 10px; width: max-content; max-width: 100%; }
 .loginHero p, .loginHero span { margin: 0; letter-spacing: .2em; font-size: 16px; color: var(--gold); }
 .loginHero .ops { text-align: right; }
-.loginHero .tagline { font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
+.loginHero .tagline { text-align: center; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
 .loginHero h1 { position: relative; isolation: isolate; }
 .loginHero h1 .hl { position: relative; }
-.loginHero h1 .hl::after { content: ""; position: absolute; left: -.02em; right: -.02em; bottom: .02em; height: .22em; background: linear-gradient(90deg, rgba(201,147,47,.55), rgba(228,192,142,.35)); z-index: -1; border-radius: .04em; }
+/* FALL underline: a soft brush of colour that fades out at both ends and slowly shifts hue
+   (gold → persimmon → olive) — not a solid bar. */
+.loginHero h1 .hl::after {
+  content: ""; position: absolute; left: -.06em; right: -.06em; bottom: -.02em; height: .3em; z-index: -1; border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, var(--u1, #E0A64A) 22%, var(--u2, #BE5637) 55%, var(--u3, #E4C08E) 82%, transparent 100%);
+  background-size: 220% 100%; opacity: .7; filter: blur(.5px);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,1) 45%, rgba(0,0,0,.25)); mask-image: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,1) 45%, rgba(0,0,0,.25));
+  animation: fallHue 9s ease-in-out infinite alternate;
+}
+@keyframes fallHue {
+  0%   { background-position: 0% 50%;   --u1: #E0A64A; --u2: #BE5637; --u3: #E4C08E; opacity: .62; }
+  50%  { background-position: 60% 50%;  --u1: #BE5637; --u2: #C9932F; --u3: #8CA36E; opacity: .8; }
+  100% { background-position: 100% 50%; --u1: #8CA36E; --u2: #E0A64A; --u3: #BE5637; opacity: .66; }
+}
+@media (prefers-reduced-motion: reduce) { .loginHero h1 .hl::after { animation: none; } }
 .loginHero h1 { margin: 0; font-family: "Iowan Old Style", Georgia, serif; font-weight: 400; font-size: clamp(48px, 7vw, 96px); letter-spacing: -.04em; }
 .loginHero em { font-style: italic; color: var(--gold); }
 .loginForm { padding: 48px; display: grid; align-content: center; gap: 12px; max-width: 460px; }
