@@ -45,9 +45,16 @@ GitHub `diff76/FALLing-in-Love`의 `main` 브랜치에 푸시할 때마다 두 �
 - ops: `/login` → 스캔·체크인에서 성함 조회, 카메라 QR(https라 폰 카메라 바로 동작), 주차, 디스플레이 `LIVE` 표시.
 - `NEXT_PUBLIC_SITE_URL`을 나중에 바꾸면 web 프로젝트를 **Redeploy** 해야 반영됩니다(빌드 시 고정).
 
-## 3. 도메인 (선택)
+## 3. 도메인 — eventgo.kr (2026-09-27)
 
-Vercel 프로젝트 → Settings → Domains 에서 교회 도메인을 붙일 수 있습니다. 붙인 뒤 `NEXT_PUBLIC_SITE_URL`도 그 도메인으로 바꾸고 web을 Redeploy 합니다.
+`eventgo.kr`은 후이즈(whois.co.kr) 네임서버(ns1~4.whoisdomain.kr)를 쓰고, 루트와 `www`는 다른 서버(118.67.131.217)를 가리키므로 건드리지 않는다. 서브도메인만 Vercel로 보낸다.
+
+| 이름 | 앱 | 후이즈 DNS 레코드 |
+|---|---|---|
+| `falling.eventgo.kr` | web (`fal-ling-in-love-web`) | CNAME `falling` → `cname.vercel-dns.com` |
+| `ops.eventgo.kr` | ops (`fal-ling-in-love-ops`) | CNAME `ops` → `cname.vercel-dns.com` |
+
+절차: (1) Vercel 프로젝트 → Domains → Add Existing 으로 이름 등록 → "Invalid Configuration"은 DNS가 아직 없다는 뜻. (2) 후이즈 도메인 관리 → DNS(호스트) 설정에 위 CNAME 추가 (CNAME을 못 쓰면 A `76.76.21.21`). (3) TTL 3600이라 최대 1시간 안에 "Valid Configuration"으로 바뀌고 인증서는 자동 발급. (4) web 프로젝트 `NEXT_PUBLIC_SITE_URL` = `https://falling.eventgo.kr` 로 바꾸고 Redeploy (Pass QR 링크 기준).
 
 ## 4. 이후 수정 흐름
 
