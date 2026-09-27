@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PUBLIC_PATHS = ["/login"];
+// /go/<token> is an access link: it must be reachable while signed OUT (that is its whole
+// point). The route itself verifies the token hash, expiry and revocation before signing in.
+const PUBLIC_PATHS = ["/login", "/go/"];
 
 /**
  * Next 16 proxy (formerly middleware): refreshes the Supabase session cookie and
