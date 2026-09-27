@@ -12,14 +12,14 @@ button { font: inherit; }
 .loginHero .heroBlock { display: grid; gap: 10px; width: max-content; max-width: 100%; }
 .loginHero p, .loginHero span { margin: 0; letter-spacing: .2em; font-size: 16px; color: var(--gold); }
 .loginHero .ops { text-align: right; }
-.loginHero .tagline { text-align: center; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
+.loginHero .tagline { text-align: right; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
 .loginHero h1 { position: relative; isolation: isolate; }
 .loginHero h1 .hl { position: relative; }
-/* FALL underline: one fixed gold-to-persimmon brush that fades in from the left, with a slightly
-   soft edge (small blur + faded top/bottom) — no colour animation. */
+/* FALL underline: a single gold band, solid on the left and fading out toward the right,
+   with a slightly soft edge (small blur + faded top/bottom). No animation. */
 .loginHero h1 .hl::after {
   content: ""; position: absolute; left: -.06em; right: -.06em; bottom: -.02em; height: .3em; z-index: -1; border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, #E0A64A 45%, #BE5637 78%, #E4C08E 100%);
+  background: linear-gradient(90deg, #E0A64A 0%, #E0A64A 55%, transparent 100%);   /* one colour; solid under the F, fading out to the right */
   opacity: .72; filter: blur(1.2px);
   -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,.15)); mask-image: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,.15));
 }
