@@ -7,7 +7,7 @@ import { ParkingDesk } from "./parking-desk";
 export const dynamic = "force-dynamic";
 
 export default async function ParkingPage() {
-  const session = await requireRole("staff", "desk", "admin");
+  const session = await requireRole("staff", "desk", "admin", "parking");
   const db = await supabaseServer();
   const initial = db ? ((await db.rpc("parking_board")).data as ParkingBoard | null) : null;
   return (

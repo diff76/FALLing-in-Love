@@ -9,7 +9,7 @@ import { headers } from "next/headers";
 
 export type Account = { id: string; email: string; loginId: string; displayName: string; roles: StaffRole[]; createdAt: string; lastSignIn: string | null; self: boolean };
 export type AccessLink = { id: string; profileId: string; label: string | null; createdAt: string; expiresAt: string; revokedAt: string | null; lastUsedAt: string | null; useCount: number };
-const ROLES: StaffRole[] = ["staff", "desk", "admin"];
+const ROLES: StaffRole[] = ["staff", "desk", "admin", "parking"];
 
 /**
  * Account management runs with the service-role key (auth admin API + staff_roles writes),

@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { StaffRole } from "@fil/domain";
 import { createAccessLink, createAccount, deleteAccessLink, deleteAccount, listAccessLinks, listAccounts, renameAccount, renameLoginId, resetPassword, revokeAccessLink, setRoles, type AccessLink, type Account } from "./actions";
 
-const ROLE_LABEL: Record<StaffRole, string> = { staff: "스태프 (스캔·체크인, 주차)", desk: "데스크 (상황판, 디스플레이, 주차)", admin: "관리자 (전체 + 계정)" };
-const ROLES: StaffRole[] = ["staff", "desk", "admin"];
+const ROLE_LABEL: Record<StaffRole, string> = { staff: "스태프 (스캔·체크인, 주차)", desk: "데스크 (상황판, 디스플레이, 주차)", admin: "관리자 (전체 + 계정)", parking: "주차 (주차 관리만)" };
+const ROLES: StaffRole[] = ["staff", "desk", "parking", "admin"];
 /** Link expiry presets: the event day (KST end of 2026-10-11), or a rolling window. */
 const EXPIRY: { key: string; label: string; at: () => Date }[] = [
   { key: "event", label: "행사 당일까지 (10/11)", at: () => new Date("2026-10-11T23:59:59+09:00") },
@@ -38,7 +38,7 @@ export function AccountsConsole({ initial, initialLinks, selfId }: { initial: Ac
 
       <section className="box">
         <h2>새 계정 만들기</h2>
-        <p className="tiny">아이디(영문·숫자)와 비밀번호(8자 이상)를 정해 전달하세요. 이메일은 쓰지 않습니다.</p>
+        <p className="tiny">아이디(영문·숫자)와 비밀번호(8자 이상)를 정해 전달하세요. 로그인 후 첫 화면은 권한으로 정해집니다: 관리자 → 관리자, 스태프 → 스캔·체크인, 데스크 → 웰컴 데스크, 주차 → 주차 관리.</p>
         <form className="acctForm" onSubmit={(e) => { e.preventDefault(); run("create", () => createAccount(draft), `${draft.loginId} 계정을 만들었습니다.`).then(() => setDraft({ loginId: "", displayName: "", password: "", roles: ["staff"] })); }}>
           <label>아이디<input required value={draft.loginId} onChange={(e) => setDraft({ ...draft, loginId: e.target.value })} autoComplete="off" autoCapitalize="none" placeholder="예: staff2" /></label>
           <label>이름 <small>선택</small><input value={draft.displayName} onChange={(e) => setDraft({ ...draft, displayName: e.target.value })} autoComplete="off" /></label>

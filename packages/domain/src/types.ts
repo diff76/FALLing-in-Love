@@ -1,4 +1,4 @@
-export type StaffRole = "staff" | "desk" | "admin";
+export type StaffRole = "staff" | "desk" | "admin" | "parking";
 export type ReservationKind = "host" | "guest_self";
 export type TransportKind = "shuttle" | "car" | "other";
 export type CheckinMethod = "qr" | "manual";

@@ -5,7 +5,7 @@
  */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type StaffRoleRow = { profile_id: string; role: "staff" | "desk" | "admin" };
+export type StaffRoleRow = { profile_id: string; role: "staff" | "desk" | "admin" | "parking" };
 
 export type ReservationRow = {
   id: string;
@@ -173,7 +173,7 @@ export type Database = {
       ops_stats: { Args: Record<string, never>; Returns: OpsStats };
       my_roles: { Args: Record<string, never>; Returns: string[] };
     };
-    Enums: { staff_role: "staff" | "desk" | "admin" };
+    Enums: { staff_role: "staff" | "desk" | "admin" | "parking" };
     CompositeTypes: Record<string, never>;
   };
 };
