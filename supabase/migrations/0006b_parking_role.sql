@@ -1,10 +1,6 @@
--- 0006 (2026-09-28): a "parking" role for the car-park team — it sees ONLY the parking desk.
+-- 0006b (2026-09-28): STEP 2 of 2 — run AFTER 0006a has succeeded.
 -- Landing screens by role: admin → 관리자, staff → 스캔·체크인, desk → 웰컴 데스크, parking → 주차 관리.
---
--- The new enum value cannot be USED in the same transaction that adds it, so everything below
--- compares roles as TEXT (has_any_role) instead of casting 'parking'::staff_role.
-alter type public.staff_role add value if not exists 'parking';
-
+-- Roles are compared as TEXT (has_any_role) so nothing here depends on the enum literal.
 create or replace function public.has_any_role(variadic wanted text[]) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.staff_roles r where r.profile_id = auth.uid() and r.role::text = any (wanted));
