@@ -1,6 +1,3 @@
-@property --u1 { syntax: "<color>"; inherits: false; initial-value: #E0A64A; }
-@property --u2 { syntax: "<color>"; inherits: false; initial-value: #BE5637; }
-@property --u3 { syntax: "<color>"; inherits: false; initial-value: #E4C08E; }
 :root { --bg: #1F1A16; --panel: #2A241F; --ink: #F5EEE3; --ink-soft: rgba(245, 238, 227, .62); --line: rgba(245, 238, 227, .14); --gold: #E0A64A; --olive: #8CA36E; --brick: #D96A4E; --paper: #F7F1E4; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: Pretendard, "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -18,22 +15,14 @@ button { font: inherit; }
 .loginHero .tagline { text-align: center; font-family: "Iowan Old Style", Georgia, serif; font-style: italic; font-size: 17px; letter-spacing: .03em; color: rgba(245, 238, 227, .8); }
 .loginHero h1 { position: relative; isolation: isolate; }
 .loginHero h1 .hl { position: relative; }
-/* FALL underline: a soft brush of colour that fades out at both ends and slowly shifts hue
-   (gold → persimmon → olive) — not a solid bar. */
+/* FALL underline: one fixed gold-to-persimmon brush that fades in from the left, with a slightly
+   soft edge (small blur + faded top/bottom) — no colour animation. */
 .loginHero h1 .hl::after {
   content: ""; position: absolute; left: -.06em; right: -.06em; bottom: -.02em; height: .3em; z-index: -1; border-radius: 999px;
-  /* fades IN from the left: transparent under the F, fullest under the last L */
-  background: linear-gradient(90deg, transparent 0%, var(--u1, #E0A64A) 45%, var(--u2, #BE5637) 78%, var(--u3, #E4C08E) 100%);
-  opacity: .7; filter: blur(.5px);
-  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,1) 45%, rgba(0,0,0,.25)); mask-image: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,1) 45%, rgba(0,0,0,.25));
-  animation: fallHue 9s ease-in-out infinite alternate;
+  background: linear-gradient(90deg, transparent 0%, #E0A64A 45%, #BE5637 78%, #E4C08E 100%);
+  opacity: .72; filter: blur(1.2px);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,.15)); mask-image: linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,1) 40%, rgba(0,0,0,1) 60%, rgba(0,0,0,.15));
 }
-@keyframes fallHue {
-  0%   { --u1: #E0A64A; --u2: #BE5637; --u3: #E4C08E; opacity: .62; }
-  50%  { --u1: #BE5637; --u2: #C9932F; --u3: #8CA36E; opacity: .8; }
-  100% { --u1: #8CA36E; --u2: #E0A64A; --u3: #BE5637; opacity: .66; }
-}
-@media (prefers-reduced-motion: reduce) { .loginHero h1 .hl::after { animation: none; } }
 .loginHero h1 { margin: 0; font-family: "Iowan Old Style", Georgia, serif; font-weight: 400; font-size: clamp(48px, 7vw, 96px); letter-spacing: -.04em; }
 .loginHero em { font-style: italic; color: var(--gold); }
 .loginForm { padding: 48px; display: grid; align-content: center; gap: 12px; max-width: 460px; }
