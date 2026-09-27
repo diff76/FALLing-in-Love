@@ -54,6 +54,8 @@ GitHub `diff76/FALLing-in-Love`의 `main` 브랜치에 푸시할 때마다 두 �
 | `falling.eventgo.kr` | web (`fal-ling-in-love-web`) | CNAME `falling` → `cname.vercel-dns.com` |
 | `ops.eventgo.kr` | ops (`fal-ling-in-love-ops`) | CNAME `ops` → `cname.vercel-dns.com` |
 
+연결 완료 2026-09-27 (YesNIC 네임서버 고급설정에서 CNAME 등록; 두 주소 모두 HTTPS 정상). Vercel의 "DNS Change Recommended"는 프로젝트별 CNAME(`…vercel-dns-017.com`)을 권하는 안내일 뿐 오류가 아니다; `cname.vercel-dns.com`도 계속 동작한다.
+
 절차: (1) Vercel 프로젝트 → Domains → Add Existing 으로 이름 등록 → "Invalid Configuration"은 DNS가 아직 없다는 뜻. (2) 후이즈 도메인 관리 → DNS(호스트) 설정에 위 CNAME 추가 (CNAME을 못 쓰면 A `76.76.21.21`). (3) TTL 3600이라 최대 1시간 안에 "Valid Configuration"으로 바뀌고 인증서는 자동 발급. (4) web 프로젝트 `NEXT_PUBLIC_SITE_URL` = `https://falling.eventgo.kr` 로 바꾸고 Redeploy (Pass QR 링크 기준).
 
 ## 4. 이후 수정 흐름
