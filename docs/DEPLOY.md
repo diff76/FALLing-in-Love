@@ -83,4 +83,5 @@ DB 변경(마이그레이션)은 배포와 별개로 Supabase SQL Editor에서 �
 - 로그인은 이메일이 아니라 짧은 아이디(`admin`, `staff`, `desk`, `diff76`)로 한다. 내부적으로 `<아이디>@ops.eventgo.kr`로 매핑되며 그 주소로 메일은 보내지 않는다 (`apps/ops/src/lib/login-id.ts`).
 - 계정 생성·아이디/이름 변경·권한·비밀번호·삭제는 관리자 → **계정 관리**에서 한다.
 - **바로 접속 링크**: 같은 화면에서 계정별로 `https://ops.eventgo.kr/go/<토큰>` 링크를 만들어 공유한다. 열면 그 계정으로 바로 로그인된다(토큰은 해시로만 저장, 만료·무효화 가능). 사용하려면 Supabase SQL Editor에서 `supabase/migrations/0005_access_links.sql`을 한 번 실행해야 한다.
+- 2026-09-28 수정 두 가지: (1) 링크 주소는 운영에서 항상 `https://ops.eventgo.kr` — 예전에는 로컬용 `NEXT_PUBLIC_OPS_URL`(`http://localhost:3001`)이 링크에 새어 들어갔다. 이 변수는 이제 쓰지 않는다. (2) 로그인 검사 프록시가 `/go/`를 막아 로그아웃 상태의 폰에서 링크가 로그인 화면으로 튕겼다 → `PUBLIC_PATHS`에 `/go/` 추가. 로그아웃 상태 클라이언트로 운영 서버에서 생성→접속→무효화까지 확인.
 
