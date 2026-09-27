@@ -3,7 +3,7 @@
 import type { StaffRole } from "@fil/domain";
 import { createAdminSupabaseClient, isSupabaseAdminConfigured } from "@fil/supabase";
 import { getSession } from "@/lib/auth";
-import { LOGIN_ID_RE, toEmail, toLoginId } from "@/lib/login-id";
+import { LOGIN_ID_RE, publicOrigin, toEmail, toLoginId } from "@/lib/login-id";
 import { createHash, randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 
@@ -117,8 +117,7 @@ export async function createAccessLink(userId: string, label: string, expiresAt:
   const { error } = await db.from("access_links").insert({ profile_id: userId, token_hash: sha256(token), label: label.trim() || null, created_by: session.userId, expires_at: exp.toISOString() });
   if (error) throw new Error(error.message.includes("access_links") ? "access_links 테이블이 없습니다. supabase/migrations/0005_access_links.sql 을 먼저 실행하세요." : error.message);
   const h = await headers();
-  const origin = process.env.NEXT_PUBLIC_OPS_URL ?? `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-  return { url: `${origin.replace(/\/$/, "")}/go/${token}` };
+  return { url: `${publicOrigin(h.get("x-forwarded-host") ?? h.get("host"))}/go/${token}` };
 }
 
 export async function revokeAccessLink(linkId: string): Promise<void> {

@@ -14,3 +14,20 @@ export function toLoginId(email: string | null | undefined): string {
   if (!email) return "";
   return email.toLowerCase().endsWith(`@${LOGIN_DOMAIN}`) ? email.slice(0, -(LOGIN_DOMAIN.length + 1)) : email;
 }
+
+/** Public origin of the ops app, used in links we hand to people (access links). */
+export const OPS_PUBLIC_ORIGIN = "https://ops.eventgo.kr";
+
+/**
+ * Origin for a link minted in this request. Production always uses the public domain over
+ * https — never an env value, which may be a local dev URL (that shipped http://localhost:3001
+ * links on 2026-09-28). Previews use their own https host; local dev keeps http://localhost.
+ */
+export function publicOrigin(host: string | null | undefined): string {
+  const h = (host ?? "").trim().toLowerCase();
+  const local = /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:\d+)?$/.test(h) || /^(192\.168|10)\./.test(h);
+  if (process.env.VERCEL_ENV === "production") return OPS_PUBLIC_ORIGIN;
+  if (local) return `http://${h}`;
+  return h ? `https://${h}` : OPS_PUBLIC_ORIGIN;
+}
+
