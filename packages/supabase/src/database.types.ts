@@ -145,6 +145,12 @@ export type Database = {
       };
       reservations: { Row: ReservationRow; Insert: Partial<ReservationRow>; Update: Partial<ReservationRow>; Relationships: [] };
       reservation_members: { Row: ReservationMemberRow; Insert: Partial<ReservationMemberRow>; Update: Partial<ReservationMemberRow>; Relationships: [] };
+      passes: {
+        Row: { id: string; reservation_id: string; token_hash: string; issued_at: string; revoked_at: string | null };
+        Insert: { reservation_id: string; token_hash: string; issued_at?: string; revoked_at?: string | null };
+        Update: { revoked_at?: string | null };
+        Relationships: [];
+      };
       shuttle_runs: { Row: ShuttleRunRow; Insert: Partial<ShuttleRunRow>; Update: Partial<ShuttleRunRow>; Relationships: [] };
       stations: { Row: StationRow; Insert: Partial<StationRow>; Update: Partial<StationRow>; Relationships: [] };
       checkins: { Row: CheckinRow; Insert: Partial<CheckinRow>; Update: Partial<CheckinRow>; Relationships: [] };

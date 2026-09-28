@@ -7,7 +7,7 @@ import { useState } from "react";
  * ticket as a PNG. On phones the image goes through the share sheet ("이미지 저장"); elsewhere
  * it downloads. The capture is the on-screen ticket, flattened (no tilt) at 2×.
  */
-export function PassActions({ url, code }: { url: string; code: string }) {
+export function PassActions({ url, code, shareTitle = "Matinée Pass · FALLing in Love", shareText = "FALLing in Love 참여 신청 Pass" }: { url: string; code: string; shareTitle?: string; shareText?: string }) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const say = (t: string) => { setNote(t); setTimeout(() => setNote(null), 2600); };
@@ -18,7 +18,7 @@ export function PassActions({ url, code }: { url: string; code: string }) {
   }
   async function shareLink() {
     if (navigator.share) {
-      try { await navigator.share({ title: "Matinée Pass · FALLing in Love", text: "FALLing in Love 참여 신청 Pass", url }); return; } catch { /* cancelled */ }
+      try { await navigator.share({ title: shareTitle, text: shareText, url }); return; } catch { /* cancelled */ }
     }
     copyLink();
   }

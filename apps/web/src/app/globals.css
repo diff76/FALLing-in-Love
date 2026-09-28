@@ -184,6 +184,16 @@ img { max-width: 100%; }
 .passActions button:first-child { grid-column: 1 / -1; background: var(--persimmon); color: #fff; border-color: transparent; }
 .passActions button[disabled] { opacity: .6; }
 .passActions p { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; text-align: center; color: var(--moss); }
+.inviteGuests { width: min(100%, 440px); padding: 18px; border-radius: 16px; background: var(--cream); border: 1px solid var(--paper-warm); }
+.inviteGuests h2 { margin: 0 0 6px; font-size: 17px; font-family: var(--font-ko, inherit); }
+.inviteGuests > p { margin: 0 0 12px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); word-break: keep-all; }
+.inviteGuests ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.inviteGuests li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--paper); }
+.inviteGuests li b { font-size: 16px; }
+.inviteGuests li span { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.inviteGuests button { padding: 10px 12px; border-radius: 10px; border: 0; background: var(--persimmon); color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.inviteGuests button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--paper-warm); }
+.inviteGuests .inviteNote { margin: 10px 0 0; font-size: 13px; color: var(--moss); text-align: center; }
 .passNote { width: min(100%, 440px); padding: 16px 18px; border-radius: 14px; background: var(--paper-deep); font-size: 15px; }
 .passNote b { display: block; margin-bottom: 4px; }
 
