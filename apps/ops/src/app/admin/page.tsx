@@ -4,6 +4,7 @@ import { OpsShell } from "@/components/ops-shell";
 import { LiveRefresh } from "@/components/live-refresh";
 import type { OpsStats } from "@fil/supabase";
 import { districtName, eventConfig } from "@fil/config";
+import { ReservationAction } from "./reservation-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,16 +24,18 @@ function Bar({ label, value, done, max, unit, tone }: { label: string; value: nu
 export default async function AdminPage() {
   const session = await requireRole("admin");
   const db = await supabaseServer();
-  const [statsRes, rowsRes, membersRes, checkinsRes] = db ? await Promise.all([
+  const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes] = db ? await Promise.all([
     db.rpc("ops_stats"),
     db.from("reservations").select("id, code, applicant_name, kind, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
     db.from("reservation_members").select("reservation_id, age_group"),
     db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null),
-  ]) : [null, null, null, null];
+    db.from("reservations").select("id, code, applicant_name, district_code, party_size, source, created_at").eq("status", "cancelled").order("created_at", { ascending: false }).limit(200),
+  ]) : [null, null, null, null, null];
   const stats = (statsRes?.data ?? null) as OpsStats | null;
   const rows = rowsRes?.data ?? [];
   const members = membersRes?.data ?? [];
   const checkins = checkinsRes?.data ?? [];
+  const cancelled = cancelledRes?.data ?? [];
   const arrived = new Map(checkins.map((c) => [c.reservation_id, c.arrived_count]));
   const rate = stats && stats.people ? Math.round((stats.checked_in_people / stats.people) * 100) : 0;
   const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -105,17 +108,34 @@ export default async function AdminPage() {
         <h2>신청 명단</h2>
         {!db && <p className="tiny">Supabase가 연결되면 명단과 필터, 수정 기능이 활성화됩니다.</p>}
         <div className="scroll"><table>
-          <thead><tr><th>티켓 번호</th><th>초청자</th><th>교구/부서</th><th>참여</th><th>인원</th><th>이동</th><th>특이</th><th>체크인</th></tr></thead>
+          <thead><tr><th>티켓 번호</th><th>초청자</th><th>교구/부서</th><th>참여</th><th>인원</th><th>이동</th><th>특이</th><th>체크인</th><th>관리</th></tr></thead>
           <tbody>{rows.map((r) => (
             <tr key={r.id}><td className="mono">{r.code}</td><td>{r.applicant_name}{r.source === "import" ? <small> 수기</small> : null}</td><td>{districtName(r.district_code)}</td>
               <td>{r.attendance === "worship" ? `예배 ${r.worship_service ?? "?"}부 · ${eventConfig.worshipSites.find(([c]) => c === r.worship_site)?.[1] ?? ""}` : "메인"}</td>
               <td className="mono">{arrived.has(r.id) ? `${arrived.get(r.id)} / ${r.party_size}` : r.party_size}</td>
               <td>{r.transport === "shuttle" ? "셔틀" : r.transport === "car" ? "자차" : "개별"}</td>
               <td>{[r.dietary_note && "식이", r.mobility_support && "도움", r.vehicle_plate && "주차", r.return_run_id && "복귀"].filter(Boolean).join(" · ") || "—"}</td>
-              <td>{arrived.has(r.id) ? <span className="tag in">확인</span> : <span className="tag">미도착</span>}</td></tr>
+              <td>{arrived.has(r.id) ? <span className="tag in">확인</span> : <span className="tag">미도착</span>}</td>
+              <td><ReservationAction id={r.id} name={r.applicant_name} checkedIn={arrived.has(r.id)} mode="cancel" /></td></tr>
           ))}</tbody>
         </table></div>
       </section>
+
+      {cancelled.length > 0 && (
+        <section className="box">
+          <details>
+            <summary><h2 className="inline">취소된 신청 <small>{cancelled.length}건 · 명단과 집계에서 빠져 있습니다</small></h2></summary>
+            <div className="scroll"><table>
+              <thead><tr><th>티켓 번호</th><th>초청자</th><th>교구/부서</th><th>인원</th><th>관리</th></tr></thead>
+              <tbody>{cancelled.map((r) => (
+                <tr key={r.id} className="cancelled"><td className="mono">{r.code}</td><td>{r.applicant_name}{r.source === "import" ? <small> 수기</small> : null}</td>
+                  <td>{districtName(r.district_code)}</td><td className="mono">{r.party_size}</td>
+                  <td><ReservationAction id={r.id} name={r.applicant_name} mode="restore" /></td></tr>
+              ))}</tbody>
+            </table></div>
+          </details>
+        </section>
+      )}
       <p className="tiny">이 화면은 기록하지 않습니다. 모든 참석 데이터는 스태프 스캔 확정에서만 생성됩니다.</p>
     </OpsShell>
   );

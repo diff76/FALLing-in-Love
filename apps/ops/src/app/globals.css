@@ -389,3 +389,16 @@ ul.chart > li.bar { display: grid; grid-template-columns: 76px 1fr 64px; align-i
 .linkList li span { display: grid; } .linkList li b { font-size: 14px; } .linkList li small { color: var(--ink-soft); font-size: 12px; }
 .linkList.dead li { opacity: .6; }
 .linkList .btn { width: auto; padding: 10px 12px; font-size: 13px; }
+/* admin list: cancel / restore */
+.miniBtn { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: inherit; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.opsShell.light .miniBtn { border-color: rgba(0,0,0,.18); }
+.miniBtn:hover { background: rgba(190, 86, 55, .08); }
+.miniBtn.del { background: #BE5637; border-color: #BE5637; color: #fff; }
+.miniBtn[disabled] { opacity: .55; }
+.rowAct { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; white-space: normal; }
+.rowAct.confirm { min-width: 250px; } .rowAct.confirm em { flex-basis: 100%; }
+.rowAct em { font-style: normal; font-size: 12px; } .rowAct em.warn { color: #BE5637; }
+tr.cancelled td { opacity: .6; text-decoration: line-through; } tr.cancelled td:last-child { opacity: 1; text-decoration: none; }
+details > summary { cursor: pointer; list-style: none; } details > summary::-webkit-details-marker { display: none; }
+details > summary h2.inline { display: inline; } details[open] > summary { margin-bottom: 10px; }
+
