@@ -55,3 +55,6 @@ The ascent dive must START with no building visible: the ascent still's top band
 - Finale→One More Song: the portrait finale dive rose to a map view and invented a car park behind the main building (the desktop prompt literally lists "the car park"); `dive_finale-m.txt` bans it and caps the rise. Connector 7 (`conn_7-m.txt`) forbids anything but the picture on the phone screen (v2 had a text screen mid-way).
 - `media/scripts/refresh-m.sh <ids>` re-encodes + re-extracts frames for named mobile clips only and refreshes the manifest (a full `04-encode`/`05-frames-m` is ~10 min).
 
+
+## Text-free promo film — 2026-09-30
+`python3 media/scripts/06-promo.py [--hold 1.5] --out <file.mp4>` joins the desktop chain (8 dives + 7 connectors) with 0.5 s crossfades at all 14 seams, no audio, 1080p 24 fps, crf 16. No credits. A = 1:31.5 (dissolve only), B = 1:43.5 (each scene holds its last frame 1.5 s before the connector). Outputs in `media/work/promo/` (git-ignored).
