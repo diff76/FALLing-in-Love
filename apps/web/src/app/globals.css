@@ -221,6 +221,21 @@ img { max-width: 100%; }
 /* portrait hero image (phones held upright): sky on top, campus below — keep the campus behind the copy */
 @media (max-width: 820px) and (orientation: portrait) {
   .overtureMedia img { object-position: 50% 62%; transform: none; }
+  /* Lift the eyebrow + title + subtitle so the small eyebrow sits on clear sky instead of the
+     tree line: the block is bottom-anchored, so a larger gap above the promise pushes them up.
+     The lift grows with the screen height (tall phones show more sky) and is zero on short ones,
+     where the block would otherwise run into the top bar. */
+  .overtureCopy .promise { margin-top: clamp(34px, calc(28svh - 146px), 96px); }
+}
+/* very short portrait screens (iPhone SE class with browser bars): tighten the stack so the eyebrow
+   clears the top bar instead of sliding under it */
+@media (max-width: 820px) and (orientation: portrait) and (max-height: 640px) {
+  .overtureCopy { bottom: 76px; }
+  .overture h1 { font-size: clamp(44px, 12.4vw, 96px); }
+  .overtureCopy .eyebrow { margin-bottom: 10px; }
+  .overtureCopy .subtitle { margin-top: 14px; }
+  .overtureCopy .promise { margin-top: 18px; line-height: 1.5; }
+  .overtureCopy .eventLine { margin-top: 14px; gap: 4px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

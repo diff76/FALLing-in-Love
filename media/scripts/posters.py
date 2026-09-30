@@ -102,7 +102,8 @@ cover(ov, 1600, 840).save(ROOT / "apps/web/public/media/og.jpg", quality=86)
 hero_ts = ROOT / "apps/web/src/config/hero.ts"
 # Phone hero (9:19.5): a hand-finished portrait master next to the anchor, if there is one.
 phone = ROOT / "media/anchor" / f"{stem}-phone.jpg"
-hero_m = OUT / f"overture-{stem}-m.webp"
+import hashlib
+hero_m = OUT / (f"overture-{stem}-m-{hashlib.sha1(phone.read_bytes()).hexdigest()[:8]}.webp" if phone.exists() else f"overture-{stem}-m.webp")
 if phone.exists():
     cover(Image.open(phone).convert("RGB"), 1290, 2796).save(hero_m, quality=84, method=6)
 hero_ts.write_text(
