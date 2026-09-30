@@ -218,23 +218,29 @@ img { max-width: 100%; }
   .formGrid, .guestCard { grid-template-columns: 1fr; }
   .modeSwitch { grid-template-columns: 1fr; }
 }
-/* portrait hero image (phones held upright): sky on top, campus below — keep the campus behind the copy */
+/* Portrait hero (phones held upright). The image is 1290x2796 (height = 216.74vw), sky on top and
+   the campus below; with object-position 62% the highest tree tip lands at
+       y = 82.49vw - 0.62 * (216.74vw - 100svh) = 62svh - 51.89vw
+   (or 38.06svh when the screen is taller than the image). The eyebrow + title + subtitle are hung
+   from that line, so the small eyebrow always sits on clear sky ~44px above the trees whatever the
+   phone; the promise and the event line stay at the bottom. */
 @media (max-width: 820px) and (orientation: portrait) {
   .overtureMedia img { object-position: 50% 62%; transform: none; }
-  /* Lift the eyebrow + title + subtitle so the small eyebrow sits on clear sky instead of the
-     tree line: the block is bottom-anchored, so a larger gap above the promise pushes them up.
-     The lift grows with the screen height (tall phones show more sky) and is zero on short ones,
-     where the block would otherwise run into the top bar. */
-  .overtureCopy .promise { margin-top: clamp(34px, calc(28svh - 146px), 96px); }
+  .overtureCopy {
+    top: max(92px, calc(min(62svh - 51.89vw, 38.06svh) - 100px)); bottom: 88px;
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+  .overtureCopy .promise { margin-top: auto; padding-top: 28px; }
 }
-/* very short portrait screens (iPhone SE class with browser bars): tighten the stack so the eyebrow
-   clears the top bar instead of sliding under it */
+/* very short portrait screens (iPhone SE class with browser bars): show more sky (35%), start the
+   stack right under the top bar and tighten it */
 @media (max-width: 820px) and (orientation: portrait) and (max-height: 640px) {
-  .overtureCopy { bottom: 76px; }
+  .overtureMedia img { object-position: 50% 35%; }
+  .overtureCopy { top: 92px; bottom: 76px; }
   .overture h1 { font-size: clamp(44px, 12.4vw, 96px); }
   .overtureCopy .eyebrow { margin-bottom: 10px; }
   .overtureCopy .subtitle { margin-top: 14px; }
-  .overtureCopy .promise { margin-top: 18px; line-height: 1.5; }
+  .overtureCopy .promise { padding-top: 16px; line-height: 1.5; }
   .overtureCopy .eventLine { margin-top: 14px; gap: 4px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
