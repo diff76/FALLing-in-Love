@@ -540,6 +540,7 @@ img { max-width: 100%; }
 .omsTransport button[aria-pressed="true"] { color: var(--paper-warm); }
 .omsRepeat.r-off { opacity: .45; } .omsRepeat.r-all, .omsRepeat.r-one { color: var(--paper-warm) !important; }
 .omsRepeat i { position: absolute; right: 9px; bottom: 9px; font-style: normal; font-size: 9px; font-weight: 800; }
+.omsPlayer p.omsInApp { max-width: none; margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(224, 166, 74, .12); color: rgba(252, 248, 240, .82); font-size: 13px; line-height: 1.55; }
 .omsPlayer p.omsRepeatLabel { max-width: none; }
 .omsRepeatLabel { margin: -6px 0 0; text-align: center; font-size: 11px; letter-spacing: .14em; color: rgba(252, 248, 240, .45); }
 .omsList { list-style: none; margin: 0; padding: 8px 0 0; border-top: 1px solid rgba(252, 248, 240, .1); display: grid; gap: 2px; max-height: 320px; overflow: auto; }

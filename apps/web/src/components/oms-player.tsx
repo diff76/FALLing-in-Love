@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Vinyl } from "./vinyl";
 
 export type PlayerTrack = { key: string; title: string; artist: string; url: string };
@@ -10,6 +10,10 @@ type Repeat = "all" | "one" | "off";
 type Slides = "play" | "pause" | "stop";
 
 const SLIDE_MS = 5000;
+const COVER = [{ src: "/media/oms-cover.jpg", sizes: "512x512", type: "image/jpeg" }];
+/** In-app browsers (KakaoTalk, Naver, Instagram…) often stop audio when the app goes to the background. */
+const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i;
+const noop = () => () => {};
 const fmt = (s: number) => (Number.isFinite(s) && s >= 0 ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00");
 
 /* small inline icons (currentColor) */
@@ -32,6 +36,9 @@ const Icon = ({ d, label }: { d: React.ReactNode; label?: string }) => <svg view
  * (all · one · off), a seekable progress bar, the full track list, and a photo slideshow
  * (play · pause · stop — stopped shows the spinning record with the site lockup).
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
+ * Background play: a plain <audio> element keeps playing with the screen off or another app in
+ * front, and the Media Session API puts the track, cover and controls on the lock screen /
+ * notification shade; the next track starts from the `ended` handler, so the playlist carries on.
  */
 export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: PlayerPhoto[] }) {
   const audio = useRef<HTMLAudioElement>(null);
@@ -84,15 +91,34 @@ export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: P
     return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onMeta); a.removeEventListener("ended", onEnd); a.removeEventListener("pause", onPause); a.removeEventListener("play", onPlay); };
   }, [next]);
 
-  // lock-screen / headset controls where supported
+  // lock-screen / notification / headset controls where supported
   useEffect(() => {
     if (!("mediaSession" in navigator) || !track) return;
-    navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: track.artist || "FALLing in Love", album: "THE ONE MORE SONG" });
-    navigator.mediaSession.setActionHandler("play", () => audio.current?.play());
-    navigator.mediaSession.setActionHandler("pause", () => audio.current?.pause());
-    navigator.mediaSession.setActionHandler("nexttrack", () => next());
-    navigator.mediaSession.setActionHandler("previoustrack", () => prev());
+    const ms = navigator.mediaSession;
+    ms.metadata = new MediaMetadata({ title: track.title, artist: track.artist || "FALLing in Love", album: "THE ONE MORE SONG", artwork: COVER });
+    const on = (action: MediaSessionAction, fn: MediaSessionActionHandler) => { try { ms.setActionHandler(action, fn); } catch { /* unsupported action */ } };
+    const seekBy = (d: number) => { const a = audio.current; if (a) a.currentTime = Math.max(0, Math.min(a.duration || 0, a.currentTime + d)); };
+    on("play", () => { audio.current?.play().catch(() => {}); });
+    on("pause", () => audio.current?.pause());
+    on("stop", () => { const a = audio.current; if (a) { a.pause(); a.currentTime = 0; } });
+    on("nexttrack", () => next());
+    on("previoustrack", () => prev());
+    on("seekbackward", (d) => seekBy(-(d.seekOffset ?? 10)));
+    on("seekforward", (d) => seekBy(d.seekOffset ?? 10));
+    on("seekto", (d) => { const a = audio.current; if (a && d.seekTime != null) a.currentTime = d.seekTime; });
   });
+  useEffect(() => {
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
+  }, [playing]);
+  // lock-screen progress bar (refreshed when the track loads and every few seconds while playing)
+  const posAt = useRef(0);
+  useEffect(() => {
+    if (!("mediaSession" in navigator) || !navigator.mediaSession.setPositionState || !dur) return;
+    if (Math.abs(time - posAt.current) < 4 && time > 0.5) return;
+    posAt.current = time;
+    try { navigator.mediaSession.setPositionState({ duration: dur, position: Math.min(time, dur), playbackRate: 1 }); } catch { /* ignore */ }
+  }, [time, dur]);
+  const inApp = useSyncExternalStore(noop, () => IN_APP.test(navigator.userAgent), () => false);
 
   // ---- slideshow ----
   useEffect(() => {
@@ -172,6 +198,7 @@ export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: P
           <button type="button" onClick={() => setShowList((v) => !v)} aria-pressed={showList} aria-label="전체 트랙"><Icon d={I.list} /></button>
         </div>
         <p className="omsRepeatLabel">{repeat === "all" ? "전체 반복" : repeat === "one" ? "한 곡 반복" : "반복 해제"}</p>
+        {inApp && <p className="omsInApp">카카오톡 같은 앱 안에서 열면 화면을 끄거나 다른 앱으로 가면 음악이 멈출 수 있습니다. 메뉴(⋯)에서 <b>다른 브라우저로 열기</b>를 누르면 화면을 꺼도 계속 들을 수 있습니다.</p>}
         {showList && (
           <ol className="omsList">
             {tracks.map((t, i) => (
