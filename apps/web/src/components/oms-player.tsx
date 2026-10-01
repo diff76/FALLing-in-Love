@@ -16,7 +16,8 @@ const noop = () => () => {};
 /**
  * OMS Player (One More Song Player): the day's playlist with prev/next/play/pause, repeat
  * (all · one · off), a seekable progress bar, volume, the full track list, and a photo slideshow
- * (play · pause · stop — stopped shows the spinning record with the site lockup).
+ * with a slow Ken Burns zoom/pan (switch on · off, pause). Off shows the record with the site lockup,
+ * turning at 33⅓ while music plays and idling slowly otherwise.
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
  * The sound itself (and background / lock-screen play) lives in <OmsAudioProvider> in the
  * /one-more-song layout, so it carries on into the photo page.
@@ -26,14 +27,15 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   const shell = useRef<HTMLDivElement>(null);
   const [showList, setShowList] = useState(false);
   const [slides, setSlides] = useState<Slides>(photos.length ? "play" : "stop");
-  const [slide, setSlide] = useState(0);
+  const [{ slide, prev: prevSlide }, setShow] = useState({ slide: 0, prev: -1 });   // prev keeps its zoom while it fades out
+  const stage = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState<"off" | "native" | "overlay">("off");
   const inApp = useSyncExternalStore(noop, () => IN_APP.test(navigator.userAgent), () => false);
 
   // ---- slideshow ----
   useEffect(() => {
     if (slides !== "play" || photos.length < 2) return;
-    const t = setInterval(() => setSlide((s) => (s + 1) % photos.length), SLIDE_MS);
+    const t = setInterval(() => setShow((s) => ({ slide: (s.slide + 1) % photos.length, prev: s.slide })), SLIDE_MS);
     return () => clearInterval(t);
   }, [slides, photos.length]);
 
@@ -58,26 +60,37 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   };
 
   const stopped = slides === "stop" || !photos.length;
+  // the record never jumps: the same turning animation just speeds up (playing) or idles (paused)
+  useEffect(() => {
+    stage.current?.querySelectorAll<HTMLElement>(".vinyl .disc").forEach((d) => d.getAnimations().forEach((a) => a.updatePlaybackRate(playing ? 1 : 0.2)));
+  }, [playing, stopped]);
   const pct = dur ? Math.min(100, (time / dur) * 100) : 0;
 
   return (
     <div ref={shell} className={`omsPlayer ${full !== "off" ? "isFull" : ""} ${full === "overlay" ? "overlay" : ""}`}>
       {/* visual: photo slideshow, or the spinning record with the lockup when stopped */}
-      <div className="omsStage">
+      <div ref={stage} className={`omsStage ${slides === "pause" ? "paused" : ""}`}>
         {stopped ? (
           <div className="omsStopped">
-            <Vinyl spinning={playing} className="omsStageVinyl" />
+            <Vinyl spinning className="omsStageVinyl" />
             <span className="omsLockup"><span className="fall">FALL</span>ing <em>in</em> Love</span>
           </div>
         ) : photos.map((p, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={p.key} src={p.url} alt="" className={i === slide ? "on" : ""} loading={i === 0 ? "eager" : "lazy"} />
+          <img key={p.key} src={p.url} alt="" className={`kb${i % 4} ${i === slide ? "on" : i === prevSlide ? "prev" : ""}`} loading={i === 0 ? "eager" : "lazy"} />
         ))}
         <div className="omsSlideCtl" role="group" aria-label="사진 슬라이드쇼">
-          <button type="button" onClick={() => setSlides("play")} aria-pressed={slides === "play"} disabled={!photos.length} title="슬라이드쇼 재생"><Icon d={I.play} /></button>
-          <button type="button" onClick={() => setSlides("pause")} aria-pressed={slides === "pause"} disabled={!photos.length} title="슬라이드쇼 일시정지"><Icon d={I.pause} /></button>
-          <button type="button" onClick={() => setSlides("stop")} aria-pressed={stopped} title="슬라이드쇼 정지"><Icon d={I.stop} /></button>
-          <span className="omsSlideLabel"><Icon d={I.photo} /> {photos.length ? `${slide + 1} / ${photos.length}` : "사진 준비 중"}</span>
+          <button type="button" role="switch" aria-checked={!stopped} className="omsSlideSwitch" disabled={!photos.length}
+            onClick={() => { if (stopped) { setShow({ slide: 0, prev: -1 }); setSlides("play"); } else setSlides("stop"); }}
+            title={stopped ? "사진 슬라이드쇼 켜기" : "슬라이드쇼 끄고 LP 보기"}>
+            <i aria-hidden="true" /><span>슬라이드쇼 {stopped ? "OFF" : "ON"}</span>
+          </button>
+          {!stopped && (
+            <button type="button" onClick={() => setSlides(slides === "pause" ? "play" : "pause")} aria-label={slides === "pause" ? "슬라이드쇼 다시 재생" : "슬라이드쇼 일시정지"} title={slides === "pause" ? "다시 재생" : "일시정지"}>
+              <Icon d={slides === "pause" ? I.play : I.pause} />
+            </button>
+          )}
+          <span className="omsSlideLabel"><Icon d={I.photo} /> {photos.length ? (stopped ? `${photos.length}장` : `${slide + 1} / ${photos.length}`) : "사진 준비 중"}</span>
         </div>
         <button type="button" className="omsFullBtn" onClick={toggleFull} title={full === "off" ? "전체 화면" : "전체 화면 끝내기"} aria-label={full === "off" ? "전체 화면" : "전체 화면 끝내기"}><Icon d={full === "off" ? I.full : I.exit} /></button>
       </div>
