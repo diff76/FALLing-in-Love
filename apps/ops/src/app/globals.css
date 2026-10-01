@@ -415,3 +415,34 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 .returnCap input { width: 72px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,.18); font: inherit; font-size: 15px; background: #fff; color: #1F1A16; }
 .returnCap td.over { color: #BE5637; font-weight: 800; } .returnCap td.zero { color: #9a7a2a; font-weight: 700; }
 
+/* admin: One More Song tracks */
+.omsConsole { display: grid; gap: 18px; }
+.omsDrop { display: grid; gap: 4px; justify-items: center; padding: 26px 16px; border-radius: 14px; border: 2px dashed rgba(0,0,0,.18); text-align: center; cursor: pointer; transition: background .15s, border-color .15s; }
+.omsDrop:hover, .omsDrop.drag { background: rgba(224,166,74,.10); border-color: #E0A64A; }
+.omsDrop small { color: var(--ink-soft); font-size: 13px; }
+.opsShell.light .omsDrop small { color: rgba(31,26,22,.6); }
+.omsDrop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.omsTable { width: 100%; margin-top: 14px; border-collapse: collapse; font-size: 14px; }
+.omsTable th { text-align: left; font-size: 12px; font-weight: 600; opacity: .6; padding: 6px 8px; }
+.omsTable td { padding: 6px 8px; border-top: 1px solid rgba(0,0,0,.08); vertical-align: middle; }
+.omsTable td.file { max-width: 220px; } .omsTable td.file span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .omsTable td.file small { opacity: .6; }
+.omsTable input, .omsEdit input { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,.18); font: inherit; font-size: 14px; background: #fff; color: #1F1A16; }
+.omsTable td.state { white-space: nowrap; font-size: 13px; } .omsTable td.state em { font-style: normal; color: #BE5637; white-space: normal; }
+.omsTable tr.done td { opacity: .6; } .omsTable tr.up td.state { color: #9a7a2a; font-weight: 700; }
+.omsStageAct { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; } .omsStageAct .btn.ghost { margin-top: 0; }
+.omsMsg { margin: 12px 0 0; }
+.box h2 small a { text-decoration: underline; }
+.omsTracks { list-style: none; margin: 0; padding: 0; display: grid; }
+.omsTracks li { display: grid; grid-template-columns: 34px minmax(0, 1fr) 260px auto; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(0,0,0,.08); }
+.omsTracks li:first-child { border-top: 0; }
+.omsTracks .num { font-variant-numeric: tabular-nums; color: #9a7a2a; }
+.omsTracks .meta { display: grid; min-width: 0; } .omsTracks .meta span { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .omsTracks .meta small { opacity: .6; }
+.omsTracks audio { width: 100%; height: 34px; }
+.omsTracks .rowBtns { display: flex; gap: 4px; }
+.omsEdit { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 6px; align-items: center; }
+@media (max-width: 860px) {
+  .omsTable thead { display: none; } .omsTable tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 0; border-top: 1px solid rgba(0,0,0,.08); }
+  .omsTable td { border: 0; padding: 0; } .omsTable td.file { grid-column: 1 / -1; max-width: none; }
+  .omsTracks li { grid-template-columns: 30px minmax(0, 1fr); } .omsTracks audio, .omsTracks .rowBtns { grid-column: 2; }
+  .omsEdit { grid-template-columns: 1fr 1fr; }
+}
