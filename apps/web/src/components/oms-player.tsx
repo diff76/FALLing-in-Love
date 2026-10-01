@@ -25,7 +25,7 @@ const noop = () => () => {};
  * OMS Player (One More Song Player): the day's playlist with prev/next/play/pause, repeat
  * (all · one · off), a seekable progress bar, volume, the full track list, and a photo slideshow
  * with varied Ken Burns moves and entrances (switch on · off, pause). Off shows the record with the site lockup,
- * turning at 33⅓ while music plays and idling slowly otherwise.
+ * turning at 33⅓ only while music plays (it halts where it is on pause and carries on from there).
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
  * The sound itself (and background / lock-screen play) lives in <OmsAudioProvider> in the
  * /one-more-song layout, so it carries on into the photo page.
@@ -69,9 +69,9 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   };
 
   const stopped = slides === "stop" || !photos.length;
-  // the record never jumps: the same turning animation just speeds up (playing) or idles (paused)
+  // the record turns only while music plays; pausing holds it at its current angle, so it never snaps back
   useEffect(() => {
-    stage.current?.querySelectorAll<HTMLElement>(".vinyl .disc").forEach((d) => d.getAnimations().forEach((a) => a.updatePlaybackRate(playing ? 1 : 0.2)));
+    stage.current?.querySelectorAll<HTMLElement>(".vinyl .disc").forEach((d) => d.getAnimations().forEach((a) => (playing ? a.play() : a.pause())));
   }, [playing, stopped]);
   const pct = dur ? Math.min(100, (time / dur) * 100) : 0;
 
