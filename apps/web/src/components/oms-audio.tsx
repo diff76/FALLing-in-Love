@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,14 +10,17 @@ export type Repeat = "all" | "one" | "off";
 
 const COVER = [{ src: "/media/oms-cover.jpg", sizes: "512x512", type: "image/jpeg" }];
 const VOLUME_KEY = "fil.oms.volume";
-const noop = () => () => {};
-/** iPhone/iPad ignore audio.volume (it always reads back 1): there only mute works, the side buttons do the rest. */
-function volumeWorks() { try { const a = new Audio(); a.volume = 0.5; return a.volume === 0.5; } catch { return true; } }
+/**
+ * iPhone/iPad accept audio.volume (it even reads back) but never apply it, so there the level goes
+ * through a Web Audio gain node instead. That routing is only switched on once someone actually
+ * lowers the level, so at 100% iOS keeps its plain, background-safe <audio> path.
+ */
+function isIOS() { return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
 export const fmt = (s: number) => (Number.isFinite(s) && s >= 0 ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00");
 
 type Ctx = {
   tracks: PlayerTrack[]; track: PlayerTrack | undefined; idx: number; playing: boolean; repeat: Repeat; time: number; dur: number;
-  volume: number; muted: boolean; volumeSupported: boolean;
+  volume: number; muted: boolean;
   playAt: (i: number) => void; toggle: () => void; next: () => void; prev: () => void; cycleRepeat: () => void;
   seek: (t: number) => void; setVolume: (v: number) => void; toggleMute: () => void;
 };
@@ -62,8 +65,31 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
   const [dur, setDur] = useState(0);
   const [volume, setVol] = useState(1);
   const [muted, setMuted] = useState(false);
-  const volumeSupported = useSyncExternalStore(noop, volumeWorks, () => true);
+  const graph = useRef<{ ctx: AudioContext; gain: GainNode } | null>(null);
+  const volumeRef = useRef(1); volumeRef.current = volume;
   const track = tracks[idx];
+
+  /** iOS only, and only from a tap (iOS keeps a context started outside one silent): route the element through a gain node, once. */
+  const ensureGain = useCallback(() => {
+    const a = audio.current; if (!a || !isIOS()) return null;
+    if (!graph.current) {
+      try {
+        const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new Ctx(); const gain = ctx.createGain();
+        ctx.createMediaElementSource(a).connect(gain).connect(ctx.destination);
+        gain.gain.value = volumeRef.current; a.volume = 1;
+        // iOS 17+: treat this as media playback (keeps going with the ringer off / screen locked)
+        const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+        if (session) session.type = "playback";
+        graph.current = { ctx, gain };
+      } catch { return null; }
+    }
+    if (graph.current.ctx.state !== "running") graph.current.ctx.resume().catch(() => {});
+    return graph.current;
+  }, []);
+  const wake = () => { const g = graph.current; if (g && g.ctx.state !== "running") g.ctx.resume().catch(() => {}); };
+  /** Start of every tap that plays: wake the gain path, or switch to it when a lowered level was remembered. */
+  const tap = () => { if (graph.current) wake(); else if (volumeRef.current < 1) ensureGain(); };
 
   const playAt = useCallback((i: number) => {
     setIdx(i); setTime(0);
@@ -73,6 +99,7 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
   }, [tracks]);
   const toggle = () => {
     const a = audio.current; if (!a || !track) return;
+    tap();
     if (!a.src) { playAt(idx); return; }
     if (a.paused) a.play().then(() => setPlaying(true)).catch(() => {}); else { a.pause(); setPlaying(false); }
   };
@@ -83,9 +110,11 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
     if (auto && last && repeat === "off") { setPlaying(false); return; }
     playAt(last ? 0 : idx + 1);
   }, [tracks.length, repeat, idx, playAt]);
-  const next = () => advance(false);
+  const next = () => { tap(); advance(false); };
+  const pick = (i: number) => { tap(); playAt(i); };
   const prev = () => {
     const a = audio.current; if (!tracks.length) return;
+    tap();
     if (a && a.currentTime > 3) { a.currentTime = 0; return; }
     playAt(idx === 0 ? tracks.length - 1 : idx - 1);
   };
@@ -93,6 +122,7 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
   const seek = (t: number) => { const a = audio.current; if (a) { a.currentTime = t; setTime(t); } };
   const setVolume = (v: number) => {
     const n = Math.max(0, Math.min(1, v)); setVol(n); setMuted(n === 0);
+    if (n < 1 || graph.current) { const g = ensureGain(); if (g) g.gain.gain.value = n; }
     try { localStorage.setItem(VOLUME_KEY, String(n)); } catch { /* private mode */ }
   };
   const toggleMute = () => { if (muted && volume === 0) setVolume(0.6); else setMuted(!muted); };
@@ -101,18 +131,30 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
   useEffect(() => {
     try { const v = Number(localStorage.getItem(VOLUME_KEY)); if (localStorage.getItem(VOLUME_KEY) !== null && Number.isFinite(v)) { setVol(v); setMuted(v === 0); } } catch { /* ignore */ }
   }, []);
-  useEffect(() => { const a = audio.current; if (a) { a.volume = volume; a.muted = muted; } }, [volume, muted]);
+  useEffect(() => {
+    const a = audio.current; if (!a) return;
+    a.muted = muted;
+    const g = graph.current;
+    if (g) { a.volume = 1; g.gain.gain.value = volume; } else a.volume = volume;
+  }, [volume, muted]);
 
   useEffect(() => {
     const a = audio.current; if (!a) return;
     const onTime = () => setTime(a.currentTime);
     const onMeta = () => setDur(a.duration);
     const onEnd = () => advance(true);
-    const onPause = () => setPlaying(false); const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onPlay = () => { setPlaying(true); wake(); };
     a.addEventListener("timeupdate", onTime); a.addEventListener("loadedmetadata", onMeta); a.addEventListener("ended", onEnd);
     a.addEventListener("pause", onPause); a.addEventListener("play", onPlay);
     return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onMeta); a.removeEventListener("ended", onEnd); a.removeEventListener("pause", onPause); a.removeEventListener("play", onPlay); };
   }, [advance]);
+  // back from the lock screen / another app: an interrupted context must be resumed
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === "visible") wake(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   // lock-screen / notification / headset controls where supported
   useEffect(() => {
@@ -142,27 +184,26 @@ export function OmsAudioProvider({ tracks, children }: { tracks: PlayerTrack[]; 
     try { navigator.mediaSession.setPositionState({ duration: dur, position: Math.min(time, dur), playbackRate: 1 }); } catch { /* ignore */ }
   }, [time, dur]);
 
-  const value: Ctx = { tracks, track, idx, playing, repeat, time, dur, volume, muted, volumeSupported, playAt, toggle, next, prev, cycleRepeat, seek, setVolume, toggleMute };
+  const value: Ctx = { tracks, track, idx, playing, repeat, time, dur, volume, muted, playAt: pick, toggle, next, prev, cycleRepeat, seek, setVolume, toggleMute };
   return (
     <OmsAudioCtx.Provider value={value}>
-      <audio ref={audio} preload="metadata" />
+      {/* crossOrigin: required for the iOS gain node (storage answers with Access-Control-Allow-Origin: *) */}
+      <audio ref={audio} preload="metadata" crossOrigin="anonymous" />
       {children}
       <OmsMiniBar />
     </OmsAudioCtx.Provider>
   );
 }
 
-/** Speaker button (mute) + slider; on iPhone only the mute button (volume is the side buttons there). */
+/** Speaker button (mute) + slider. */
 export function OmsVolume({ compact = false }: { compact?: boolean }) {
-  const { volume, muted, volumeSupported, setVolume, toggleMute } = useOmsAudio();
+  const { volume, muted, setVolume, toggleMute } = useOmsAudio();
   const level = muted ? 0 : volume;
   return (
     <div className={`omsVolume ${compact ? "compact" : ""}`}>
       <button type="button" onClick={toggleMute} aria-label={muted ? "소리 켜기" : "음소거"} aria-pressed={muted}><Icon d={level === 0 ? I.mute : level < 0.5 ? I.volLow : I.vol} /></button>
-      {volumeSupported && (
-        <input type="range" min={0} max={1} step={0.01} value={level} onChange={(e) => setVolume(Number(e.target.value))}
-          style={{ "--pct": `${level * 100}%` } as React.CSSProperties} aria-label="볼륨" />
-      )}
+      <input type="range" min={0} max={1} step={0.01} value={level} onChange={(e) => setVolume(Number(e.target.value))}
+        style={{ "--pct": `${level * 100}%` } as React.CSSProperties} aria-label="볼륨" />
     </div>
   );
 }

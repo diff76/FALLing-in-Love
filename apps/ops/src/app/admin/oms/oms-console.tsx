@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { createBrowserSupabaseClient, OMS_BUCKET, type OmsTrack } from "@fil/supabase";
-import { deleteTrack, editTrack, listTracks, reorderTracks, trackUploadTicket } from "./actions";
+import { deleteTrack, editTrack, listTracks, reorderTracks, trackUploadTicket, type Result } from "./actions";
 
 type Staged = { id: string; file: File; title: string; artist: string; status: "wait" | "up" | "done" | "fail"; msg?: string };
 const MAX_BYTES = 50 * 1024 * 1024;
 const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)}MB`;
+/** Server actions return {ok, data | error} (thrown messages are hidden in production); turn a failure back into a throw here. */
+export async function ok<T>(p: Promise<Result<T>>): Promise<T> { const r = await p; if (!r.ok) throw new Error(r.error); return r.data; }
 
 /** "03 - 제목 - 연주자.mp3" → {n: 3, title, artist}; anything else → the file name as the title. */
 function fromFileName(name: string) {
@@ -30,7 +32,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
   const [edit, setEdit] = useState<{ key: string; title: string; artist: string } | null>(null);
   const [drag, setDrag] = useState(false);
 
-  const reload = async () => setTracks(await listTracks());
+  const reload = async () => setTracks(await ok(listTracks()));
   const run = async (tag: string, fn: () => Promise<void>, done?: string) => {
     setBusy(tag); setMsg(null);
     try { await fn(); await reload(); if (done) setMsg(done); }
@@ -53,29 +55,29 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
     const todo = staged.filter((s) => s.status === "wait" || s.status === "fail");
     if (!todo.length) return;
     setBusy("upload"); setMsg(null);
-    let ok = 0;
+    let uploaded = 0;
     for (const s of todo) {
       if (!s.title.trim()) { patch(s.id, { status: "fail", msg: "제목을 적어 주세요." }); continue; }
       if (s.file.size > MAX_BYTES) { patch(s.id, { status: "fail", msg: "50MB를 넘습니다." }); continue; }
       patch(s.id, { status: "up", msg: undefined });
       try {
         const ext = s.file.name.split(".").pop() ?? "mp3";
-        const { key, token } = await trackUploadTicket({ title: s.title, artist: s.artist, ext, size: s.file.size });
+        const { key, token } = await ok(trackUploadTicket({ title: s.title, artist: s.artist, ext, size: s.file.size }));
         const { error } = await supabase.storage.from(OMS_BUCKET).uploadToSignedUrl(key, token, s.file, { contentType: s.file.type || "audio/mpeg" });
         if (error) throw error;
-        patch(s.id, { status: "done" }); ok++;
+        patch(s.id, { status: "done" }); uploaded++;
       } catch (e) { patch(s.id, { status: "fail", msg: (e as Error).message }); }
     }
     await reload().catch(() => {});
     setBusy(null);
-    setMsg(`${ok}곡을 올렸습니다.${ok < todo.length ? ` ${todo.length - ok}곡은 실패했습니다 — 아래에서 확인 후 다시 올려 주세요.` : " 웹사이트 플레이어에 바로 반영됩니다."}`);
+    setMsg(`${uploaded}곡을 올렸습니다.${uploaded < todo.length ? ` ${todo.length - uploaded}곡은 실패했습니다 — 아래에서 확인 후 다시 올려 주세요.` : " 웹사이트 플레이어에 바로 반영됩니다."}`);
   }
 
   const move = (i: number, d: -1 | 1) => {
     const keys = tracks.map((t) => t.key); const j = i + d;
     if (j < 0 || j >= keys.length) return;
     [keys[i], keys[j]] = [keys[j], keys[i]];
-    return run(`move-${i}`, () => reorderTracks(keys));
+    return run(`move-${i}`, () => ok(reorderTracks(keys)));
   };
   const pending = staged.filter((s) => s.status === "wait" || s.status === "fail").length;
 
@@ -124,7 +126,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
                   <div className="omsEdit">
                     <input value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} aria-label="곡 제목" autoFocus />
                     <input value={edit.artist} onChange={(e) => setEdit({ ...edit, artist: e.target.value })} placeholder="연주자 (선택)" aria-label="연주자" />
-                    <button type="button" className="miniBtn" disabled={busy !== null} onClick={() => run("edit", async () => { await editTrack(t.key, edit.title, edit.artist); setEdit(null); }, "곡 정보를 고쳤습니다.")}>저장</button>
+                    <button type="button" className="miniBtn" disabled={busy !== null} onClick={() => run("edit", async () => { await ok(editTrack(t.key, edit.title, edit.artist)); setEdit(null); }, "곡 정보를 고쳤습니다.")}>저장</button>
                     <button type="button" className="miniBtn" onClick={() => setEdit(null)}>취소</button>
                   </div>
                 ) : (
@@ -136,7 +138,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
                   <button type="button" className="miniBtn" disabled={busy !== null || i === tracks.length - 1} onClick={() => move(i, 1)} aria-label="아래로">↓</button>
                   <button type="button" className="miniBtn" disabled={busy !== null} onClick={() => setEdit({ key: t.key, title: t.title, artist: t.artist })}>수정</button>
                   <button type="button" className="miniBtn del" disabled={busy !== null}
-                    onClick={() => window.confirm(`“${t.title}”을(를) 삭제할까요? 웹사이트에서도 바로 빠지고 되돌릴 수 없습니다.`) && run(`del-${t.key}`, () => deleteTrack(t.key), "삭제했습니다.")}>삭제</button>
+                    onClick={() => window.confirm(`“${t.title}”을(를) 삭제할까요? 웹사이트에서도 바로 빠지고 되돌릴 수 없습니다.`) && run(`del-${t.key}`, () => ok(deleteTrack(t.key)), "삭제했습니다.")}>삭제</button>
                 </div>
               </li>
             ))}

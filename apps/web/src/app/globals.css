@@ -516,6 +516,7 @@ img { max-width: 100%; }
 .omsTop > a:last-child { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-decoration: none; color: rgba(252, 248, 240, .8); }
 .omsIntro h1 { margin: 10px 0 18px; }
 .omsMore { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.omsMore span.tag { margin-top: 0; }   /* the shared .tag top margin pushed it below the button's centre line */
 /* outlined; fills cream on hover / press */
 .omsMore .button.omsPhotosBtn { margin-top: 0; border: 1.5px solid rgba(252, 248, 240, .5); color: var(--cream); background: transparent;
   transition: transform .3s var(--ease), background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease); }
@@ -556,15 +557,21 @@ img { max-width: 100%; }
 .omsProgress input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--cream); }
 /* volume: speaker (mute) + slider; iPhone shows the speaker only (volume is the side buttons there) */
 .omsVolume { display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(252, 248, 240, .75); }
-.omsVolume button { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: transparent; color: inherit; cursor: pointer; }
+.omsVolume button { width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; background: transparent; color: inherit; cursor: pointer; }
 .omsVolume button:hover { background: rgba(252, 248, 240, .1); color: var(--cream); }
 .omsVolume button[aria-pressed="true"] { color: var(--paper-warm); }
-.omsVolume svg { width: 20px; height: 20px; }
-.omsVolume input[type="range"] { -webkit-appearance: none; appearance: none; width: 140px; height: 4px; border-radius: 4px; cursor: pointer;
-  background: linear-gradient(90deg, var(--paper-warm) var(--pct, 100%), rgba(252, 248, 240, .18) var(--pct, 100%)); }
-.omsVolume input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--cream); }
-.omsVolume input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--cream); }
-.omsVolume.compact input[type="range"] { width: 84px; }
+.omsVolume svg { width: 22px; height: 22px; }
+/* a 32px-tall touch target with an 8px track and a 20px knob (the old 4px bar was hard to hit) */
+.omsVolume input[type="range"] { -webkit-appearance: none; appearance: none; width: 180px; height: 32px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+.omsVolume input[type="range"]:focus-visible { outline: 2px solid var(--paper-warm); outline-offset: 2px; border-radius: 8px; }
+.omsVolume input[type="range"]::-webkit-slider-runnable-track { height: 8px; border-radius: 8px;
+  background: linear-gradient(90deg, var(--paper-warm) var(--pct, 100%), rgba(252, 248, 240, .2) var(--pct, 100%)); }
+.omsVolume input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border-radius: 50%; background: var(--cream); box-shadow: 0 2px 8px rgba(0, 0, 0, .45); }
+.omsVolume input[type="range"]::-moz-range-track { height: 8px; border-radius: 8px; background: rgba(252, 248, 240, .2); }
+.omsVolume input[type="range"]::-moz-range-progress { height: 8px; border-radius: 8px; background: var(--paper-warm); }
+.omsVolume input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--cream); box-shadow: 0 2px 8px rgba(0, 0, 0, .45); }
+.omsVolume.compact input[type="range"] { width: 110px; }
+@media (max-width: 560px) { .omsPlayer .omsVolume input[type="range"] { width: min(220px, 60vw); } }
 .omsTransport { display: flex; justify-content: center; align-items: center; gap: 14px; }
 .omsTransport button { position: relative; width: 46px; height: 46px; border-radius: 50%; border: 0; display: grid; place-items: center; background: transparent; color: var(--cream); cursor: pointer; }
 .omsTransport button:hover:not(:disabled) { background: rgba(252, 248, 240, .1); }
