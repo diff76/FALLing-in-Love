@@ -28,7 +28,7 @@ export default async function AdminPage() {
   const db = await supabaseServer();
   const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes, returnRunsRes, itemsRes, givenRes] = db ? await Promise.all([
     db.rpc("ops_stats"),
-    db.from("reservations").select("id, code, applicant_name, kind, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
+    db.from("reservations").select("id, code, applicant_name, kind, inviter_name, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
     db.from("reservation_members").select("reservation_id, age_group"),
     db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null),
     db.from("reservations").select("id, code, applicant_name, district_code, party_size, source, created_at").eq("status", "cancelled").order("created_at", { ascending: false }).limit(200),
@@ -48,6 +48,33 @@ export default async function AdminPage() {
     return it ? [{ id: it.id, name: it.name, initial: it.initial_stock, adjustment: it.adjustment, given: (givenRes?.data ?? []).filter((g) => g.item_id === it.id).reduce((n, g) => n + g.qty, 0) }] : [];
   });
   const arrived = new Map(checkins.map((c) => [c.reservation_id, c.arrived_count]));
+
+  // 참석자 구분 — VIP: 초대받아 직접 신청한 분 + "함께 오시는 분". 인도자: VIP와 함께 온 초청자, 또는 직접 신청한 VIP가
+  // 초대자로 적은 분(같은 이름의 초청자가 한 명뿐일 때). 일반 성도: 그 밖의 초청자(혼자 오신 분).
+  // 체크인 기준은 실제로 온 사람으로 나눕니다: 일행 중 VIP가 오지 않았으면 그 초청자는 일반 성도로 셉니다.
+  const norm = (n: string | null) => (n ?? "").replace(/\s+/g, "");
+  const hostNames = new Map<string, number>();
+  rows.forEach((r) => { if (r.kind === "host") hostNames.set(norm(r.applicant_name), (hostNames.get(norm(r.applicant_name)) ?? 0) + 1); });
+  const invitedBy = new Map<string, { reg: boolean; came: boolean }>();   // host name → has a self-registered VIP (who came?)
+  rows.forEach((r) => {
+    const n = norm(r.inviter_name);
+    if (r.kind !== "guest_self" || !n || hostNames.get(n) !== 1) return;
+    const cur = invitedBy.get(n) ?? { reg: false, came: false };
+    invitedBy.set(n, { reg: true, came: cur.came || (arrived.get(r.id) ?? 0) > 0 });
+  });
+  const roles = { member: { reg: 0, in: 0 }, leader: { reg: 0, in: 0 }, vip: { reg: 0, in: 0 } };
+  rows.forEach((r) => {
+    const came = arrived.get(r.id) ?? 0;
+    if (r.kind === "guest_self") { roles.vip.reg += r.party_size; roles.vip.in += came; return; }
+    const linked = invitedBy.get(norm(r.applicant_name));
+    const companions = r.party_size - 1;
+    if (companions > 0 || linked?.reg) { roles.leader.reg += 1; roles.vip.reg += companions; } else roles.member.reg += 1;
+    if (came > 0) {
+      const vipsCame = came - 1;
+      if (vipsCame > 0 || linked?.came) roles.leader.in += 1; else roles.member.in += 1;
+      roles.vip.in += vipsCame;
+    }
+  });
   const rate = stats && stats.people ? Math.round((stats.checked_in_people / stats.people) * 100) : 0;
   const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 
@@ -70,10 +97,21 @@ export default async function AdminPage() {
       <p className="stamp"><i /> {stamp} 기준 · 체크인이 들어올 때마다 갱신됩니다</p>
       <div className="metricGrid four">
         <article><span>신청 팀</span><h2>{stats?.reservations ?? "—"}</h2><p>메인 {stats?.main_people ?? "—"}명 · 예배만 {stats?.worship_people ?? "—"}명</p></article>
-        <article><span>신청 인원</span><h2>{stats?.people ?? "—"}</h2><p>게스트 {stats?.guests ?? "—"}명 포함</p></article>
+        <article><span>신청 인원</span><h2>{stats?.people ?? "—"}</h2><p>VIP {db ? roles.vip.reg : "—"}명 포함</p></article>
         <article className="hot"><span>현재 체크인</span><h2>{stats?.checked_in_people ?? "—"}</h2><p>실참률 {rate}% · 좌석 배정 {stats?.seated_people ?? "—"}석</p></article>
         <article><span>다음 초대장 수신</span><h2>{stats?.contact_consent_people ?? "—"}</h2><p>플레이리스트·사진은 전원 발송</p></article>
       </div>
+
+      <section className="box roleBox">
+        <h2>참석자 구분 <small>체크인 기준 · 아래 작은 숫자는 신청 기준</small></h2>
+        <p className="sub">VIP = 초대받아 직접 신청한 분과 “함께 오시는 분”. 인도자 = VIP와 함께 온(또는 VIP를 초대한) 성도. 일반 성도 = 그 밖에 혼자 오신 성도.</p>
+        <div className="metricGrid">
+          <article><span>일반 성도</span><h2>{roles.member.in}<em>명</em></h2><p>신청 {roles.member.reg}명</p></article>
+          <article><span>인도자</span><h2>{roles.leader.in}<em>명</em></h2><p>신청 {roles.leader.reg}명</p></article>
+          <article className="hot"><span>VIP</span><h2>{roles.vip.in}<em>명</em></h2><p>신청 {roles.vip.reg}명</p></article>
+          <article><span>합계</span><h2>{roles.member.in + roles.leader.in + roles.vip.in}<em>명</em></h2><p>신청 {roles.member.reg + roles.leader.reg + roles.vip.reg}명</p></article>
+        </div>
+      </section>
 
       <div className="cols two">
         <section className="box">

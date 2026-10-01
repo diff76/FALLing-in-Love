@@ -73,7 +73,7 @@ export function ReservationForm() {
   return (
     <form className="reservationForm" onSubmit={submit} noValidate>
       <fieldset className="modeSwitch">
-        <legend>어떻게 참여하시나요?</legend>
+        <legend>어떻게 참여하시나요?(혼자 참여시, '제가 초대합니다'를 선택)</legend>
         <button type="button" aria-pressed={mode === "host"} onClick={() => setMode("host")}>제가 초대합니다</button>
         <button type="button" aria-pressed={mode === "guest_self"} onClick={() => setMode("guest_self")}>초대를 받았습니다</button>
       </fieldset>
@@ -101,7 +101,7 @@ export function ReservationForm() {
         </div>
       )}
 
-      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분(혼자 오신 분)" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
       <div className="formGrid">
         <label><span>성함</span><input name="applicantName" autoComplete="name" required />{err("applicantName")}</label>
         <label><span>연락처</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="010-0000-0000" required />{err("phone")}</label>
