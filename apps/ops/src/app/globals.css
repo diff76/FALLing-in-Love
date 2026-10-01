@@ -415,6 +415,18 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 .returnRuns li.mine { border-color: var(--olive); }
 .returnRuns .btn { width: auto; }
 .returnCap input { width: 72px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,.18); font: inherit; font-size: 15px; background: #fff; color: #1F1A16; }
+/* stock setup: on phones each item is a two-line card (name, then the numbers) instead of a 6-column table */
+@media (max-width: 640px) {
+  .stockSetup thead { display: none; }
+  .stockSetup table, .stockSetup tbody { display: block; }
+  .stockSetup tr { display: grid; grid-template-columns: 76px repeat(3, minmax(0, 1fr)) auto; gap: 4px 8px; align-items: end; padding: 12px 0; border-top: 1px solid rgba(0,0,0,.08); }
+  .stockSetup tr:first-child { border-top: 0; }
+  .stockSetup td { padding: 0; border: 0; display: grid; gap: 4px; }
+  .stockSetup td.nm { grid-column: 1 / -1; font-weight: 700; }
+  .stockSetup td[data-label]::before { content: attr(data-label); font-family: Pretendard, "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 11px; font-weight: 600; opacity: .6; white-space: nowrap; }
+  .stockSetup td input { width: 100%; }
+  .stockSetup td.act { align-self: end; }
+}
 .returnCap td.over { color: #BE5637; font-weight: 800; } .returnCap td.zero { color: #9a7a2a; font-weight: 700; }
 
 /* admin: One More Song tracks */

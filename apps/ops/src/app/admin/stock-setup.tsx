@@ -22,23 +22,23 @@ export function StockSetup({ items }: { items: StockItem[] }) {
   if (!items.length) return <p className="tiny">등록된 비품이 없습니다.</p>;
   return (
     <div className="returnCap stockSetup">
-      <table>
+      <div className="scroll"><table>
         <thead><tr><th>비품</th><th>초기 수량</th><th>현장 조정</th><th>지급</th><th>남은 수량</th><th /></tr></thead>
         <tbody>{items.map((it) => {
           const init = draft[it.id] === "" ? NaN : Number(draft[it.id]);
           const left = (Number.isFinite(init) ? init : it.initial) + it.adjustment - it.given;
           return (
             <tr key={it.id}>
-              <td>{it.name}</td>
-              <td><input inputMode="numeric" value={draft[it.id]} onChange={(e) => setDraft({ ...draft, [it.id]: e.target.value.replace(/\D/g, "") })} onKeyDown={(e) => { if (e.key === "Enter" && String(it.initial) !== draft[it.id]) save(it); }} aria-label={`${it.name} 초기 수량`} /></td>
-              <td className="mono">{it.adjustment > 0 ? `+${it.adjustment}` : it.adjustment}</td>
-              <td className="mono">{it.given}개</td>
-              <td className={`mono ${left < 0 ? "over" : left < 25 ? "zero" : ""}`}>{left}개</td>
-              <td><button className="miniBtn" disabled={busy !== null || draft[it.id] === "" || String(it.initial) === draft[it.id]} onClick={() => save(it)}>{busy === it.id ? "…" : "저장"}</button></td>
+              <td className="nm">{it.name}</td>
+              <td data-label="초기 수량"><input inputMode="numeric" value={draft[it.id]} onChange={(e) => setDraft({ ...draft, [it.id]: e.target.value.replace(/\D/g, "") })} onKeyDown={(e) => { if (e.key === "Enter" && String(it.initial) !== draft[it.id]) save(it); }} aria-label={`${it.name} 초기 수량`} /></td>
+              <td className="mono" data-label="현장 조정">{it.adjustment > 0 ? `+${it.adjustment}` : it.adjustment}</td>
+              <td className="mono" data-label="지급">{it.given}개</td>
+              <td data-label="남은 수량" className={`mono ${left < 0 ? "over" : left < 25 ? "zero" : ""}`}>{left}개</td>
+              <td className="act"><button className="miniBtn" disabled={busy !== null || draft[it.id] === "" || String(it.initial) === draft[it.id]} onClick={() => save(it)}>{busy === it.id ? "…" : "저장"}</button></td>
             </tr>
           );
         })}</tbody>
-      </table>
+      </table></div>
       {msg && <p className="tiny">{msg}</p>}
     </div>
   );
