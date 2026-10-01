@@ -101,7 +101,7 @@ export function ReservationForm() {
         </div>
       )}
 
-      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분(혼자 오신 분)" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분(혹은 혼자 오신 분)" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
       <div className="formGrid">
         <label><span>성함</span><input name="applicantName" autoComplete="name" required />{err("applicantName")}</label>
         <label><span>연락처</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="010-0000-0000" required />{err("phone")}</label>
@@ -130,7 +130,7 @@ export function ReservationForm() {
 
       {mode === "host" && (
         <>
-          <div className="formSection"><span>{stepNo(++step)}</span><div><h2>함께 오시는 분</h2><p>최대 다섯 분까지. 당일 체크인 때 한 팀으로 나란히 앉으실 수 있도록 좌석을 배정합니다.</p></div></div>
+          <div className="formSection"><span>{stepNo(++step)}</span><div><h2>함께 오시는 분(VIP)</h2><p>최대 다섯 분까지. 당일 체크인 때 한 팀으로 나란히 앉으실 수 있도록 좌석을 배정합니다.</p></div></div>
           <div className="formGrid">
             {guests.map((g, i) => (
               <div className="guestCard" key={i}>
