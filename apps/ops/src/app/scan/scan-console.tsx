@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import jsQR from "jsqr";
 import { eventConfig } from "@fil/config";
 import { buildSeatLayout, clampArrivedCount, needsPriorityFloor, seatLabelFor, suggestSeats } from "@fil/domain";
 import type { CheckinResult, ReservationSummary, SeatMapCell } from "@fil/supabase";
 import { SeatMap } from "@/components/seat-map";
-import { addCheckinItems, bookReturn, confirmCheckin, loadCheckinItems, loadReturnBoard, loadSeatMap, lookupByPass, reassignSeats, searchReservations, voidCheckin, type ReturnRun } from "./actions";
+import { addCheckinItems, bookReturn, confirmCheckin, loadCheckinItems, loadReturnBoard, loadSeatMap, lookupByPass, reassignSeats, searchReservations, voidCheckin, type Result, type ReturnRun } from "./actions";
 
 type BarcodeDetectorLike = { detect(source: ImageBitmapSource): Promise<{ rawValue: string }[]> };
 declare global { interface Window { BarcodeDetector?: new (opts?: { formats: string[] }) => BarcodeDetectorLike } }
@@ -19,6 +19,8 @@ const RETURN_DESK = "return";
 const NO_SEAT_STATION = "gate";
 const STATION_TABS = [...eventConfig.stations.map((s) => ({ code: s.code as string, name: s.name as string })), { code: RETURN_DESK, name: "복귀 셔틀" }];
 const LAYOUT = buildSeatLayout();
+/** Server actions return {ok, data | error} (thrown messages are hidden in production); turn a failure back into a throw here. */
+async function ok<T>(p: Promise<Result<T>>): Promise<T> { const r = await p; if (!r.ok) throw new Error(r.error); return r.data; }
 
 /** The station a phone was assigned to, remembered per device (external store, no effect-time setState). */
 function subscribeStation(cb: () => void) { window.addEventListener("storage", cb); window.addEventListener("fil:station", cb); return () => { window.removeEventListener("storage", cb); window.removeEventListener("fil:station", cb); }; }
@@ -53,6 +55,9 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
   const [camera, setCamera] = useState<"idle" | "on" | "unsupported" | "insecure" | "denied">("idle");
   const videoRef = useRef<HTMLVideoElement>(null);
   const stopRef = useRef<() => void>(() => {});
+  const stationsRef = useRef<HTMLDivElement>(null);
+  // keep the chosen station visible in the sideways-scrolling row (e.g. 복귀 셔틀 at the far right)
+  useEffect(() => { stationsRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" }); }, [station]);
 
   const takenSet = (map: SeatMapCell[], own: string) => new Set(map.filter((c) => c.reservation_id && c.reservation_id !== own).map((c) => c.id));
   const autoPick = (map: SeatMapCell[], r: ReservationSummary, n: number) =>
@@ -64,15 +69,15 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
     setGives(Object.fromEntries(eventConfig.hospitalityItems.map((i) => [i.code, false])));
     stopRef.current();
     if (station === RETURN_DESK) {
-      try { setBoard(await loadReturnBoard()); } catch (e) { setError((e as Error).message); }
+      try { setBoard(await ok(loadReturnBoard())); } catch (e) { setError((e as Error).message); }
       return;
     }
     if (r.checkin) {
-      try { setGiven(await loadCheckinItems(r.checkin.id)); } catch (e) { setError((e as Error).message); }
+      try { setGiven(await ok(loadCheckinItems(r.checkin.id))); } catch (e) { setError((e as Error).message); }
     }
     if (station === NO_SEAT_STATION) return;            // no seat chart at THE GATE
     try {
-      const map = await loadSeatMap();
+      const map = await ok(loadSeatMap());
       setCells(map);
       setSeats(r.seat_ids?.length ? r.seat_ids : autoPick(map, r, r.party_size));
     } catch (e) { setError((e as Error).message); }
@@ -94,7 +99,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
   async function find() {
     if (query.trim().length < 2) return setError("성함 두 글자 이상 또는 연락처 뒤 4자리를 넣어주세요.");
     setBusy(true); setError(null);
-    try { const list = await searchReservations(query.trim()); setResults(list); if (!list.length) setError("찾지 못했습니다. 다른 표기로 검색해 보세요."); }
+    try { const list = await ok(searchReservations(query.trim())); setResults(list); if (!list.length) setError("찾지 못했습니다. 다른 표기로 검색해 보세요."); }
     catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
 
@@ -122,7 +127,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
         try {
           const raw = await decode();
           if (raw) {
-            const r = await lookupByPass(raw);
+            const r = await ok(lookupByPass(raw));
             if (r) { open(r, "qr"); return; }
             setError("이 QR은 오늘 행사의 Pass가 아닙니다.");
           }
@@ -144,12 +149,12 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
       const distributions = Object.fromEntries(fresh.map((k) => [k, count]));
       if (current.r.checkin) {
         const ck = current.r.checkin;
-        if (fresh.length) await addCheckinItems(ck.id, distributions);
-        const label = seatless ? current.r.seat_label : await reassignSeats(current.r.id, seats);
+        if (fresh.length) await ok(addCheckinItems(ck.id, distributions));
+        const label = seatless ? current.r.seat_label : await ok(reassignSeats(current.r.id, seats));
         setAdded(fresh);
         setDone({ already: true, checkin_id: ck.id, arrived_count: ck.arrived_count, station_name: ck.station_name, checked_in_at: ck.checked_in_at, applicant_name: current.r.applicant_name, seat_label: label });
       } else {
-        const res = await confirmCheckin({ reservationId: current.r.id, stationCode: station, arrivedCount: count, method: current.via, distributions, seatIds: seatless ? [] : seats, manual: seatless ? false : manual });
+        const res = await ok(confirmCheckin({ reservationId: current.r.id, stationCode: station, arrivedCount: count, method: current.via, distributions, seatIds: seatless ? [] : seats, manual: seatless ? false : manual }));
         setAdded(fresh);
         setDone(res);
       }
@@ -160,19 +165,19 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
     if (!current) return;
     setBusy(true); setError(null);
     try {
-      const next = await bookReturn(current.r.id, runId);
+      const next = await ok(bookReturn(current.r.id, runId));
       setBoard(next);
       const label = runId ? next.find((x) => x.id === runId)?.label ?? "" : null;
       setCurrent({ ...current, r: { ...current.r, return_label: label } });
       setBooked(runId ? `${label} 복귀 셔틀 ${current.r.party_size}석을 예약했습니다.` : "복귀 셔틀 예약을 취소했습니다.");
-    } catch (e) { setError((e as Error).message); try { setBoard(await loadReturnBoard()); } catch {} } finally { setBusy(false); }
+    } catch (e) { setError((e as Error).message); try { setBoard(await ok(loadReturnBoard())); } catch {} } finally { setBusy(false); }
   }
 
   const r = current?.r;
   const selected = new Set(seats);
   return (
     <div className="scanConsole">
-      <div className="stations" role="radiogroup" aria-label="스테이션">
+      <div className="stations" ref={stationsRef} role="radiogroup" aria-label="스테이션">
         {STATION_TABS.map((s) => <button key={s.code} aria-pressed={station === s.code} onClick={() => { pickStation(s.code); setCurrent(null); setDone(null); setError(null); }}>{s.name}</button>)}
       </div>
       {station === NO_SEAT_STATION && <p className="note stationNote">창동 THE GATE에서는 좌석을 배정하지 않습니다. 좌석은 주차장 THE LANDING 또는 채플 웰컴센터에서 체크인할 때 배정됩니다.</p>}
@@ -191,7 +196,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
         <section className="result">
           <header><small>{r.code} · 복귀 셔틀</small><h2>{r.applicant_name} 님{r.guest_count ? " 일행" : ""}</h2><p>{r.party_size}명 · 현재 {r.return_label ? `${r.return_label} 예약됨` : "복귀 셔틀 예약 없음"}</p></header>
           {booked && <p className="kv"><span>완료</span><b>{booked}</b></p>}
-          {board === null ? <p className="tiny">좌석 현황을 불러오는 중…</p> : (
+          {board === null ? <p className="tiny">{error ? "좌석 현황을 불러오지 못했습니다. 아래 안내를 확인해 주세요." : "좌석 현황을 불러오는 중…"}</p> : (
             <ul className="returnRuns">
               {board.map((run) => {
                 const mine = r.return_label === run.label;
@@ -257,7 +262,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
             <button className="btn ghost danger" disabled={busy} onClick={async () => {
               if (!window.confirm(`${r.applicant_name} 님의 체크인을 취소하고 좌석을 비울까요?`)) return;
               setBusy(true); setError(null);
-              try { await voidCheckin(r.checkin!.id, r.id); setCurrent(null); setResults([]); setQuery(""); }
+              try { await ok(voidCheckin(r.checkin!.id, r.id)); setCurrent(null); setResults([]); setQuery(""); }
               catch (e) { setError((e as Error).message); } finally { setBusy(false); }
             }}>체크인 취소 (관리자)</button>
           )}

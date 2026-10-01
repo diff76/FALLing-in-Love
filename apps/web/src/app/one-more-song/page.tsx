@@ -21,7 +21,7 @@ export default async function OneMoreSongPage() {
       </div>
       <OmsPlayer tracks={tracks} photos={photos} />
       <div className="omsMore">
-        <Link className="button primary" href="/one-more-song/photos">사진 모아 보기 <span aria-hidden="true">→</span></Link>
+        <Link className="button omsPhotosBtn" href="/one-more-song/photos">사진 모아 보기 <span aria-hidden="true">→</span></Link>
         <span className="tag">{eventConfig.dateLabel} · {eventConfig.venue.short}</span>
       </div>
     </main>
