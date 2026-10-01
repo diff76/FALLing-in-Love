@@ -9,6 +9,14 @@ export type PlayerPhoto = { key: string; url: string };
 type Slides = "play" | "pause" | "stop";
 
 const SLIDE_MS = 5000;
+/**
+ * Every photo gets its own camera move and its own entrance, in a shuffled order that never
+ * repeats back to back: 8 moves (zoom out, zoom in, pans left/right, tilt, diagonal drift,
+ * slow turn, push into a corner) × 5 entrances (fade, blur-in, wipe, iris, diagonal wipe).
+ */
+const MOVES = 8, ENTRANCES = 5;
+const moveOf = (step: number) => (step * 5 + 3) % MOVES;
+const entranceOf = (step: number) => (step * 3) % ENTRANCES;
 /** In-app browsers (KakaoTalk, Naver, Instagram…) often stop audio when the app goes to the background. */
 const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i;
 const noop = () => () => {};
@@ -16,7 +24,7 @@ const noop = () => () => {};
 /**
  * OMS Player (One More Song Player): the day's playlist with prev/next/play/pause, repeat
  * (all · one · off), a seekable progress bar, volume, the full track list, and a photo slideshow
- * with a slow Ken Burns zoom/pan (switch on · off, pause). Off shows the record with the site lockup,
+ * with varied Ken Burns moves and entrances (switch on · off, pause). Off shows the record with the site lockup,
  * turning at 33⅓ while music plays and idling slowly otherwise.
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
  * The sound itself (and background / lock-screen play) lives in <OmsAudioProvider> in the
@@ -27,7 +35,8 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   const shell = useRef<HTMLDivElement>(null);
   const [showList, setShowList] = useState(false);
   const [slides, setSlides] = useState<Slides>(photos.length ? "play" : "stop");
-  const [{ slide, prev: prevSlide }, setShow] = useState({ slide: 0, prev: -1 });   // prev keeps its zoom while it fades out
+  // prev stays underneath (still moving) while the next photo makes its entrance over it
+  const [{ slide, prev: prevSlide, step }, setShow] = useState({ slide: 0, prev: -1, step: 0 });
   const stage = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState<"off" | "native" | "overlay">("off");
   const inApp = useSyncExternalStore(noop, () => IN_APP.test(navigator.userAgent), () => false);
@@ -35,7 +44,7 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   // ---- slideshow ----
   useEffect(() => {
     if (slides !== "play" || photos.length < 2) return;
-    const t = setInterval(() => setShow((s) => ({ slide: (s.slide + 1) % photos.length, prev: s.slide })), SLIDE_MS);
+    const t = setInterval(() => setShow((s) => ({ slide: (s.slide + 1) % photos.length, prev: s.slide, step: s.step + 1 })), SLIDE_MS);
     return () => clearInterval(t);
   }, [slides, photos.length]);
 
@@ -77,11 +86,11 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
           </div>
         ) : photos.map((p, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={p.key} src={p.url} alt="" className={`kb${i % 4} ${i === slide ? "on" : i === prevSlide ? "prev" : ""}`} loading={i === 0 ? "eager" : "lazy"} />
+          <img key={p.key} src={p.url} alt="" className={i === slide ? `on m${moveOf(step)} e${entranceOf(step)}` : i === prevSlide ? `prev m${moveOf(step - 1)}` : ""} loading={i === slide || i === (slide + 1) % photos.length ? "eager" : "lazy"} />
         ))}
         <div className="omsSlideCtl" role="group" aria-label="사진 슬라이드쇼">
           <button type="button" role="switch" aria-checked={!stopped} className="omsSlideSwitch" disabled={!photos.length}
-            onClick={() => { if (stopped) { setShow({ slide: 0, prev: -1 }); setSlides("play"); } else setSlides("stop"); }}
+            onClick={() => { if (stopped) { setShow({ slide: 0, prev: -1, step: 0 }); setSlides("play"); } else setSlides("stop"); }}
             title={stopped ? "사진 슬라이드쇼 켜기" : "슬라이드쇼 끄고 LP 보기"}>
             <i aria-hidden="true" /><span>슬라이드쇼 {stopped ? "OFF" : "ON"}</span>
           </button>

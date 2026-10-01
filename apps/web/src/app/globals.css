@@ -534,27 +534,45 @@ img { max-width: 100%; }
 .omsPlayer.overlay { position: fixed; inset: 0; z-index: 200; }
 .omsStage { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #0d0a08; }
 .omsPlayer.isFull .omsStage { aspect-ratio: auto; height: 100%; }
-/* slideshow: crossfade + Ken Burns — each photo slowly zooms out (one in four zooms in) while drifting;
-   the outgoing photo keeps its motion (.prev) while it fades, so nothing jumps */
-.omsStage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.4s ease; will-change: transform, opacity; }
-.omsStage > img.on { opacity: 1; z-index: 1; }
-/* longhands on purpose: the CSS build drops a name-less "animation" shorthand */
-.omsStage > img.on, .omsStage > img.prev { animation-duration: 7.5s; animation-timing-function: cubic-bezier(.25, .1, .25, 1); animation-fill-mode: forwards; }
-.omsStage > img.kb0.on, .omsStage > img.kb0.prev { animation-name: kb0; }
-.omsStage > img.kb1.on, .omsStage > img.kb1.prev { animation-name: kb1; }
-.omsStage > img.kb2.on, .omsStage > img.kb2.prev { animation-name: kb2; }
-.omsStage > img.kb3.on, .omsStage > img.kb3.prev { animation-name: kb3; }
+/* slideshow: each photo makes an entrance (e0–e4) over the previous one, which keeps moving underneath,
+   while a camera move (m0–m7) runs for its whole time on screen. Longhands only: the CSS build drops a
+   name-less "animation" shorthand. */
+.omsStage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; will-change: transform, opacity; }
+.omsStage > img.prev { opacity: 1; z-index: 1; }
+.omsStage > img.on { opacity: 1; z-index: 2; }
+.omsStage > img.on, .omsStage > img.prev { animation-timing-function: cubic-bezier(.25, .1, .25, 1); animation-fill-mode: both; }
+.omsStage > img.prev { animation-duration: 7.5s; }
+.omsStage > img.on { animation-duration: 7.5s, 1.5s; animation-timing-function: cubic-bezier(.25, .1, .25, 1), cubic-bezier(.33, 0, .2, 1); }
+.omsStage > img.m0 { animation-name: m0; } .omsStage > img.m1 { animation-name: m1; } .omsStage > img.m2 { animation-name: m2; } .omsStage > img.m3 { animation-name: m3; }
+.omsStage > img.m4 { animation-name: m4; } .omsStage > img.m5 { animation-name: m5; } .omsStage > img.m6 { animation-name: m6; } .omsStage > img.m7 { animation-name: m7; }
+.omsStage > img.on.m0 { animation-name: m0, var(--e); } .omsStage > img.on.m1 { animation-name: m1, var(--e); } .omsStage > img.on.m2 { animation-name: m2, var(--e); } .omsStage > img.on.m3 { animation-name: m3, var(--e); }
+.omsStage > img.on.m4 { animation-name: m4, var(--e); } .omsStage > img.on.m5 { animation-name: m5, var(--e); } .omsStage > img.on.m6 { animation-name: m6, var(--e); } .omsStage > img.on.m7 { animation-name: m7, var(--e); }
+.omsStage > img.e0 { --e: e0; } .omsStage > img.e1 { --e: e1; } .omsStage > img.e2 { --e: e2; } .omsStage > img.e3 { --e: e3; } .omsStage > img.e4 { --e: e4; }
 .omsStage.paused > img { animation-play-state: paused; }
-@keyframes kb0 { from { transform: scale(1.2) translate(-2.5%, -2%); } to { transform: scale(1.03) translate(1%, 1%); } }
-@keyframes kb1 { from { transform: scale(1.18) translate(2.5%, 1.5%); } to { transform: scale(1.02) translate(-1%, -1%); } }
-@keyframes kb2 { from { transform: scale(1.02) translate(0, 0); } to { transform: scale(1.16) translate(2%, -2%); } }
-@keyframes kb3 { from { transform: scale(1.2) translate(0, 2.5%); } to { transform: scale(1.03) translate(0, -1%); } }
-@media (prefers-reduced-motion: reduce) { .omsStage > img.on, .omsStage > img.prev { animation: none; } }
+/* camera moves */
+@keyframes m0 { from { transform: scale(1.22); } to { transform: scale(1.02); } }                                              /* zoom out */
+@keyframes m1 { from { transform: scale(1.02); } to { transform: scale(1.2); } }                                               /* zoom in */
+@keyframes m2 { from { transform: scale(1.16) translateX(-5%); } to { transform: scale(1.16) translateX(5%); } }              /* pan → */
+@keyframes m3 { from { transform: scale(1.16) translateX(5%); } to { transform: scale(1.16) translateX(-5%); } }              /* pan ← */
+@keyframes m4 { from { transform: scale(1.16) translateY(-5%); } to { transform: scale(1.16) translateY(4%); } }              /* tilt down */
+@keyframes m5 { from { transform: scale(1.25) translate(-4%, -3%); } to { transform: scale(1.04) translate(2%, 2%); } }       /* diagonal zoom out */
+@keyframes m6 { from { transform: scale(1.06) rotate(-1.6deg); } to { transform: scale(1.18) rotate(1.2deg); } }              /* slow turn */
+@keyframes m7 { from { transform: scale(1.04); } to { transform: scale(1.24) translate(3.5%, -3%); } }                      /* push into a corner */
+/* entrances */
+@keyframes e0 { from { opacity: 0; } to { opacity: 1; } }                                                                         /* crossfade */
+@keyframes e1 { from { opacity: 0; filter: blur(16px) brightness(1.25); } to { opacity: 1; filter: blur(0) brightness(1); } }  /* blur-in */
+@keyframes e2 { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }                                       /* wipe from the right */
+@keyframes e3 { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(75% at 50% 50%); } }                          /* iris */
+@keyframes e4 { from { clip-path: polygon(0 0, 0 0, 0 0, 0 0); } to { clip-path: polygon(0 0, 200% 0, 0 200%, 0 0); } }        /* diagonal wipe */
+@media (prefers-reduced-motion: reduce) {
+  .omsStage > img.on, .omsStage > img.prev { animation-name: none; }
+  .omsStage > img.on { animation-name: e0; animation-duration: .8s; }
+}
 .omsStopped { position: absolute; inset: 0; background: radial-gradient(120% 90% at 80% 60%, #2b221b, #120e0b 72%); }
 .omsStageVinyl { width: 124%; aspect-ratio: 1; right: -48%; top: 50%; transform: translateY(-50%); }
 .omsLockup { position: absolute; left: 22px; top: 18px; font-family: var(--font-syne), "Syne", sans-serif; font-weight: 600; font-size: clamp(20px, 3.4vw, 34px); letter-spacing: -.04em; color: var(--cream); }
 .omsLockup .fall { font-weight: 800; } .omsLockup em { font-style: italic; font-weight: 400; color: var(--paper-warm); }
-.omsSlideCtl { position: absolute; z-index: 2; left: 12px; bottom: 12px; display: flex; gap: 6px; align-items: center; padding: 6px; border-radius: 999px; background: rgba(12, 9, 7, .55); backdrop-filter: blur(6px); }
+.omsSlideCtl { position: absolute; z-index: 3; left: 12px; bottom: 12px; display: flex; gap: 6px; align-items: center; padding: 6px; border-radius: 999px; background: rgba(12, 9, 7, .55); backdrop-filter: blur(6px); }
 .omsSlideCtl button, .omsFullBtn { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: transparent; color: var(--cream); cursor: pointer; }
 .omsSlideCtl button svg { width: 18px; height: 18px; }
 /* on/off switch: OFF shows the turning LP */
@@ -568,7 +586,7 @@ img { max-width: 100%; }
 .omsSlideCtl button:disabled { opacity: .35; cursor: default; }
 .omsSlideLabel { display: inline-flex; gap: 6px; align-items: center; padding: 0 10px 0 4px; font-size: 12px; color: rgba(252, 248, 240, .8); }
 .omsSlideLabel svg { width: 16px; height: 16px; }
-.omsFullBtn { position: absolute; z-index: 2; right: 12px; top: 12px; background: rgba(12, 9, 7, .55); backdrop-filter: blur(6px); }
+.omsFullBtn { position: absolute; z-index: 3; right: 12px; top: 12px; background: rgba(12, 9, 7, .55); backdrop-filter: blur(6px); }
 .omsDeck { padding: 20px 22px 22px; display: grid; gap: 14px; background: linear-gradient(180deg, #1a1410, #120e0b); }
 .omsNow { display: grid; gap: 4px; }
 .omsNow small { font-size: 11px; letter-spacing: .22em; color: var(--paper-warm); }
