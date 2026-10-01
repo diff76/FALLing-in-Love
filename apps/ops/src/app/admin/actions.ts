@@ -49,3 +49,17 @@ export async function setReturnCapacity(runId: string, capacity: number): Promis
   const { error } = await db.from("shuttle_runs").update({ capacity }).eq("id", runId).eq("direction", "return");
   if (error) throw new Error(error.message);
 }
+
+/**
+ * Starting stock of one hospitality item (admins; RLS "desk adjusts items"). The desk's −/+ nudges
+ * stay in `adjustment`, so left = initial + adjustment − handed out. Returns an error message
+ * instead of throwing: production builds hide thrown server-action messages (React #441).
+ */
+export async function setInitialStock(itemId: string, qty: number): Promise<string | null> {
+  try {
+    const db = await adminDb();
+    if (!Number.isInteger(qty) || qty < 0 || qty > 10000) return "수량은 0~10000 사이 숫자로 넣어주세요.";
+    const { error } = await db.from("hospitality_items").update({ initial_stock: qty }).eq("id", itemId);
+    return error ? error.message : null;
+  } catch (e) { return (e as Error).message; }
+}

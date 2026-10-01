@@ -6,6 +6,7 @@ import type { OpsStats } from "@fil/supabase";
 import { districtName, eventConfig } from "@fil/config";
 import { ReservationAction } from "./reservation-actions";
 import { ReturnCapacity } from "./return-capacity";
+import { StockSetup } from "./stock-setup";
 
 export const dynamic = "force-dynamic";
 
@@ -25,20 +26,27 @@ function Bar({ label, value, done, max, unit, tone }: { label: string; value: nu
 export default async function AdminPage() {
   const session = await requireRole("admin");
   const db = await supabaseServer();
-  const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes, returnRunsRes] = db ? await Promise.all([
+  const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes, returnRunsRes, itemsRes, givenRes] = db ? await Promise.all([
     db.rpc("ops_stats"),
     db.from("reservations").select("id, code, applicant_name, kind, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
     db.from("reservation_members").select("reservation_id, age_group"),
     db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null),
     db.from("reservations").select("id, code, applicant_name, district_code, party_size, source, created_at").eq("status", "cancelled").order("created_at", { ascending: false }).limit(200),
     db.from("shuttle_runs").select("id, label, capacity").eq("direction", "return").eq("active", true).order("departs_at"),
-  ]) : [null, null, null, null, null, null];
+    db.from("hospitality_items").select("id, code, name, initial_stock, adjustment"),
+    db.from("hospitality_distributions").select("item_id, qty"),
+  ]) : [null, null, null, null, null, null, null, null];
   const stats = (statsRes?.data ?? null) as OpsStats | null;
   const rows = rowsRes?.data ?? [];
   const members = membersRes?.data ?? [];
   const checkins = checkinsRes?.data ?? [];
   const cancelled = cancelledRes?.data ?? [];
   const returnRuns = (returnRunsRes?.data ?? []).map((r) => ({ ...r, capacity: r.capacity ?? eventConfig.shuttle.returnSeats, booked: rows.filter((x) => x.return_run_id === r.id).reduce((n, x) => n + x.party_size, 0) }));
+  // hospitality items in config order (retired codes such as the brochure stay hidden, as on the desk)
+  const stockItems = eventConfig.hospitalityItems.flatMap((c) => {
+    const it = (itemsRes?.data ?? []).find((x) => x.code === c.code);
+    return it ? [{ id: it.id, name: it.name, initial: it.initial_stock, adjustment: it.adjustment, given: (givenRes?.data ?? []).filter((g) => g.item_id === it.id).reduce((n, g) => n + g.qty, 0) }] : [];
+  });
   const arrived = new Map(checkins.map((c) => [c.reservation_id, c.arrived_count]));
   const rate = stats && stats.people ? Math.round((stats.checked_in_people / stats.people) * 100) : 0;
   const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
@@ -110,6 +118,11 @@ export default async function AdminPage() {
       <section className="box">
         <h2>복귀 셔틀 좌석</h2><p className="sub">편마다 버스 1대 기준입니다. 웹 신청과 스캔 데스크 예약이 자동으로 차감되고, 전체 좌석 수를 바꾸면 남은 좌석이 바로 다시 계산됩니다.</p>
         <ReturnCapacity runs={returnRuns} />
+      </section>
+
+      <section className="box">
+        <h2>비품 초기 수량</h2><p className="sub">행사 전에 준비한 수량을 넣어 주세요. 남은 수량 = 초기 수량 + 현장 조정(웰컴 데스크의 −/+) − 체크인 때 지급한 수량이며, 웰컴 데스크 화면에 그대로 보입니다.</p>
+        <StockSetup items={stockItems} />
       </section>
 
       <section className="box">
