@@ -1,123 +1,33 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Vinyl } from "./vinyl";
+import { fmt, I, Icon, OmsVolume, useOmsAudio } from "./oms-audio";
 
-export type PlayerTrack = { key: string; title: string; artist: string; url: string };
 export type PlayerPhoto = { key: string; url: string };
-type Repeat = "all" | "one" | "off";
 type Slides = "play" | "pause" | "stop";
 
 const SLIDE_MS = 5000;
-const COVER = [{ src: "/media/oms-cover.jpg", sizes: "512x512", type: "image/jpeg" }];
 /** In-app browsers (KakaoTalk, Naver, Instagram…) often stop audio when the app goes to the background. */
 const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i;
 const noop = () => () => {};
-const fmt = (s: number) => (Number.isFinite(s) && s >= 0 ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}` : "0:00");
-
-/* small inline icons (currentColor) */
-const I = {
-  play: <path d="M8 5v14l11-7z" />,
-  pause: <path d="M7 5h4v14H7zM13 5h4v14h-4z" />,
-  prev: <path d="M7 6h2v12H7zM10 12l9-6v12z" />,
-  next: <path d="M15 6h2v12h-2zM14 12 5 6v12z" />,
-  stop: <path d="M7 7h10v10H7z" />,
-  repeat: <path d="M7 7h9l-2-2 1.4-1.4L20 8l-4.6 4.4L14 11l2-2H7v4H5V9a2 2 0 0 1 2-2zm10 10H8l2 2-1.4 1.4L4 16l4.6-4.4L10 13l-2 2h9v-4h2v4a2 2 0 0 1-2 2z" />,
-  list: <path d="M4 6h12v2H4zM4 11h12v2H4zM4 16h8v2H4zM18 13v-7h3v2h-1v8.5a2.5 2.5 0 1 1-2-2.45z" />,
-  full: <path d="M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z" />,
-  exit: <path d="M8 4h2v6H4V8h4zM14 4h2v4h4v2h-6zM4 14h6v6H8v-4H4zM14 14h6v2h-4v4h-2z" />,
-  photo: <path d="M4 5h16v14H4zM6 17h12l-4-5-3 3.5-2-2.5zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" />,
-};
-const Icon = ({ d, label }: { d: React.ReactNode; label?: string }) => <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden={label ? undefined : true} role={label ? "img" : undefined} aria-label={label}>{d}</svg>;
 
 /**
  * OMS Player (One More Song Player): the day's playlist with prev/next/play/pause, repeat
- * (all · one · off), a seekable progress bar, the full track list, and a photo slideshow
+ * (all · one · off), a seekable progress bar, volume, the full track list, and a photo slideshow
  * (play · pause · stop — stopped shows the spinning record with the site lockup).
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
- * Background play: a plain <audio> element keeps playing with the screen off or another app in
- * front, and the Media Session API puts the track, cover and controls on the lock screen /
- * notification shade; the next track starts from the `ended` handler, so the playlist carries on.
+ * The sound itself (and background / lock-screen play) lives in <OmsAudioProvider> in the
+ * /one-more-song layout, so it carries on into the photo page.
  */
-export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: PlayerPhoto[] }) {
-  const audio = useRef<HTMLAudioElement>(null);
+export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
+  const { tracks, track, idx, playing, repeat, time, dur, playAt, toggle, next, prev, cycleRepeat, seek } = useOmsAudio();
   const shell = useRef<HTMLDivElement>(null);
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [repeat, setRepeat] = useState<Repeat>("all");
-  const [time, setTime] = useState(0);
-  const [dur, setDur] = useState(0);
   const [showList, setShowList] = useState(false);
   const [slides, setSlides] = useState<Slides>(photos.length ? "play" : "stop");
   const [slide, setSlide] = useState(0);
   const [full, setFull] = useState<"off" | "native" | "overlay">("off");
-  const track = tracks[idx];
-
-  // ---- audio ----
-  const playAt = useCallback((i: number) => {
-    setIdx(i); setTime(0);
-    const a = audio.current; if (!a || !tracks[i]) return;
-    a.src = tracks[i].url; a.load();
-    a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-  }, [tracks]);
-  const toggle = () => {
-    const a = audio.current; if (!a || !track) return;
-    if (!a.src) { playAt(idx); return; }
-    if (a.paused) a.play().then(() => setPlaying(true)).catch(() => {}); else { a.pause(); setPlaying(false); }
-  };
-  const next = useCallback((auto = false) => {
-    if (!tracks.length) return;
-    if (auto && repeat === "one") { const a = audio.current; if (a) { a.currentTime = 0; a.play().catch(() => {}); } return; }
-    const last = idx === tracks.length - 1;
-    if (auto && last && repeat === "off") { setPlaying(false); return; }
-    playAt(last ? 0 : idx + 1);
-  }, [tracks.length, repeat, idx, playAt]);
-  const prev = () => {
-    const a = audio.current; if (!tracks.length) return;
-    if (a && a.currentTime > 3) { a.currentTime = 0; return; }
-    playAt(idx === 0 ? tracks.length - 1 : idx - 1);
-  };
-  const cycleRepeat = () => setRepeat((r) => (r === "all" ? "one" : r === "one" ? "off" : "all"));
-
-  useEffect(() => {
-    const a = audio.current; if (!a) return;
-    const onTime = () => setTime(a.currentTime);
-    const onMeta = () => setDur(a.duration);
-    const onEnd = () => next(true);
-    const onPause = () => setPlaying(false); const onPlay = () => setPlaying(true);
-    a.addEventListener("timeupdate", onTime); a.addEventListener("loadedmetadata", onMeta); a.addEventListener("ended", onEnd);
-    a.addEventListener("pause", onPause); a.addEventListener("play", onPlay);
-    return () => { a.removeEventListener("timeupdate", onTime); a.removeEventListener("loadedmetadata", onMeta); a.removeEventListener("ended", onEnd); a.removeEventListener("pause", onPause); a.removeEventListener("play", onPlay); };
-  }, [next]);
-
-  // lock-screen / notification / headset controls where supported
-  useEffect(() => {
-    if (!("mediaSession" in navigator) || !track) return;
-    const ms = navigator.mediaSession;
-    ms.metadata = new MediaMetadata({ title: track.title, artist: track.artist || "FALLing in Love", album: "THE ONE MORE SONG", artwork: COVER });
-    const on = (action: MediaSessionAction, fn: MediaSessionActionHandler) => { try { ms.setActionHandler(action, fn); } catch { /* unsupported action */ } };
-    const seekBy = (d: number) => { const a = audio.current; if (a) a.currentTime = Math.max(0, Math.min(a.duration || 0, a.currentTime + d)); };
-    on("play", () => { audio.current?.play().catch(() => {}); });
-    on("pause", () => audio.current?.pause());
-    on("stop", () => { const a = audio.current; if (a) { a.pause(); a.currentTime = 0; } });
-    on("nexttrack", () => next());
-    on("previoustrack", () => prev());
-    on("seekbackward", (d) => seekBy(-(d.seekOffset ?? 10)));
-    on("seekforward", (d) => seekBy(d.seekOffset ?? 10));
-    on("seekto", (d) => { const a = audio.current; if (a && d.seekTime != null) a.currentTime = d.seekTime; });
-  });
-  useEffect(() => {
-    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = playing ? "playing" : "paused";
-  }, [playing]);
-  // lock-screen progress bar (refreshed when the track loads and every few seconds while playing)
-  const posAt = useRef(0);
-  useEffect(() => {
-    if (!("mediaSession" in navigator) || !navigator.mediaSession.setPositionState || !dur) return;
-    if (Math.abs(time - posAt.current) < 4 && time > 0.5) return;
-    posAt.current = time;
-    try { navigator.mediaSession.setPositionState({ duration: dur, position: Math.min(time, dur), playbackRate: 1 }); } catch { /* ignore */ }
-  }, [time, dur]);
   const inApp = useSyncExternalStore(noop, () => IN_APP.test(navigator.userAgent), () => false);
 
   // ---- slideshow ----
@@ -152,8 +62,6 @@ export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: P
 
   return (
     <div ref={shell} className={`omsPlayer ${full !== "off" ? "isFull" : ""} ${full === "overlay" ? "overlay" : ""}`}>
-      <audio ref={audio} preload="metadata" />
-
       {/* visual: photo slideshow, or the spinning record with the lockup when stopped */}
       <div className="omsStage">
         {stopped ? (
@@ -184,7 +92,7 @@ export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: P
         <div className="omsProgress">
           <span>{fmt(time)}</span>
           <input type="range" min={0} max={dur || 0} step={0.1} value={Math.min(time, dur || 0)} disabled={!track || !dur}
-            onChange={(e) => { const a = audio.current; if (a) { a.currentTime = Number(e.target.value); setTime(a.currentTime); } }}
+            onChange={(e) => seek(Number(e.target.value))}
             style={{ "--pct": `${pct}%` } as React.CSSProperties} aria-label="재생 위치" />
           <span>{fmt(dur)}</span>
         </div>
@@ -194,10 +102,11 @@ export function OmsPlayer({ tracks, photos }: { tracks: PlayerTrack[]; photos: P
           </button>
           <button type="button" onClick={prev} disabled={!tracks.length} aria-label="이전 곡"><Icon d={I.prev} /></button>
           <button type="button" className="omsPlay" onClick={toggle} disabled={!tracks.length} aria-label={playing ? "일시정지" : "재생"}><Icon d={playing ? I.pause : I.play} /></button>
-          <button type="button" onClick={() => next()} disabled={!tracks.length} aria-label="다음 곡"><Icon d={I.next} /></button>
+          <button type="button" onClick={next} disabled={!tracks.length} aria-label="다음 곡"><Icon d={I.next} /></button>
           <button type="button" onClick={() => setShowList((v) => !v)} aria-pressed={showList} aria-label="전체 트랙"><Icon d={I.list} /></button>
         </div>
         <p className="omsRepeatLabel">{repeat === "all" ? "전체 반복" : repeat === "one" ? "한 곡 반복" : "반복 해제"}</p>
+        <OmsVolume />
         {inApp && <p className="omsInApp">카카오톡 같은 앱 안에서 열면 화면을 끄거나 다른 앱으로 가면 음악이 멈출 수 있습니다. 메뉴(⋯)에서 <b>다른 브라우저로 열기</b>를 누르면 화면을 꺼도 계속 들을 수 있습니다.</p>}
         {showList && (
           <ol className="omsList">
