@@ -58,7 +58,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!loaded || !guest) return { ...base, title: "Matinée Pass" };
   // The link preview in KakaoTalk/Messages carries the guest's name, so the invitation is unmistakably theirs.
   const title = `${guest.name} 님을 위한 초대장`;
-  const description = `${loaded.pass.applicant_name} 님이 초대했습니다 · ${eventConfig.dateLabel} 낮 ${eventConfig.opensAt} · ${eventConfig.venue.short}`;
+  const description = `${loaded.pass.applicant_name} 님이 초대했습니다 · ${eventConfig.dateLabel} ${eventConfig.passMeet.time} · ${eventConfig.passMeet.place}`;
   return {
     ...base, title, description,
     openGraph: { title: `${title} · ${eventConfig.name}`, description, type: "website", images: [{ url: "/media/og.jpg", width: 1600, height: 840, alt: "FALLing in Love" }] },
@@ -102,7 +102,7 @@ export default async function PassPage({ params, searchParams }: Props) {
           <p className="eyebrow">Matinée Pass · For You</p>
           <h1>{guest.name} 님, 초대합니다</h1>
           <p>{pass.applicant_name} 님이 {guest.name} 님을 가을 정원의 오후에 초대했습니다.</p>
-          <p>{eventConfig.dateLabel} 낮 {eventConfig.opensAt}, {eventConfig.venue.short}에서 뵙겠습니다.</p>
+          <p>{eventConfig.dateLabel} {eventConfig.passMeet.time}, {eventConfig.passMeet.place}에서 뵙겠습니다.</p>
         </div>
         <TicketCard
           code={pass.code}
@@ -125,7 +125,7 @@ export default async function PassPage({ params, searchParams }: Props) {
         </aside>
         <aside className="passNote">
           <b>가벼운 식사가 준비되어 있습니다.</b>
-          오후 1시에 특별예배로 문을 열고, 실내악을 지나 정원에서 마무리합니다. 편한 신발을 신고 오시면 좋습니다.
+          오후 1시에 특별예배로 문을 열고, 실내악을 지나 정원에서 마무리합니다. The Trail(피크닉, 포토존, 스탬프 투어) 도 있습니다. 편한 신발을 신고 오시면 좋습니다.
         </aside>
       </main>
     );
@@ -144,7 +144,7 @@ export default async function PassPage({ params, searchParams }: Props) {
   const invites: GuestInvite[] = members.map((m) => ({
     name: m.name,
     url: `${url}?g=${m.position}`,
-    message: `${m.name} 님, ${eventConfig.dateLabel} 낮 ${eventConfig.opensAt} ${eventConfig.venue.short}에서 열리는 가을 정원 마티네 'FALLing in Love'에 초대합니다. 아래 링크가 ${m.name} 님의 입장권(Matinée Pass)입니다. — ${pass.applicant_name} 드림`,
+    message: `${m.name} 님, ${eventConfig.dateLabel} ${eventConfig.passMeet.time} ${eventConfig.passMeet.place}에서 열리는 가을 정원 마티네 'FALLing in Love'에 초대합니다. 아래 링크가 ${m.name} 님의 입장권(Matinée Pass)입니다. — ${pass.applicant_name} 드림`,
   }));
 
   return (
@@ -153,7 +153,7 @@ export default async function PassPage({ params, searchParams }: Props) {
       <div className="passHead">
         <p className="eyebrow">Matinée Pass</p>
         <h1>{issuedCount ? `${issuedCount}명의 사전 참여 신청이 완료되었습니다` : "Matinée Pass"}</h1>
-        <p>{eventConfig.dateLabel} 낮 {eventConfig.opensAt}, {eventConfig.venue.short}에서 뵙겠습니다.</p>
+        <p>{eventConfig.dateLabel} {eventConfig.passMeet.time}, {eventConfig.passMeet.place}에서 뵙겠습니다.</p>
         {issuedCount > 0 && <p className="passAlert">실제 좌석은 당일 현장에서 체크인하셔야 배정됩니다. 이 QR을 웰컴 스팟이나 채플 로비에서 보여주세요.</p>}
       </div>
       <TicketCard
@@ -179,7 +179,7 @@ export default async function PassPage({ params, searchParams }: Props) {
       </aside>
       <aside className="passNote">
         <b>가벼운 식사가 준비되어 있습니다.</b>
-        오후 1시에 특별예배로 문을 열고, 실내악을 지나 정원에서 마무리합니다. 편한 신발을 신고 오시면 좋습니다.
+        오후 1시에 특별예배로 문을 열고, 실내악을 지나 정원에서 마무리합니다. The Trail(피크닉, 포토존, 스탬프 투어) 도 있습니다. 편한 신발을 신고 오시면 좋습니다.
       </aside>
       {!configured && token !== "preview" && <aside className="passNote"><b>미리보기</b>신청 저장소가 연결되면 실제 신청 정보가 이 자리에 표시됩니다.</aside>}
     </main>

@@ -27,7 +27,7 @@ const base: Omit<CinematicScene, "media">[] & { id: SceneId }[] = [
   },
   {
     id: "landing", label: "Landing", eyebrow: "02 · The Landing", title: "You’re Here.",
-    body: "정문을 지나면 흙 운동장과 웰컴 스팟이 먼저 맞이합니다. 셔틀과 자차가 한곳에 닿는 오늘의 첫 정착지입니다.",
+    body: "정문을 지난 도착지에서는, 웰컴 스테이션이 여러분을 먼저 맞이합니다. 셔틀과 자차가 한곳에 닿는 오늘의 첫 정착지입니다.",
     accent: "#6C8A50", camera: "dive", scroll: 1.3,
   },
   {
@@ -54,13 +54,13 @@ const base: Omit<CinematicScene, "media">[] & { id: SceneId }[] = [
   },
   {
     id: "finale", label: "Finale", eyebrow: "07 · Finale", title: "FALLing in Love",
-    body: "분수대 곁에서 재즈 트리오가 마지막 곡을 시작합니다. 카메라는 천천히 물러나 채플과 본관, 잔디와 수공간을 한 화면에 담고, 오늘 다녀온 자리들이 하나의 정원이었음을 보여줍니다.",
+    body: "분수대 곁에서 버스킹 재즈 밴드가 마지막 곡을 시작합니다. 카메라는 천천히 물러나 채플과 본관, 잔디와 수공간을 한 화면에 담고, 오늘 다녀온 자리들이 하나의 정원이었음을 보여줍니다.",
     accent: "#BE5637", camera: "pull-out", scroll: 1.8, linger: 0.4,
   },
   {
     id: "one-more-song", label: "One More Song", eyebrow: "08 · The One More Song",
     title: "The Day Is Over. The Playlist Isn’t.",
-    body: "파티가 끝난 저녁, 스마트폰으로 받은 초대장 링크를 엽니다. 그날 들었던 곡이 앨범 트랙으로, 그날의 사진이 슬라이드로 흐릅니다. 그리고 그 안에 다음 초대장이 함께 담겨 있습니다.",
+    body: "파티가 끝난 어느날, 스마트폰으로 받은 초대장을 엽니다. 그날 들었던 곡이 앨범 트랙으로, 그날의 사진이 슬라이드로 흐릅니다. 그리고 그 안에 다음 초대장이 함께 담겨 있습니다.",
     accent: "#C9932F", camera: "dive", scroll: 1.6, linger: 0.5,
   },
 ];

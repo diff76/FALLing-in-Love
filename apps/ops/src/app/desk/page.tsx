@@ -31,7 +31,8 @@ export default async function DeskPage() {
   const runs = runsRes?.data ?? [];
   const checkins = checkinsRes?.data ?? [];
   const stations = stationsRes?.data ?? [];
-  const items = itemsRes?.data ?? [];
+  const liveCodes = new Set<string>(eventConfig.hospitalityItems.map((i) => i.code));
+  const items = (itemsRes?.data ?? []).filter((i) => liveCodes.has(i.code));
   const given = givenRes?.data ?? [];
   const seatRows = seatRes?.data ?? [];
 

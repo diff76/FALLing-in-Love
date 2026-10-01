@@ -41,3 +41,11 @@ export async function restoreReservation(reservationId: string): Promise<void> {
   const { error } = await db.from("reservations").update({ status: "active" }).eq("id", reservationId).eq("status", "cancelled");
   if (error) throw new Error(error.code === "23505" ? "같은 성함·연락처로 이미 유효한 신청이 있어 되돌릴 수 없습니다." : error.message);
 }
+
+/** Seats on one return bus (admins; RLS "admin writes runs"). The scan desk counts bookings against it. */
+export async function setReturnCapacity(runId: string, capacity: number): Promise<void> {
+  const db = await adminDb();
+  if (!Number.isInteger(capacity) || capacity < 0 || capacity > 200) throw new Error("좌석 수는 0~200 사이 숫자로 넣어주세요.");
+  const { error } = await db.from("shuttle_runs").update({ capacity }).eq("id", runId).eq("direction", "return");
+  if (error) throw new Error(error.message);
+}

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { eventConfig } from "@fil/config";
 import { Reveal } from "./reveal";
 import { Clauses } from "./clauses";
+import { BrandLink } from "./brand-link";
+import { Vinyl } from "./vinyl";
+import { OmsTracklist } from "./oms-tracklist";
 
 const LEAF = "M12 2C7 4 3 9 3 15c0 3 2 6 5 7 4-2 9-5 12-11C18 6 15 3 12 2z";
 /** Animated background for a section: three drifting colour orbs plus a fall of autumn leaves (CSS only). */
@@ -59,7 +62,7 @@ export function AfterWorld() {
         <Fx />
         <div className="wrap narrow">
           <Reveal group>
-          <p className="eyebrow">THE TUNING · 13:40</p>
+          <p className="eyebrow">THE TUNING · {eventConfig.schedule.find((s) => s.title === "THE TUNING")?.time}</p>
           <h2 className="head">조율하는 시간도 순서입니다</h2>
           <p className="lede"><Clauses text={"예배가 끝나면 무대를 바꿉니다. 그 시간을 감추지 않고 그대로 열어 둡니다. 악기를 조율하는 소리 위로, 오늘 연주될 곡을 하나씩 소개합니다."} /></p>
         </Reveal>
@@ -125,20 +128,23 @@ export function AfterWorld() {
         </div>
       </section>
 
-      <section className="band memory" id="one-more-song">
-        <Fx />
-        <div className="wrap narrow">
+      <section className="band memory oms" id="one-more-song">
+        <Vinyl className="omsBgVinyl" />
+        <div className="wrap omsGrid">
           <Reveal group>
-          <p className="eyebrow">After the day</p>
-          <h2 className="head display">THE ONE<br /><em>MORE SONG</em></h2>
-          <p className="lede"><Clauses text={"하루가 끝난 뒤에도 플레이리스트와 사진은 이곳에 남습니다."} /></p>
-          <Link className="button ghost" href="/one-more-song">미리 보기 <span aria-hidden="true">→</span></Link>
-        </Reveal>
+          <div className="omsCopy">
+            <p className="eyebrow">After the day</p>
+            <h2 className="head display">THE ONE<br /><em>MORE SONG</em></h2>
+            <p className="lede"><Clauses text={"하루가 끝난 뒤에도 플레이리스트와 사진은 이곳에 남습니다."} /></p>
+            <Link className="button ghost" href="/one-more-song">미리 보기 <span aria-hidden="true">→</span></Link>
+          </div>
+          <OmsTracklist fallback={songCards.map((c) => c.title)} />
+          </Reveal>
         </div>
       </section>
 
       <footer className="siteFooter">
-        <div><strong>FALLing in Love</strong><span>{eventConfig.edition} · {eventConfig.host}</span></div>
+        <div><BrandLink /><span>{eventConfig.edition} · {eventConfig.host}</span></div>
         <p>{eventConfig.dateLabel} · {eventConfig.venue.short} Chapel &amp; Garden</p>
       </footer>
       <Link className="stickyApply" href="/apply">참여 신청</Link>

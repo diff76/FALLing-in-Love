@@ -46,7 +46,7 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
   const service = (["1", "2", "3"] as const).find((s) => g("예배").startsWith(s));
   const site = /창동/.test(g("장소")) ? "changdong" : /한신/.test(g("장소")) ? "hanshin" : undefined;
   if (attendance === "worship" && (!service || !site)) problems.push("예배/장소 확인");
-  let outboundRun = g("셔틀편") || (transport === "shuttle" ? eventConfig.shuttle.outbound[3] : "");
+  let outboundRun = g("셔틀편") || (transport === "shuttle" ? eventConfig.shuttle.defaultOutbound : "");
   if (outboundRun && !(eventConfig.shuttle.outbound as readonly string[]).includes(outboundRun)) { problems.push(`셔틀편 ${outboundRun} 없음`); outboundRun = ""; }
   let returnRun = g("복귀셔틀");
   if (returnRun && !(eventConfig.shuttle.return as readonly string[]).includes(returnRun)) { problems.push(`복귀셔틀 ${returnRun} 없음`); returnRun = ""; }

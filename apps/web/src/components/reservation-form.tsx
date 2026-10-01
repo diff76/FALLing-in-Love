@@ -8,6 +8,9 @@ import type { ReservationInput } from "@fil/domain";
 type Guest = { name: string; relation: string; ageGroup: string; dietaryNote: string };
 const emptyGuest = (): Guest => ({ name: "", relation: "", ageGroup: "", dietaryNote: "" });
 const ORD = ["첫 번째", "두 번째", "세 번째", "네 번째", "다섯 번째"];
+const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+/** minutes between the first two outbound runs (the timetable is evenly spaced) */
+const shuttleGap = toMin(eventConfig.shuttle.outbound[1]) - toMin(eventConfig.shuttle.outbound[0]);
 
 export function ReservationForm() {
   const router = useRouter();
@@ -145,7 +148,7 @@ export function ReservationForm() {
         </>
       )}
 
-      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>오시는 길과 편의</h2><p>{eventConfig.origin.name}에서 {eventConfig.venue.short}까지 셔틀로 {eventConfig.shuttle.rideMinutes}분 안팎입니다. 셔틀은 {eventConfig.shuttle.outbound[0]}부터 50분 간격, 막차 {eventConfig.shuttle.outbound[eventConfig.shuttle.outbound.length - 1]}입니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>오시는 길과 편의</h2><p>{eventConfig.origin.name}에서 {eventConfig.venue.short}까지 셔틀로 {eventConfig.shuttle.rideMinutes}분 안팎입니다. 셔틀은 {eventConfig.shuttle.outbound[0]}부터 {shuttleGap}분 간격, 막차 {eventConfig.shuttle.outbound[eventConfig.shuttle.outbound.length - 1]}입니다.</p></div></div>
       <div className="formGrid">
         <label><span>이동 수단</span>
           <select name="transport" value={transport} onChange={(e) => setTransport(e.target.value as typeof transport)}>
@@ -154,7 +157,7 @@ export function ReservationForm() {
         </label>
         {transport === "shuttle" ? (
           <label><span>탑승 예정 편</span>
-            <select name="outboundRun" defaultValue={eventConfig.shuttle.outbound[3]}>
+            <select name="outboundRun" defaultValue={eventConfig.shuttle.defaultOutbound}>
               {eventConfig.shuttle.outbound.map((t) => <option key={t} value={t}>{t} 출발</option>)}
             </select>{err("outboundRun")}
           </label>

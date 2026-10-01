@@ -59,3 +59,31 @@ export async function voidCheckin(checkinId: string, reservationId: string): Pro
   const { error: e2 } = await client.rpc("reassign_seats", { p_reservation_id: reservationId, p_seat_ids: [], p_manual: true });
   if (e2) throw new Error(e2.message);
 }
+
+// ---------- re-scan: hospitality items already given (RPCs from migration 0007) ----------
+/** {code: qty} of what this check-in already received. Staff cannot read distributions directly. */
+export async function loadCheckinItems(checkinId: string): Promise<Record<string, number>> {
+  const { data, error } = await (await db()).rpc("checkin_items" as never, { p_checkin_id: checkinId } as never);
+  if (error) throw new Error(error.message.includes("checkin_items") ? "DB 함수가 없습니다 (0007 SQL 실행 필요)." : error.message);
+  return (data ?? {}) as Record<string, number>;
+}
+/** Hand out the items that were missed; items already given stay as they were. */
+export async function addCheckinItems(checkinId: string, items: Record<string, number>): Promise<Record<string, number>> {
+  const { data, error } = await (await db()).rpc("add_checkin_items" as never, { p_checkin_id: checkinId, p_items: items } as never);
+  if (error) throw new Error(error.message);
+  return (data ?? {}) as Record<string, number>;
+}
+
+// ---------- return shuttle desk ----------
+export type ReturnRun = { id: string; label: string; capacity: number; booked: number; available: number };
+export async function loadReturnBoard(): Promise<ReturnRun[]> {
+  const { data, error } = await (await db()).rpc("return_board" as never);
+  if (error) throw new Error(error.message.includes("return_board") ? "DB 함수가 없습니다 (0007 SQL 실행 필요)." : error.message);
+  return (data ?? []) as ReturnRun[];
+}
+/** Book or move a party onto a return run (runId), or cancel (null). Refused when the bus is full. */
+export async function bookReturn(reservationId: string, runId: string | null): Promise<ReturnRun[]> {
+  const { data, error } = await (await db()).rpc("book_return" as never, { p_reservation_id: reservationId, p_run_id: runId } as never);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ReturnRun[];
+}

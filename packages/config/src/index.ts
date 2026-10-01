@@ -22,16 +22,18 @@ export const eventConfig = {
     address: "서울 강북구 인수봉로 159",
   },
   origin: { name: "창동성전", note: "1층 라운지에서 셔틀이 출발합니다" },
+  /** The line on the Matinée Pass: when and where guests are expected (the main programme). */
+  passMeet: { time: "오후 1:00", place: "한신 채플" },
   /** Confirmed running order (v3 brief). Listed in ONE place on the public site. */
   schedule: [
     { time: "10:00", title: "정원·웰컴 오픈", note: "캠퍼스 투어 시작 · 셔틀 운행", place: "한신 전역" },
     { time: "13:00", title: "ACT I — 특별예배", note: "40분", place: "Chapel" },
-    { time: "13:40", title: "THE TUNING", note: "15분", place: "Chapel" },
-    { time: "13:55", title: "ACT II — 실내악 챔버 콘서트", note: "40분", place: "Chapel" },
-    { time: "14:35", title: "정원으로 이동", note: "15분", place: "→ Garden" },
+    { time: "13:42", title: "THE TUNING", note: "10분", place: "Chapel" },
+    { time: "13:52", title: "ACT II — 실내악 챔버 콘서트", note: "48분", place: "Chapel" },
+    { time: "14:40", title: "정원으로 이동", note: "10분", place: "→ Garden" },
     { time: "14:50", title: "GARDEN FINALE — 재즈 · 애프터눈 테이블", note: "60분", place: "Garden" },
     { time: "15:50", title: "클로징 메시지", place: "Garden" },
-    { time: "16:00", title: "ONE MORE SONG", place: "Garden" },
+    { time: "16:00", title: "SEE YOU SOON", place: "Garden" },
   ],
   districts: [
     ["11", "11교구"], ["12", "12교구"], ["13", "13교구"], ["14", "14교구"], ["15", "15교구"],
@@ -45,11 +47,15 @@ export const eventConfig = {
     { code: "landing", name: "주차장 THE LANDING" },
     { code: "chapel", name: "채플 웰컴센터" },
   ] as const,
-  /** Confirmed 2026-09-24: every 50 minutes from 10:00, last outbound 15:00; two return runs. */
+  /** Updated 2026-10-01: every 30 minutes from 10:00, last outbound 15:00; four return runs (25 seats each by default). */
   shuttle: {
     provisional: false,
-    outbound: ["10:00", "10:50", "11:40", "12:30", "13:20", "14:10", "15:00"],
-    return: ["16:15", "17:00"],
+    outbound: ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00"],
+    return: ["16:15", "16:30", "16:45", "17:00"],
+    /** pre-selected outbound run on the sign-up form */
+    defaultOutbound: "12:30",
+    /** seats per return bus (each run is one 25-seat bus); admins adjust per run in ops */
+    returnSeats: 25,
     rideMinutes: 18,
   },
   /** Main event vs. worship-only attendance (people who only join one of the services). */
@@ -59,10 +65,9 @@ export const eventConfig = {
   /** Districts / departments seated on the ground floor near the aisles (easy exit). */
   priorityDistricts: ["11", "21", "JB", "ED"] as const,
   hospitalityItems: [
-    { code: "brochure", name: "캠퍼스 맵 브로셔" },
     { code: "stamp", name: "THE TRAIL 스탬프 카드" },
     { code: "drink", name: "웰컴 드링크 쿠폰" },
-    { code: "pouch", name: "어메니티 파우치" },
+    { code: "pouch", name: "런치박스" },
   ] as const,
   /** host + up to 5 invited guests (raised from 4 on 2026-09-27) */
   maxPartySize: 6,
