@@ -136,7 +136,7 @@ export function AfterWorld() {
             <p className="eyebrow">After the day</p>
             <h2 className="head display">THE ONE<br /><em>MORE SONG</em></h2>
             <p className="lede"><Clauses text={"하루가 끝난 뒤에도 플레이리스트와 사진은 이곳에 남습니다."} /></p>
-            <Link className="button ghost" href="/one-more-song">미리 보기 <span aria-hidden="true">→</span></Link>
+            <Link className="button ghost" href="/one-more-song">한 곡 더 듣기 <span aria-hidden="true">▶</span></Link>
           </div>
           <OmsTracklist fallback={songCards.map((c) => c.title)} />
           </Reveal>

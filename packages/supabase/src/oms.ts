@@ -26,7 +26,8 @@ const unb64url = (s: string) => {
 export function trackKey(order: number, title: string, artist: string, ext: string): string {
   const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp3";
   const n = Math.max(0, Math.min(9999, Math.round(order)));
-  return `tracks/${String(n).padStart(4, "0")}-${b64url(JSON.stringify({ t: title.trim(), a: artist.trim() }))}.${safeExt}`;
+  // NFC: macOS file names arrive as decomposed Hangul (ㅇ+ㅣ…), which some phones draw as loose letters
+  return `tracks/${String(n).padStart(4, "0")}-${b64url(JSON.stringify({ t: title.trim().normalize("NFC"), a: artist.trim().normalize("NFC") }))}.${safeExt}`;
 }
 export function photoKey(): string {
   return `photos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
@@ -36,7 +37,7 @@ export function parseTrackName(name: string): { order: number; title: string; ar
   const ext = name.match(/\.([a-z0-9]+)$/i)?.[1] ?? "mp3";
   const m = name.match(/^(\d+)-([A-Za-z0-9_-]+)\.[a-z0-9]+$/i);
   if (m) {
-    try { const j = JSON.parse(unb64url(m[2])); return { order: Number(m[1]), title: String(j.t || "Untitled"), artist: String(j.a || ""), ext }; } catch { /* fall through */ }
+    try { const j = JSON.parse(unb64url(m[2])); return { order: Number(m[1]), title: String(j.t || "Untitled").normalize("NFC"), artist: String(j.a || "").normalize("NFC"), ext }; } catch { /* fall through */ }
   }
   return { order: Number(name.match(/^(\d+)/)?.[1] ?? 0), title: name.replace(/\.[^.]+$/, ""), artist: "", ext };
 }

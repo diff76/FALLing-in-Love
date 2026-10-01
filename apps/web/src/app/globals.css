@@ -475,12 +475,14 @@ img { max-width: 100%; }
 .omsTracklist { list-style: none; margin: 0; padding: 22px 24px; border-radius: 18px; background: rgba(23, 18, 14, .62); backdrop-filter: blur(6px); border: 1px solid rgba(252, 248, 240, .12); display: grid; gap: 12px; }
 .omsTracklist .omsTracklistHead span { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--paper-warm); }
 .omsTracklist li { display: flex; gap: 14px; align-items: baseline; color: rgba(252, 248, 240, .9); font-size: 16px; }
-.omsTracklist li b { font-family: var(--font-syne), "Syne", sans-serif; font-size: 13px; color: var(--paper-warm); min-width: 22px; }
+.omsTracklist li b { flex: 0 0 32px; font-family: var(--font-syne), "Syne", sans-serif; font-size: 13px; color: var(--paper-warm); white-space: nowrap; }
+/* long titles (e.g. names copied from a video file) wrap inside their column, two lines at most — the number never gets squeezed */
+.omsTracklist li > span { min-width: 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .omsTracklist li em { font-style: normal; color: rgba(252, 248, 240, .55); font-size: 14px; }
 .omsTracklist li.more span { color: rgba(252, 248, 240, .55); font-size: 14px; }
 @media (max-width: 820px) {
   .wrap.omsGrid { grid-template-columns: 1fr; gap: 28px; }
-  .omsBgVinyl { width: 170vw; right: -70vw; top: 54%; }   /* label sits in the empty space right of 미리 보기 */
+  .omsBgVinyl { width: 170vw; right: -70vw; top: 54%; }   /* label sits in the empty space right of the 한 곡 더 듣기 button */
 }
 
 
@@ -589,7 +591,9 @@ img { max-width: 100%; }
 .omsList button { width: 100%; display: flex; gap: 14px; align-items: baseline; padding: 10px 8px; border: 0; border-radius: 10px; background: transparent; color: rgba(252, 248, 240, .85); font: inherit; text-align: left; cursor: pointer; }
 .omsList button:hover { background: rgba(252, 248, 240, .06); }
 .omsList button.on { color: var(--paper-warm); }
-.omsList b { font-family: var(--font-syne), "Syne", sans-serif; font-size: 12px; min-width: 22px; }
+.omsList b { flex: 0 0 30px; font-family: var(--font-syne), "Syne", sans-serif; font-size: 12px; white-space: nowrap; }
+.omsList button > span { min-width: 0; overflow-wrap: anywhere; }
+.omsList .eq { flex: none; }
 .omsList em { font-style: normal; color: rgba(252, 248, 240, .5); font-size: 13px; }
 .omsList .eq { margin-left: auto; width: 14px; height: 12px; background: linear-gradient(90deg, currentColor 0 25%, transparent 25% 37%, currentColor 37% 62%, transparent 62% 75%, currentColor 75%); animation: eq .8s ease-in-out infinite alternate; }
 @keyframes eq { from { clip-path: inset(40% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
