@@ -114,7 +114,7 @@ export function CinematicWorld() {
           body: s.body,
           tags: s.tags,
           cta: i === scenes.length - 1
-            ? { primary: { label: "ONE MORE SONG", href: "#one-more-song" } }   // brown button → the section below the film (▶ added in dressBrand)
+            ? { primary: { label: "The One More Song", href: "#one-more-song" } }   // brown button → the section below the film (▶ added in dressBrand)
             : undefined,
         })),
         connectors: connectors.slice(0, scenes.length - 1),
