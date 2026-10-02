@@ -109,7 +109,7 @@ export function CinematicWorld() {
           body: s.body,
           tags: s.tags,
           cta: i === scenes.length - 1
-            ? { primary: { label: "참여 신청하기", href: "/apply" }, secondary: { label: "Let's Go!", href: "#one-more-song" } }
+            ? { primary: { label: "One More Song 가기", href: "#one-more-song" } }   // brown button → the section below the film
             : undefined,
         })),
         connectors: connectors.slice(0, scenes.length - 1),
