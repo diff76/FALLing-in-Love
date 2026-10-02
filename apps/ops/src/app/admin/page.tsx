@@ -26,16 +26,17 @@ function Bar({ label, value, done, max, unit, tone }: { label: string; value: nu
 export default async function AdminPage() {
   const session = await requireRole("admin");
   const db = await supabaseServer();
-  const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes, returnRunsRes, itemsRes, givenRes] = db ? await Promise.all([
+  const [statsRes, rowsRes, membersRes, checkinsRes, cancelledRes, returnRunsRes, itemsRes, givenRes, gateRes] = db ? await Promise.all([
     db.rpc("ops_stats"),
     db.from("reservations").select("id, code, applicant_name, kind, inviter_name, district_code, age_group, party_size, transport, mobility_support, dietary_note, vehicle_plate, contact_consent, return_run_id, attendance, worship_service, worship_site, source, created_at").eq("status", "active").order("created_at", { ascending: false }).limit(1000),
     db.from("reservation_members").select("reservation_id, age_group"),
-    db.from("checkins").select("reservation_id, arrived_count, station_id").is("voided_at", null),
+    db.from("checkins").select("*").is("voided_at", null),   // * so arrived_at (migration 0008) comes along when it exists
     db.from("reservations").select("id, code, applicant_name, district_code, party_size, source, created_at").eq("status", "cancelled").order("created_at", { ascending: false }).limit(200),
     db.from("shuttle_runs").select("id, label, capacity").eq("direction", "return").eq("active", true).order("departs_at"),
     db.from("hospitality_items").select("id, code, name, initial_stock, adjustment"),
     db.from("hospitality_distributions").select("item_id, qty"),
-  ]) : [null, null, null, null, null, null, null, null];
+    db.from("stations").select("id").eq("code", "gate").maybeSingle(),
+  ]) : [null, null, null, null, null, null, null, null, null];
   const stats = (statsRes?.data ?? null) as OpsStats | null;
   const rows = rowsRes?.data ?? [];
   const members = membersRes?.data ?? [];
@@ -76,6 +77,11 @@ export default async function AdminPage() {
     }
   });
   const rate = stats && stats.people ? Math.round((stats.checked_in_people / stats.people) * 100) : 0;
+  // 창동 THE GATE check-ins are on the shuttle until a campus desk records their arrival (arrived_at, migration 0008)
+  const gateId = gateRes?.data?.id ?? null;
+  const inTransit = (checkins as { station_id: string; arrived_count: number; arrived_at?: string | null }[])
+    .filter((c) => c.station_id === gateId && !c.arrived_at).reduce((n, c) => n + c.arrived_count, 0);
+  const onCampus = (stats?.checked_in_people ?? 0) - inTransit;
   const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 
   // Age groups: every named person we know an age for (hosts + companions)
@@ -98,7 +104,7 @@ export default async function AdminPage() {
       <div className="metricGrid four">
         <article><span>신청 팀</span><h2>{stats?.reservations ?? "—"}</h2><p>메인 {stats?.main_people ?? "—"}명 · 예배만 {stats?.worship_people ?? "—"}명</p></article>
         <article><span>신청 인원</span><h2>{stats?.people ?? "—"}</h2><p>VIP {db ? roles.vip.reg : "—"}명 포함</p></article>
-        <article className="hot"><span>현재 체크인</span><h2>{stats?.checked_in_people ?? "—"}</h2><p>실참률 {rate}% · 좌석 배정 {stats?.seated_people ?? "—"}석</p></article>
+        <article className="hot"><span>현재 체크인 · 캠퍼스</span><h2>{stats ? onCampus : "—"}</h2><p>창동 출발 · 이동 중 {inTransit}명 · 실참률 {rate}% · 좌석 배정 {stats?.seated_people ?? "—"}석</p></article>
         <article><span>다음 초대장 수신</span><h2>{stats?.contact_consent_people ?? "—"}</h2><p>플레이리스트·사진은 전원 발송</p></article>
       </div>
 

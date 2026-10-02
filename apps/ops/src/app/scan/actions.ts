@@ -17,8 +17,10 @@ async function db() {
  */
 export type Result<T> = { ok: true; data: T } | { ok: false; error: string };
 const MIGRATION_0007 = /checkin_items|add_checkin_items|return_board|book_return/;
+const MIGRATION_0008 = /campus_arrival|arrived_at/;
 function friendly(message: string): string {
   if (/schema cache|does not exist/i.test(message) && MIGRATION_0007.test(message)) return "DB 함수가 아직 없습니다 — Supabase SQL Editor에서 0007 SQL을 실행해 주세요.";
+  if (/schema cache|does not exist/i.test(message) && MIGRATION_0008.test(message)) return "DB 함수가 아직 없습니다 — Supabase SQL Editor에서 0008 SQL을 실행해 주세요.";
   if (message === "forbidden") return "이 계정에는 이 작업 권한이 없습니다.";
   return message;
 }
@@ -121,5 +123,25 @@ export async function bookReturn(reservationId: string, runId: string | null): P
     const { data, error } = await (await db()).rpc("book_return" as never, { p_reservation_id: reservationId, p_run_id: runId } as never);
     if (error) throw new Error(error.message);
     return (data ?? []) as ReturnRun[];
+  });
+}
+
+// ---------- 창동 THE GATE → campus (migration 0008) ----------
+/** Has this check-in (made at THE GATE) reached the campus yet? null arrived_at = still on the way. */
+export async function loadArrival(checkinId: string): Promise<Result<{ arrivedAt: string | null }>> {
+  return attempt(async () => {
+    const { data, error } = await (await db()).from("checkins").select("*").eq("id", checkinId).maybeSingle();
+    if (error) throw new Error(error.message);
+    const row = (data ?? {}) as { arrived_at?: string | null };
+    if (!("arrived_at" in row)) throw new Error("arrived_at does not exist");
+    return { arrivedAt: row.arrived_at ?? null };
+  });
+}
+/** The party from THE GATE is here: record the arrival (greets them on the lobby display) and the corrected head count. */
+export async function campusArrival(checkinId: string, stationCode: string, arrivedCount: number): Promise<Result<{ arrived_count: number }>> {
+  return attempt(async () => {
+    const { data, error } = await (await db()).rpc("campus_arrival" as never, { p_checkin_id: checkinId, p_station_code: stationCode, p_arrived_count: arrivedCount } as never);
+    if (error) throw new Error(error.message);
+    return data as { arrived_count: number };
   });
 }

@@ -20,8 +20,8 @@ export default async function DeskPage() {
     db.rpc("ops_stats"),
     db.from("reservations").select("id, code, applicant_name, party_size, district_code, mobility_support, mobility_note, dietary_note, vehicle_plate, outbound_run_id, transport, attendance, worship_service, worship_site").eq("status", "active").order("created_at").limit(1000),
     db.from("shuttle_runs").select("id, label, direction, active").eq("direction", "outbound").eq("active", true).order("departs_at"),
-    db.from("checkins").select("id, arrived_count, checked_in_at, reservation_id, station_id").is("voided_at", null).order("checked_in_at", { ascending: false }),
-    db.from("stations").select("id, name"),
+    db.from("checkins").select("*").is("voided_at", null).order("checked_in_at", { ascending: false }),   // * brings arrived_at (0008) when present
+    db.from("stations").select("id, code, name"),
     db.from("hospitality_items").select("id, code, name, initial_stock, adjustment").order("code"),
     db.from("hospitality_distributions").select("checkin_id, item_id, qty"),
     db.from("seat_assignments").select("reservation_id, seat_id"),
@@ -29,7 +29,13 @@ export default async function DeskPage() {
   const stats = (statsRes?.data ?? null) as OpsStats | null;
   const rows = rowsRes?.data ?? [];
   const runs = runsRes?.data ?? [];
-  const checkins = checkinsRes?.data ?? [];
+  // 창동 THE GATE check-ins are still on the shuttle until a campus desk records their arrival (arrived_at):
+  // until then they are not "arrived" here and still count for the next shuttle's prep list.
+  const gateId = (stationsRes?.data ?? []).find((s) => s.code === "gate")?.id;
+  const checkins = ((checkinsRes?.data ?? []) as { id: string; arrived_count: number; checked_in_at: string; reservation_id: string; station_id: string; arrived_at?: string | null; arrived_station_id?: string | null }[])
+    .filter((c) => c.station_id !== gateId || !!c.arrived_at)
+    .map((c) => ({ ...c, at: c.arrived_at ?? c.checked_in_at }))
+    .sort((a, b) => b.at.localeCompare(a.at));
   const stations = stationsRes?.data ?? [];
   const liveCodes = new Set<string>(eventConfig.hospitalityItems.map((i) => i.code));
   const items = (itemsRes?.data ?? []).filter((i) => liveCodes.has(i.code));
@@ -102,7 +108,7 @@ export default async function DeskPage() {
               const r = byId.get(c.reservation_id);
               return (
                 <div className="rrow" key={c.id}>
-                  <div className="nm"><b>{r?.applicant_name ?? "—"} 님{r && r.party_size > 1 ? " 일행" : ""}</b><span>{new Date(c.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} · {districtName(r?.district_code)} · {seatsOf(c.reservation_id) || "좌석 미배정"} · {stationName.get(c.station_id) ?? ""}</span></div>
+                  <div className="nm"><b>{r?.applicant_name ?? "—"} 님{r && r.party_size > 1 ? " 일행" : ""}</b><span>{new Date(c.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} · {districtName(r?.district_code)} · {seatsOf(c.reservation_id) || "좌석 미배정"} · {c.arrived_at ? `창동 → ${stationName.get(c.arrived_station_id ?? "") ?? "캠퍼스"}` : stationName.get(c.station_id) ?? ""}</span></div>
                   <div className="cnt">{c.arrived_count}<em>명</em></div>
                   <div className="give">{givenOf(c.id).length ? givenOf(c.id).map((g) => <i key={g} className="on">{g}</i>) : <i>미지급</i>}</div>
                 </div>

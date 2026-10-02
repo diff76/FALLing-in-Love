@@ -66,10 +66,10 @@ export const eventConfig = {
   worshipSites: [["changdong", "창동성전"], ["hanshin", "한신성전"]] as const,
   /** Districts / departments seated on the ground floor near the aisles (easy exit). */
   priorityDistricts: ["11", "21", "JB", "ED"] as const,
+  /** Handed out at check-in (2026-10-02: the welcome-drink coupon was dropped; its DB row stays for past records, hidden here). */
   hospitalityItems: [
-    { code: "stamp", name: "THE TRAIL 스탬프 카드" },
-    { code: "drink", name: "웰컴 드링크 쿠폰" },
     { code: "pouch", name: "런치박스" },
+    { code: "stamp", name: "THE TRAIL 스탬프 카드" },
   ] as const,
   /** host + up to 5 invited guests (raised from 4 on 2026-09-27) */
   maxPartySize: 6,

@@ -6,7 +6,7 @@ import { eventConfig } from "@fil/config";
 import { buildSeatLayout, clampArrivedCount, needsPriorityFloor, seatLabelFor, suggestSeats } from "@fil/domain";
 import type { CheckinResult, ReservationSummary, SeatMapCell } from "@fil/supabase";
 import { SeatMap } from "@/components/seat-map";
-import { addCheckinItems, bookReturn, confirmCheckin, loadCheckinItems, loadReturnBoard, loadSeatMap, lookupByPass, reassignSeats, searchReservations, voidCheckin, type Result, type ReturnRun } from "./actions";
+import { addCheckinItems, bookReturn, campusArrival, loadArrival, confirmCheckin, loadCheckinItems, loadReturnBoard, loadSeatMap, lookupByPass, reassignSeats, searchReservations, voidCheckin, type Result, type ReturnRun } from "./actions";
 
 type BarcodeDetectorLike = { detect(source: ImageBitmapSource): Promise<{ rawValue: string }[]> };
 declare global { interface Window { BarcodeDetector?: new (opts?: { formats: string[] }) => BarcodeDetectorLike } }
@@ -17,6 +17,8 @@ const DEFAULT_STATION = eventConfig.stations[1].code;
 const RETURN_DESK = "return";
 /** THE GATE (Changdong) checks people in but does not seat them — seats are given at the campus. */
 const NO_SEAT_STATION = "gate";
+const GATE_NAME = eventConfig.stations.find((s) => s.code === NO_SEAT_STATION)?.name ?? "";
+const stationNameOf = (code: string) => eventConfig.stations.find((s) => s.code === code)?.name ?? code;
 const STATION_TABS = [...eventConfig.stations.map((s) => ({ code: s.code as string, name: s.name as string })), { code: RETURN_DESK, name: "복귀 셔틀" }];
 const LAYOUT = buildSeatLayout();
 /** Server actions return {ok, data | error} (thrown messages are hidden in production); turn a failure back into a throw here. */
@@ -50,6 +52,8 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
   const [added, setAdded] = useState<string[]>([]);                     // items handed out on this re-scan
   const [board, setBoard] = useState<ReturnRun[] | null>(null);         // return-shuttle seats
   const [booked, setBooked] = useState<string | null>(null);            // result message on the return desk
+  // checked in at THE GATE, now reaching the campus: count can be corrected, seats are given, the lobby greets them
+  const [transit, setTransit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [camera, setCamera] = useState<"idle" | "on" | "unsupported" | "insecure" | "denied">("idle");
@@ -64,7 +68,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
     suggestSeats(LAYOUT, takenSet(map, r.id), n, needsPriorityFloor({ districtCode: r.district_code, mobilitySupport: r.mobility_support }));
 
   async function open(r: ReservationSummary, via: "qr" | "manual") {
-    setCurrent({ r, via }); setDone(null); setError(null); setManual(false); setGiven({}); setAdded([]); setBooked(null);
+    setCurrent({ r, via }); setDone(null); setError(null); setManual(false); setGiven({}); setAdded([]); setBooked(null); setTransit(false);
     setCount(r.checkin ? r.checkin.arrived_count : r.party_size);
     setGives(Object.fromEntries(eventConfig.hospitalityItems.map((i) => [i.code, false])));
     stopRef.current();
@@ -76,10 +80,13 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
       try { setGiven(await ok(loadCheckinItems(r.checkin.id))); } catch (e) { setError((e as Error).message); }
     }
     if (station === NO_SEAT_STATION) return;            // no seat chart at THE GATE
+    if (r.checkin && r.checkin.station_name === GATE_NAME) {
+      try { setTransit((await ok(loadArrival(r.checkin.id))).arrivedAt === null); } catch (e) { setError((e as Error).message); }
+    }
     try {
       const map = await ok(loadSeatMap());
       setCells(map);
-      setSeats(r.seat_ids?.length ? r.seat_ids : autoPick(map, r, r.party_size));
+      setSeats(r.seat_ids?.length ? r.seat_ids : autoPick(map, r, r.checkin ? r.checkin.arrived_count : r.party_size));
     } catch (e) { setError((e as Error).message); }
   }
 
@@ -149,10 +156,14 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
       const distributions = Object.fromEntries(fresh.map((k) => [k, count]));
       if (current.r.checkin) {
         const ck = current.r.checkin;
+        // a party from THE GATE reaching the campus: record the arrival first (this is what greets them on the lobby display)
+        const arrivedCount = transit ? (await ok(campusArrival(ck.id, station, count))).arrived_count : ck.arrived_count;
         if (fresh.length) await ok(addCheckinItems(ck.id, distributions));
         const label = seatless ? current.r.seat_label : await ok(reassignSeats(current.r.id, seats));
         setAdded(fresh);
-        setDone({ already: true, checkin_id: ck.id, arrived_count: ck.arrived_count, station_name: ck.station_name, checked_in_at: ck.checked_in_at, applicant_name: current.r.applicant_name, seat_label: label });
+        setDone(transit
+          ? { already: false, checkin_id: ck.id, arrived_count: arrivedCount, station_name: stationNameOf(station), checked_in_at: new Date().toISOString(), applicant_name: current.r.applicant_name, seat_label: label }
+          : { already: true, checkin_id: ck.id, arrived_count: ck.arrived_count, station_name: ck.station_name, checked_in_at: ck.checked_in_at, applicant_name: current.r.applicant_name, seat_label: label });
       } else {
         const res = await ok(confirmCheckin({ reservationId: current.r.id, stationCode: station, arrivedCount: count, method: current.via, distributions, seatIds: seatless ? [] : seats, manual: seatless ? false : manual }));
         setAdded(fresh);
@@ -185,11 +196,11 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
 
       {done ? (
         <section className={`result ${done.already ? "already" : "ok"}`}>
-          <header><small>{done.already ? "이미 확인된 일행 · 갱신 완료" : "체크인 확정"}</small><h2>{done.applicant_name} 님</h2><p>{done.station_name} · {new Date(done.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</p></header>
+          <header><small>{done.already ? "이미 확인된 일행 · 갱신 완료" : transit ? "창동에서 오신 일행 · 캠퍼스 도착 확인" : "체크인 확정"}</small><h2>{done.applicant_name} 님</h2><p>{done.station_name} · {new Date(done.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</p></header>
           <div className="seatBig"><small>{station === NO_SEAT_STATION ? "좌석은 캠퍼스에서 배정됩니다" : "자리로 안내해 주세요"}</small><b>{done.seat_label ?? (station === NO_SEAT_STATION ? "THE LANDING · 채플에서 배정" : "좌석 미배정")}</b></div>
           {added.length > 0 && <p className="kv"><span>{done.already ? "추가 지급" : "지급 비품"}</span><b>{added.map((c) => eventConfig.hospitalityItems.find((i) => i.code === c)?.name).join(", ")}</b></p>}
           <p className="kv"><span>확인된 인원</span><b>{done.arrived_count}명</b></p>
-          {!done.already && <p className="tiny">로비 디스플레이에 환영 메시지가 소리와 함께 바로 나옵니다.</p>}
+          {!done.already && <p className="tiny">{station === NO_SEAT_STATION ? "로비 환영 메시지는 캠퍼스(THE LANDING · 채플)에 도착해 다시 스캔할 때 나옵니다." : "로비 디스플레이에 환영 메시지가 소리와 함께 바로 나옵니다."}</p>}
           <button className="btn" onClick={() => { setDone(null); setCurrent(null); setResults([]); setQuery(""); }}>다음 팀</button>
         </section>
       ) : r && station === RETURN_DESK ? (
@@ -221,9 +232,10 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
       ) : r ? (
         <section className="result">
           <header><small>{r.code} · {current?.via === "qr" ? "QR" : "성함 조회"}{r.source === "import" ? " · 수기 등록" : ""}</small><h2>{r.applicant_name} 님{r.guest_count ? " 일행" : ""}</h2><p>{r.district_label ?? "교구 확인 필요"}{worshipLabel(r) ? ` · ${worshipLabel(r)}` : ""}</p></header>
-          {r.checkin && <p className="tiny warn">이미 {r.checkin.station_name}에서 {r.checkin.arrived_count}명 확인됨. 인원은 다시 세지 않습니다. {station === NO_SEAT_STATION ? "못 받은 비품만 추가로 체크하세요." : "좌석 배정·변경과 못 받은 비품 추가만 할 수 있습니다."}</p>}
-          {!r.checkin && <div className="counter">
-            <div><b>도착하신 인원</b><small>신청 {r.party_size}명 (초청자 1 · 함께 {r.guest_count})</small></div>
+          {r.checkin && transit && <p className="tiny warn">{GATE_NAME}에서 {r.checkin.arrived_count}명 체크인 · 셔틀로 오신 일행입니다. 도착 인원을 확인하고 좌석을 배정해 주세요.</p>}
+          {r.checkin && !transit && <p className="tiny warn">이미 {r.checkin.station_name}에서 {r.checkin.arrived_count}명 확인됨. 인원은 다시 세지 않습니다. {station === NO_SEAT_STATION ? "못 받은 비품만 추가로 체크하세요." : "좌석 배정·변경과 못 받은 비품 추가만 할 수 있습니다."}</p>}
+          {(!r.checkin || transit) && <div className="counter">
+            <div><b>도착하신 인원</b><small>{transit && r.checkin ? `창동 확인 ${r.checkin.arrived_count}명 · 신청 ${r.party_size}명` : `신청 ${r.party_size}명 (초청자 1 · 함께 ${r.guest_count})`}</small></div>
             <div className="stepper"><button onClick={() => changeCount(count - 1)} aria-label="한 명 빼기">−</button><span>{count}</span><button onClick={() => changeCount(count + 1)} aria-label="한 명 더하기">+</button></div>
           </div>}
           <div className="flags">
@@ -257,7 +269,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
             })}
           </div>
           {r.checkin && <p className="tiny">이미 받은 비품은 잠겨 있습니다. 못 받은 비품을 체크하면 추가로 기록됩니다.</p>}
-          <button className="btn gold" onClick={confirm} disabled={busy}>{busy ? "기록 중…" : r.checkin ? (station === NO_SEAT_STATION ? "비품 추가 확정" : "좌석·비품 갱신 확정") : "체크인 확정"}</button>
+          <button className="btn gold" onClick={confirm} disabled={busy}>{busy ? "기록 중…" : r.checkin ? (station === NO_SEAT_STATION ? "비품 추가 확정" : transit ? "도착 확인 · 좌석 배정" : "좌석·비품 갱신 확정") : "체크인 확정"}</button>
           {r.checkin && isAdmin && (
             <button className="btn ghost danger" disabled={busy} onClick={async () => {
               if (!window.confirm(`${r.applicant_name} 님의 체크인을 취소하고 좌석을 비울까요?`)) return;

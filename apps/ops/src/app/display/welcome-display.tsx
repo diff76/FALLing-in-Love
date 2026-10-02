@@ -29,7 +29,12 @@ function chime(ctx: AudioContext) {
   play(784, t, 1.2); play(1046.5, t + 0.28, 1.6);
 }
 
-/** Lobby screen: idle programme + a masked welcome right after each staff-confirmed check-in, with a chime. */
+type CheckinRow = { id: string; reservation_id: string; checked_in_at: string; station_id: string; arrived_count: number; arrived_at?: string | null };
+/**
+ * Lobby screen: idle programme + a masked welcome, with a chime, the moment a party is on campus —
+ * a check-in at THE LANDING / the chapel, or a party from 창동 THE GATE being scanned on arrival
+ * (their check-in at the gate itself is not greeted: they are still on the shuttle).
+ */
 export function WelcomeDisplay() {
   const [now, setNow] = useState(new Date());
   const [current, setCurrent] = useState<Welcome | null>(null);
@@ -47,7 +52,17 @@ export function WelcomeDisplay() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const db = createBrowserSupabaseClient();
-    const refreshCount = async () => { const { data } = await db.rpc("ops_stats"); const s = data as OpsStats | null; if (s) setArrived(s.checked_in_people); };
+    let gateId: string | null = null;
+    const gateReady = db.from("stations").select("id").eq("code", "gate").maybeSingle().then(({ data }) => { gateId = data?.id ?? null; });
+    const onCampus = (c: CheckinRow) => c.station_id !== gateId || !!c.arrived_at;
+    // people on campus (gate check-ins count once they arrive); falls back to the overall figure before migration 0008
+    const refreshCount = async () => {
+      await gateReady;
+      const { data, error } = await db.from("checkins").select("*").is("voided_at", null);
+      const rows = (data ?? []) as CheckinRow[];
+      if (!error && (!rows.length || "arrived_at" in rows[0])) { setArrived(rows.filter(onCampus).reduce((n, c) => n + c.arrived_count, 0)); return; }
+      const { data: st } = await db.rpc("ops_stats"); const s = st as OpsStats | null; if (s) setArrived(s.checked_in_people);
+    };
     const drain = () => {
       if (showing.current || !queue.current.length) return;
       showing.current = true;
@@ -68,14 +83,31 @@ export function WelcomeDisplay() {
       setTimeout(() => { queue.current.push(w); drain(); }, wait);
     };
     const channel = db.channel("display")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, (payload) => {
-        const c = payload.new as { id: string; reservation_id: string; checked_in_at: string };
-        enqueue(c.id, c.reservation_id, c.checked_in_at);
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "checkins" }, async (payload) => {
+        const c = payload.new as CheckinRow;
+        await gateReady;
+        if (c.station_id !== gateId) enqueue(c.id, c.reservation_id, c.checked_in_at); else refreshCount();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "checkins" }, async (payload) => {
+        const c = payload.new as CheckinRow;
+        await gateReady;
+        if (c.station_id === gateId && c.arrived_at && c.arrived_at > since.current) enqueue(c.id, c.reservation_id, c.arrived_at);
       })
       .subscribe((status) => setLink(status === "SUBSCRIBED" ? "live" : "poll"));
     const poll = async () => {
-      const { data } = await db.from("checkins").select("id, reservation_id, checked_in_at").is("voided_at", null).gt("checked_in_at", since.current).order("checked_in_at");
-      (data ?? []).forEach((c) => enqueue(c.id, c.reservation_id, c.checked_in_at));
+      await gateReady;
+      const after = since.current;
+      const { data, error } = await db.from("checkins").select("*").is("voided_at", null).or(`checked_in_at.gt.${after},arrived_at.gt.${after}`);
+      if (error) {   // before migration 0008 (no arrived_at): greet campus check-ins only
+        const { data: old } = await db.from("checkins").select("id, reservation_id, checked_in_at, station_id").is("voided_at", null).gt("checked_in_at", after).order("checked_in_at");
+        (old ?? []).forEach((c) => { if (c.station_id !== gateId) enqueue(c.id, c.reservation_id, c.checked_in_at); });
+        return;
+      }
+      ((data ?? []) as CheckinRow[])
+        .map((c) => ({ c, at: c.station_id === gateId ? c.arrived_at : c.checked_in_at }))
+        .filter((x): x is { c: CheckinRow; at: string } => !!x.at && x.at > after)
+        .sort((a, b) => a.at.localeCompare(b.at))
+        .forEach(({ c, at }) => enqueue(c.id, c.reservation_id, at));
     };
     refreshCount();
     const timer = setInterval(poll, POLL_MS);
