@@ -73,7 +73,7 @@ export function ReservationForm() {
   return (
     <form className="reservationForm" onSubmit={submit} noValidate>
       <fieldset className="modeSwitch">
-        <legend>어떻게 참여하시나요?(혼자 참여시, '제가 초대합니다'를 선택)</legend>
+        <legend>어떻게 참여하시나요? <span className="legendHint">혼자 참여시 &lsquo;제가 초대합니다&rsquo;를 선택</span></legend>
         <button type="button" aria-pressed={mode === "host"} onClick={() => setMode("host")}>제가 초대합니다</button>
         <button type="button" aria-pressed={mode === "guest_self"} onClick={() => setMode("guest_self")}>초대를 받았습니다</button>
       </fieldset>
