@@ -26,7 +26,9 @@ export const eventConfig = {
   passMeet: { time: "오후 1:00", place: "한신 채플" },
   /** Confirmed running order (v3 brief). Listed in ONE place on the public site. */
   schedule: [
-    { time: "10:00", title: "정원·웰컴 오픈", note: "캠퍼스 투어 시작 · 셔틀 운행", place: "한신 전역" },
+    { time: "10:00", title: "THE OPENING TRACK", note: "셔틀 운행 시작", place: "창동성전 → 한신" },
+    { time: "10:30", title: "PRELUDE", note: "캠퍼스 투어(스탬프), 피크닉, 정원 얼리 오픈", place: "한신 전역" },
+    { time: "12:45", title: "입장 안내 · 좌석 안내", note: "화장실 이용 권고 포함", place: "Chapel" },
     { time: "13:00", title: "ACT I — 특별예배", note: "40분", place: "Chapel" },
     { time: "13:42", title: "THE TUNING", note: "10분", place: "Chapel" },
     { time: "13:52", title: "ACT II — 실내악 챔버 콘서트", note: "48분", place: "Chapel" },
