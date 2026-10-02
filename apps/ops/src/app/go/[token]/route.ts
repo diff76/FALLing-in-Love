@@ -7,6 +7,8 @@ export const dynamic = "force-dynamic";
 
 /** ?station=<code> on an access link opens 스캔·체크인 with that station already picked (staff phones at a fixed post). */
 const STATIONS = ["gate", "landing", "chapel", "return"];
+/** ?to=<screen> opens another tab instead (the page itself still checks the account's roles). */
+const SCREENS: Record<string, string> = { parking: "/parking", desk: "/desk", display: "/display" };
 
 /**
  * One-tap access: /go/<token> signs the linked staff account in and lands on its home screen
@@ -34,6 +36,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const { error } = await db.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
   if (error) return fail();
   await admin.from("access_links").update({ last_used_at: new Date().toISOString(), use_count: link.use_count + 1 }).eq("id", link.id);
-  const station = new URL(request.url).searchParams.get("station");
-  return NextResponse.redirect(new URL(station && STATIONS.includes(station) ? `/scan?station=${station}` : "/", request.url));
+  const q = new URL(request.url).searchParams;
+  const station = q.get("station"), to = q.get("to");
+  const dest = station && STATIONS.includes(station) ? `/scan?station=${station}` : to && SCREENS[to] ? SCREENS[to] : "/";
+  return NextResponse.redirect(new URL(dest, request.url));
 }
