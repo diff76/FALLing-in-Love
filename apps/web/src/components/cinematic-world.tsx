@@ -23,6 +23,11 @@ function dressBrand(host: HTMLElement) {
   host.querySelectorAll<HTMLElement>(".sw-copy__title").forEach((el) => {
     if (el.textContent?.trim() === "FALLing in Love") { el.replaceChildren(lockup()); el.classList.add("lockup"); }
   });
+  // end-card button: the same amber ▶ as the "Let's Go!" button in the section it leads to (the engine escapes labels)
+  host.querySelectorAll<HTMLAnchorElement>('a.sw-btn[href="#one-more-song"]').forEach((a) => {
+    const arrow = document.createElement("span"); arrow.setAttribute("aria-hidden", "true"); arrow.textContent = "▶";
+    a.append(arrow); a.classList.add("withArrow");
+  });
 }
 
 /**
@@ -109,7 +114,7 @@ export function CinematicWorld() {
           body: s.body,
           tags: s.tags,
           cta: i === scenes.length - 1
-            ? { primary: { label: "One More Song 가기", href: "#one-more-song" } }   // brown button → the section below the film
+            ? { primary: { label: "ONE MORE SONG", href: "#one-more-song" } }   // brown button → the section below the film (▶ added in dressBrand)
             : undefined,
         })),
         connectors: connectors.slice(0, scenes.length - 1),

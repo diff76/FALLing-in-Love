@@ -69,6 +69,8 @@ img { max-width: 100%; }
 /* Unlayered page rules (e.g. `a { color: inherit }`) beat the engine's @layer sw defaults, so
    restate the two light-on-dark controls explicitly. */
 .sw-root a.sw-topcta, .sw-root a.sw-btn--primary { color: var(--cream); }
+.sw-root a.sw-btn.withArrow { display: inline-flex; align-items: center; gap: 12px; }
+.sw-root a.sw-btn.withArrow span { color: var(--amber); }
 .sw-root .sw-nav__item.is-active { color: var(--cream); }
 .sw-root .sw-copy__title { font-family: var(--font-display); font-weight: 400; letter-spacing: -.03em; line-height: 1.02; }
 .sw-root .sw-copy__eyebrow { font-family: var(--font-body); }
