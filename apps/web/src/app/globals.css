@@ -222,7 +222,8 @@ img { max-width: 100%; }
   .dayGrid { grid-template-columns: 1fr; gap: 30px; }
   .formGrid, .guestCard { grid-template-columns: 1fr; }
   .modeSwitch { grid-template-columns: 1fr; }
-  .legendHint { display: block; margin: 6px 0 0; }
+  .modeSwitch legend { line-height: 1.4; }
+  .legendHint { display: block; margin: 1px 0 0; }   /* tight under the question */
 }
 /* Portrait hero (phones held upright). The image is 1290x2796 (height = 216.74vw), sky on top and
    the campus below; with object-position 62% the highest tree tip lands at
