@@ -5,8 +5,12 @@ import { supabaseServer } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
+/** ?station=<code> on an access link opens 스캔·체크인 with that station already picked (staff phones at a fixed post). */
+const STATIONS = ["gate", "landing", "chapel", "return"];
+
 /**
- * One-tap access: /go/<token> signs the linked staff account in and lands on its home screen.
+ * One-tap access: /go/<token> signs the linked staff account in and lands on its home screen
+ * (or on the scan desk at a given station with ?station=gate etc.).
  * The token is looked up by hash; then a magic-link OTP is minted server-side for that user
  * and verified on the cookie-bound client, which is exactly a normal sign-in (same roles,
  * same session length). Expired/revoked/unknown → /login with a notice.
@@ -30,5 +34,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const { error } = await db.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
   if (error) return fail();
   await admin.from("access_links").update({ last_used_at: new Date().toISOString(), use_count: link.use_count + 1 }).eq("id", link.id);
-  return NextResponse.redirect(new URL("/", request.url));
+  const station = new URL(request.url).searchParams.get("station");
+  return NextResponse.redirect(new URL(station && STATIONS.includes(station) ? `/scan?station=${station}` : "/", request.url));
 }

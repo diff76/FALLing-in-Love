@@ -7,6 +7,14 @@ import { createAccessLink, createAccount, deleteAccessLink, deleteAccount, listA
 const ROLE_LABEL: Record<StaffRole, string> = { staff: "스태프 (스캔·체크인, 주차)", desk: "데스크 (상황판, 디스플레이, 주차)", admin: "관리자 (전체 + 계정)", parking: "주차 (주차 관리만)" };
 const ROLES: StaffRole[] = ["staff", "desk", "parking", "admin"];
 /** Link expiry presets: the event day (KST end of 2026-10-11), or a rolling window. */
+/** First screen an access link opens: the account's home, or the scan desk at a fixed station (?station=). */
+const LANDING: { key: string; label: string }[] = [
+  { key: "", label: "기본 첫 화면" },
+  { key: "gate", label: "스캔 · 창동 THE GATE" },
+  { key: "landing", label: "스캔 · 주차장 THE LANDING" },
+  { key: "chapel", label: "스캔 · 채플 웰컴센터" },
+  { key: "return", label: "스캔 · 복귀 셔틀" },
+];
 const EXPIRY: { key: string; label: string; at: () => Date }[] = [
   { key: "event", label: "행사 당일까지 (10/11)", at: () => new Date("2026-10-11T23:59:59+09:00") },
   { key: "7d", label: "7일", at: () => new Date(Date.now() + 7 * 864e5) },
@@ -75,6 +83,7 @@ function AccountRow({ a, self, busy, run, links }: { a: Account; self: boolean; 
   const [linkLabel, setLinkLabel] = useState("");
   const [expiry, setExpiry] = useState(EXPIRY[0].key);
   const [minted, setMinted] = useState<string | null>(null);
+  const [landing, setLanding] = useState("");
   const [copied, setCopied] = useState(false);
   const dirty = roles.slice().sort().join() !== a.roles.slice().sort().join();
   const k = (s: string) => `${s}:${a.id}`;
@@ -110,8 +119,9 @@ function AccountRow({ a, self, busy, run, links }: { a: Account; self: boolean; 
           <div className="linkHead"><b>바로 접속 링크</b><small>링크를 열면 이 계정으로 바로 로그인됩니다. 로그인과 같은 효력이니 유출되면 즉시 무효화하세요.</small></div>
           <div className="acctRow">
             <label className="grow">메모 <small>선택</small><input value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="예: 주차팀 김OO 폰" /></label>
+            <label>첫 화면<select value={landing} onChange={(e) => setLanding(e.target.value)}>{LANDING.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}</select></label>
             <label>유효 기간<select value={expiry} onChange={(e) => setExpiry(e.target.value)}>{EXPIRY.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}</select></label>
-            <button className="btn gold small" disabled={busy !== null} onClick={() => run(k("mint"), async () => { const r = await createAccessLink(a.id, linkLabel, EXPIRY.find((x) => x.key === expiry)!.at().toISOString()); setMinted(r.url); setLinkLabel(""); }, "링크를 만들었습니다. 지금 복사해 전달하세요 — 이 화면을 떠나면 다시 볼 수 없습니다.")}>{busy === k("mint") ? "만드는 중…" : "링크 만들기"}</button>
+            <button className="btn gold small" disabled={busy !== null} onClick={() => run(k("mint"), async () => { const r = await createAccessLink(a.id, linkLabel, EXPIRY.find((x) => x.key === expiry)!.at().toISOString()); setMinted(landing ? `${r.url}?station=${landing}` : r.url); setLinkLabel(""); }, "링크를 만들었습니다. 지금 복사해 전달하세요 — 이 화면을 떠나면 다시 볼 수 없습니다.")}>{busy === k("mint") ? "만드는 중…" : "링크 만들기"}</button>
           </div>
           {minted && (
             <div className="minted">
