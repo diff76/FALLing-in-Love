@@ -187,8 +187,19 @@ img { max-width: 100%; }
 .passHead p { margin: 0; color: var(--ink-soft); }
 .passActions { width: min(100%, 440px); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; position: relative; }
 .passActions button, .passActions a { padding: 13px 12px; border-radius: 12px; border: 1px solid var(--line, rgba(0,0,0,.12)); background: var(--paper-deep); color: var(--ink); font: inherit; font-size: 14px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
-.passActions button:first-child { grid-column: 1 / -1; background: var(--persimmon); color: #fff; border-color: transparent; }
+/* four equal buttons, two rows; the save button keeps its colour but no longer spans the row */
+.passActions button:first-child { background: var(--persimmon); color: #fff; border-color: transparent; }
 .passActions button[disabled] { opacity: .6; }
+.passActions button:first-child[disabled] { opacity: 1; background: var(--paper-deep); color: rgba(46, 37, 28, .38); border-color: var(--line, rgba(0,0,0,.12)); cursor: not-allowed; }
+.passActions p.hint { color: var(--ink-soft); }
+/* auto-refresh status + manual button under the pass heading */
+.passRefresh { margin: 10px auto 0; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.passRefresh small { color: var(--ink-soft); font-size: 12.5px; }
+.passRefresh button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line, rgba(0,0,0,.12)); background: transparent; color: var(--ink); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.passRefresh button:hover { background: var(--paper-deep); }
+.passRefresh button[disabled] { opacity: .6; cursor: default; }
+.passRefresh .spin { display: inline-block; animation: passSpin .8s linear infinite; }
+@keyframes passSpin { to { transform: rotate(360deg); } }
 .passActions p { grid-column: 1 / -1; margin: 2px 0 0; font-size: 13px; text-align: center; color: var(--moss); }
 .inviteGuests { width: min(100%, 440px); padding: 18px; border-radius: 16px; background: var(--cream); border: 1px solid var(--paper-warm); }
 .inviteGuests h2 { margin: 0 0 6px; font-size: 17px; font-family: var(--font-ko, inherit); }

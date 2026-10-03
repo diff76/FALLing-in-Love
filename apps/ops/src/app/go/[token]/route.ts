@@ -37,7 +37,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   if (error) return fail();
   await admin.from("access_links").update({ last_used_at: new Date().toISOString(), use_count: link.use_count + 1 }).eq("id", link.id);
   const q = new URL(request.url).searchParams;
-  const station = q.get("station"), to = q.get("to");
-  const dest = station && STATIONS.includes(station) ? `/scan?station=${station}` : to && SCREENS[to] ? SCREENS[to] : "/";
-  return NextResponse.redirect(new URL(dest, request.url));
+  const station = q.get("station"), to = q.get("to"), next = q.get("next");
+  const dest = next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/go/") ? next
+    : station && STATIONS.includes(station) ? `/scan?station=${station}` : to && SCREENS[to] ? SCREENS[to] : "/";
+  // The landing URL keeps the link key (k): a phone that saves this page to its home screen gets
+  // its own cookie jar (iOS), so when that icon opens signed out the proxy signs it in again via k.
+  const landing = new URL(dest, request.url); landing.searchParams.set("k", token);
+  return NextResponse.redirect(landing);
 }

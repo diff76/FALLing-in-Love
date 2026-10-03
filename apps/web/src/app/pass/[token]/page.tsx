@@ -9,6 +9,7 @@ import { BrandLink } from "@/components/brand-link";
 import { TicketCard, type TicketBadge } from "@/components/ticket-card";
 import { PassActions } from "@/components/pass-actions";
 import { InviteGuests, type GuestInvite } from "@/components/invite-guests";
+import { PassRefresh } from "@/components/pass-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,7 @@ export default async function PassPage({ params, searchParams }: Props) {
           <h1>{guest.name} 님, 초대합니다</h1>
           <p>{pass.applicant_name} 님이 {guest.name} 님을 가을 정원의 오후에 초대했습니다.</p>
           <p>{eventConfig.dateLabel} {eventConfig.passMeet.time}, {eventConfig.passMeet.place}에서 뵙겠습니다.</p>
+          <PassRefresh />
         </div>
         <TicketCard
           code={pass.code}
@@ -116,9 +118,9 @@ export default async function PassPage({ params, searchParams }: Props) {
           ]}
           badges={badges}
           qrSvg={qr}
-          qrNote={<>웰컴 스팟이나 채플 로비에서 이 화면을 보여주세요.<br />{pass.applicant_name} 님 일행으로 확인됩니다.</>}
+          qrNote={<>웰컴 스테이션(주차장)이나 채플 로비에서 이 화면을 보여주세요.<br />{pass.applicant_name} 님 일행으로 확인됩니다.</>}
         />
-        <PassActions url={guestUrl} code={pass.code} shareTitle={`${guest.name} 님을 위한 초대장 · FALLing in Love`} shareText={`${guest.name} 님의 Matinée Pass`} />
+        <PassActions url={guestUrl} code={pass.code} seated={!!pass.seat_label} shareTitle={`${guest.name} 님을 위한 초대장 · FALLing in Love`} shareText={`${guest.name} 님의 Matinée Pass`} />
         <aside className="passNote">
           <b>먼저 도착하셔도 괜찮습니다.</b>
           이 QR을 보여주시면 {pass.applicant_name} 님 일행으로 바로 안내해 드립니다. 좌석은 일행이 나란히 앉도록 배정됩니다.
@@ -154,7 +156,8 @@ export default async function PassPage({ params, searchParams }: Props) {
         <p className="eyebrow">Matinée Pass</p>
         <h1>{issuedCount ? `${issuedCount}명의 사전 참여 신청이 완료되었습니다` : "Matinée Pass"}</h1>
         <p>{eventConfig.dateLabel} {eventConfig.passMeet.time}, {eventConfig.passMeet.place}에서 뵙겠습니다.</p>
-        {issuedCount > 0 && <p className="passAlert">실제 좌석은 당일 현장에서 체크인하셔야 배정됩니다. 이 QR을 웰컴 스팟이나 채플 로비에서 보여주세요.</p>}
+        <PassRefresh />
+        {issuedCount > 0 && <p className="passAlert">실제 좌석은 당일 현장에서 체크인하셔야 배정됩니다. 이 QR을 웰컴 스테이션(주차장)이나 채플 로비에서 보여주세요.</p>}
       </div>
       <TicketCard
         code={pass.code}
@@ -169,9 +172,9 @@ export default async function PassPage({ params, searchParams }: Props) {
         ]}
         badges={badges}
         qrSvg={qr}
-        qrNote={<>웰컴 스팟이나 채플 로비에서 이 화면을 보여주세요.<br />일행 모두가 한 번에 확인됩니다.</>}
+        qrNote={<>웰컴 스테이션(주차장)이나 채플 로비에서 이 화면을 보여주세요.<br />일행 모두가 한 번에 확인됩니다.</>}
       />
-      <PassActions url={url} code={pass.code} />
+      <PassActions url={url} code={pass.code} seated={!!pass.seat_label} />
       {invites.length > 0 && <InviteGuests guests={invites} />}
       <aside className="passNote">
         <b>이 페이지 주소가 곧 Pass입니다.</b>

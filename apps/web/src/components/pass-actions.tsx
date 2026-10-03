@@ -6,8 +6,10 @@ import { useState } from "react";
  * Take the pass with you: copy or share its link (the same URL the QR encodes), or save the
  * ticket as a PNG. On phones the image goes through the share sheet ("이미지 저장"); elsewhere
  * it downloads. The capture is the on-screen ticket, flattened (no tilt) at 2×.
+ * The image is only worth keeping once it carries a seat, so saving unlocks at seat assignment
+ * (the page refreshes itself, see PassRefresh).
  */
-export function PassActions({ url, code, shareTitle = "Matinée Pass · FALLing in Love", shareText = "FALLing in Love 참여 신청 Pass" }: { url: string; code: string; shareTitle?: string; shareText?: string }) {
+export function PassActions({ url, code, seated, shareTitle = "Matinée Pass · FALLing in Love", shareText = "FALLing in Love 참여 신청 Pass" }: { url: string; code: string; seated: boolean; shareTitle?: string; shareText?: string }) {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const say = (t: string) => { setNote(t); setTimeout(() => setNote(null), 2600); };
@@ -47,10 +49,11 @@ export function PassActions({ url, code, shareTitle = "Matinée Pass · FALLing 
 
   return (
     <div className="passActions">
-      <button type="button" onClick={saveImage} disabled={busy}>{busy ? "만드는 중…" : "티켓 이미지 저장"}</button>
+      <button type="button" onClick={saveImage} disabled={busy || !seated} aria-describedby={seated ? undefined : "saveHint"}>{busy ? "만드는 중…" : "티켓 이미지 저장"}</button>
       <button type="button" onClick={shareLink}>링크 공유</button>
       <button type="button" onClick={copyLink}>링크 복사</button>
       <a href={url} target="_blank" rel="noreferrer">새 창에서 열기</a>
+      {!seated && <p id="saveHint" className="hint">좌석이 배정되면 티켓을 이미지로 저장할 수 있습니다.</p>}
       {note && <p role="status">{note}</p>}
     </div>
   );

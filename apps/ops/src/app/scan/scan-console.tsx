@@ -62,13 +62,18 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
   const stationsRef = useRef<HTMLDivElement>(null);
   // keep the chosen station visible in the sideways-scrolling row (e.g. 복귀 셔틀 at the far right)
   useEffect(() => { stationsRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" }); }, [station]);
-  // /scan?station=gate (from an access link): pick that station on this phone, then drop the parameter
+  // /scan?station=gate (from an access link): pick that station on this phone
   useEffect(() => {
-    const url = new URL(window.location.href); const code = url.searchParams.get("station");
+    const code = new URL(window.location.href).searchParams.get("station");
     if (code && STATION_TABS.some((s) => s.code === code)) pickStation(code);
-    if (code) { url.searchParams.delete("station"); window.history.replaceState(null, "", url.pathname + url.search); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // …and the address keeps showing the station in use, so a home-screen icon saved now reopens at the same post
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("station") === station) return;
+    url.searchParams.set("station", station); window.history.replaceState(window.history.state, "", url.pathname + url.search);
+  }, [station]);
 
   const takenSet = (map: SeatMapCell[], own: string) => new Set(map.filter((c) => c.reservation_id && c.reservation_id !== own).map((c) => c.id));
   const autoPick = (map: SeatMapCell[], r: ReservationSummary, n: number) =>

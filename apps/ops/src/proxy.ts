@@ -35,6 +35,14 @@ export async function proxy(request: NextRequest) {
     },
   });
   const { data: { user } } = await supabase.auth.getUser();
+  const linkKey = request.nextUrl.searchParams.get("k");
+  if (!user && linkKey && /^[A-Za-z0-9_-]{32,80}$/.test(linkKey)) {
+    // a home-screen icon saved from an access-link page (iOS keeps a separate cookie jar for it)
+    const back = request.nextUrl.clone(); back.searchParams.delete("k");
+    const go = request.nextUrl.clone(); go.pathname = `/go/${linkKey}`; go.search = "";
+    go.searchParams.set("next", back.pathname + back.search);
+    return NextResponse.redirect(go);
+  }
   if (!user) {
     const to = request.nextUrl.clone(); to.pathname = "/login"; to.searchParams.set("next", pathname);
     return NextResponse.redirect(to);
