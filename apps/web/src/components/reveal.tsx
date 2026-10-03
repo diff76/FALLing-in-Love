@@ -4,8 +4,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 /**
  * Scroll-reveal wrapper. With `group`, the direct children stagger in one after another.
- * Honours prefers-reduced-motion (elements are simply visible). Pure CSS transitions,
- * driven by a single IntersectionObserver; no layout thrash.
+ * Honours prefers-reduced-motion (elements are simply visible). Pure CSS keyframe animations
+ * (see .rv in globals.css), driven by a single IntersectionObserver; no layout thrash.
  */
 export function Reveal({ children, delay = 0, group = false }: { children: ReactNode; delay?: number; group?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,7 +13,9 @@ export function Reveal({ children, delay = 0, group = false }: { children: React
     const el = ref.current;
     if (!el) return;
     const targets = group ? Array.from(el.children) as HTMLElement[] : [el];
-    targets.forEach((t, i) => { t.classList.add("rv"); t.style.transitionDelay = `${delay + (group ? i * 110 : 0)}ms`; });
+    // The stagger is a CSS variable (not transition-delay): reveals are keyframe animations, so a card's
+    // hover transition is never delayed or overridden by its entrance.
+    targets.forEach((t, i) => { t.classList.add("rv"); t.style.setProperty("--rv-delay", `${delay + (group ? i * 120 : 0)}ms`); });
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) { (group ? targets : [el]).forEach((t) => t.classList.add("rv-in")); io.disconnect(); } });
     }, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
