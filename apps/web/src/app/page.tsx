@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { getImageProps } from "next/image";
 import Link from "next/link";
 import { eventConfig } from "@fil/config";
@@ -9,6 +10,11 @@ import { heroImage, heroImageMobile } from "@/config/hero";
 /** Portrait phones only — a narrow but wide-ish window (tablet landscape, a small desktop window)
  *  keeps the landscape anchor. Mirrors the hero rule in globals.css. */
 const HERO_MOBILE = "(max-width: 820px) and (orientation: portrait)";
+
+
+/** One span per letter (--i = position) so the title can ripple periodically after its entrance (see .overture h1 .ch). */
+const letters = (text: string, from: number) =>
+  [...text].map((c, k) => <span key={k} className="ch" style={{ "--i": from + k } as CSSProperties}>{c}</span>);
 
 export default function HomePage() {
   const alt = "한신대 서울캠퍼스를 가을 클레이 디오라마로 표현한 전경";
@@ -32,7 +38,7 @@ export default function HomePage() {
         </header>
         <div className="overtureCopy heroReveal">
           <p className="eyebrow light">Chamber Concert &amp; Garden Party</p>
-          <h1 className="title"><span className="line"><span className="fall">FALL</span>ing <em>in</em></span><br /><span className="line">Love</span></h1>
+          <h1 className="title" aria-label="FALLing in Love"><span className="line" aria-hidden="true"><span className="fall">{letters("FALL", 0)}</span>{letters("ing", 4)} <em>{letters("in", 7)}</em></span><br /><span className="line" aria-hidden="true">{letters("Love", 9)}</span></h1>
           <p className="subtitle">{eventConfig.subtitle}</p>
           <p className="promise">{eventConfig.taglineKo}</p>
           <div className="eventLine">

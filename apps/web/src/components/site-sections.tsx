@@ -76,7 +76,7 @@ export function AfterWorld() {
           <p className="eyebrow">ACT II · The Chamber</p>
           <h2 className="head">그 곡, 사실은</h2>
           <p className="lede"><Clauses text={"영화와 광고에서 여러 번 들으셨을 곡들입니다. 그 뿌리가 찬송이거나 크리스천 음악이었다는 사실은, 아마 오늘 처음 아시게 될 겁니다."} /></p>
-          <div className="songGrid">
+          <div className="songGrid"><Reveal group>
             {songCards.map((c, i) => (
               <article className="songCard" key={c.title}>
                 <span>0{i + 1}</span>
@@ -87,7 +87,7 @@ export function AfterWorld() {
                 <em>오늘, 정원에서 직접 들으시게 됩니다.</em>
               </article>
             ))}
-          </div>
+          </Reveal></div>
           <p className="lede closing"><Clauses text={"사랑에 관한 이야기는 이미 충분히 들으셨을 겁니다. 오늘 들으실 곡들도 다르지 않습니다. 다만 그 사랑이 어디서 왔는지가 조금 다를 뿐입니다."} /></p>
         </Reveal>
         </div>
@@ -118,12 +118,12 @@ export function AfterWorld() {
           <Reveal group>
           <p className="eyebrow">Before you arrive</p>
           <h2 className="head">알아두시면 좋은 것들</h2>
-          <div className="practicalGrid">
+          <div className="practicalGrid"><Reveal group>
             <article><span>01</span><h3>오시는 길</h3><p>{eventConfig.venue.name}<br />{eventConfig.venue.address}</p></article>
             <article><span>02</span><h3>셔틀</h3><p>{eventConfig.origin.name} {eventConfig.origin.note}. 정확한 시각은 참여 신청 후 Matinée Pass에 담아 안내드립니다.</p></article>
             <article><span>03</span><h3>편안한 하루</h3><p><Clauses text="야외 정원 시간이 있어 걷기 편한 신발을 권해드립니다. 짧은 숲 계단 대신 이용할 수 있는 우회 동선도 준비합니다." /></p></article>
             <article><span>04</span><h3>개인정보</h3><p>좌석 배정과 안내를 위해 성함과 연락처만 받습니다. 행사 후 {eventConfig.dataRetentionDays}일 안에 모두 삭제합니다.</p></article>
-          </div>
+          </Reveal></div>
         </Reveal>
         </div>
       </section>
