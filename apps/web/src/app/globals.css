@@ -117,7 +117,8 @@ img { max-width: 100%; }
 .schedule b { display: block; font-weight: 600; }
 .schedule small { color: var(--ink-soft); }
 .practicalGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 28px; margin-top: 30px; }
-.practicalGrid article span { font-size: 12px; letter-spacing: .16em; color: var(--amber); font-weight: 800; }
+/* the 01–04 numbers only (direct child) — not the clause spans inside a card's text */
+.practicalGrid article > span { font-size: 12px; letter-spacing: .16em; color: var(--amber); font-weight: 800; }
 .practicalGrid h3 { margin: 10px 0 8px; font-size: 20px; }
 .practicalGrid p { margin: 0; color: var(--ink-soft); font-size: 16px; }
 .memory { background: var(--ink); color: var(--cream); }

@@ -32,8 +32,8 @@ export function Invitation() {
       <Fx />
       <Reveal><p className="eyebrow">A note for you</p></Reveal>
       <Reveal delay={120}><p className="invitationText">
-        <span className="clause">가을 오후의 햇빛 아래,</span><br /><span className="clause">좋은 음악과 잘 차린 테이블을</span> <span className="clause">준비했습니다.</span><br />
-        <strong><span className="clause">설명을 듣거나</span> <span className="clause">무엇을 결정하실 필요는 없습니다.</span><br /><span className="clause">그저 한나절 편안히</span> <span className="clause">보내다 가시면 됩니다.</span></strong>
+        <span className="clause">가을 오후의 햇빛 아래,</span><br /><span className="clause">좋은 음악과 잘 차려진 시간들,</span> <span className="clause">가벼운 런치까지</span> <span className="clause">준비했습니다.</span><br />
+        <strong><span className="clause">오늘 무엇을 결정하실 필요는</span> <span className="clause">전혀 없습니다.</span><br /><span className="clause">그저 편안히 즐겁게</span> <span className="clause">함께 하시면 됩니다.</span></strong>
       </p></Reveal>
       <Reveal delay={260}><a className="begin" href="#world">공간으로 들어가기 <span aria-hidden="true">↓</span></a></Reveal>
     </section>
