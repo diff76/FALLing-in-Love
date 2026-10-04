@@ -208,7 +208,7 @@ export function ScanConsole({ isAdmin = false }: { isAdmin?: boolean }) {
 
       {done ? (
         <section className={`result ${done.already ? "already" : "ok"}`}>
-          <header><small>{done.already ? "이미 확인된 일행 · 갱신 완료" : transit ? "창동에서 오신 일행 · 캠퍼스 도착 확인" : "체크인 확정"}</small><h2>{done.applicant_name} 님</h2><p>{done.station_name} · {new Date(done.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}</p></header>
+          <header><small>{done.already ? "이미 확인된 일행 · 갱신 완료" : transit ? "창동에서 오신 일행 · 캠퍼스 도착 확인" : "체크인 확정"}</small><h2>{done.applicant_name} 님</h2><p>{done.station_name} · {new Date(done.checked_in_at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })}</p></header>
           <div className="seatBig"><small>{station === NO_SEAT_STATION ? "좌석은 캠퍼스에서 배정됩니다" : "자리로 안내해 주세요"}</small><b>{done.seat_label ?? (station === NO_SEAT_STATION ? "THE LANDING · 채플에서 배정" : "좌석 미배정")}</b></div>
           {added.length > 0 && <p className="kv"><span>{done.already ? "추가 지급" : "지급 비품"}</span><b>{added.map((c) => eventConfig.hospitalityItems.find((i) => i.code === c)?.name).join(", ")}</b></p>}
           <p className="kv"><span>확인된 인원</span><b>{done.arrived_count}명</b></p>

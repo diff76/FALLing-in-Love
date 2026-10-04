@@ -108,7 +108,7 @@ export default async function DeskPage() {
               const r = byId.get(c.reservation_id);
               return (
                 <div className="rrow" key={c.id}>
-                  <div className="nm"><b>{r?.applicant_name ?? "—"} 님{r && r.party_size > 1 ? " 일행" : ""}</b><span>{new Date(c.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} · {districtName(r?.district_code)} · {seatsOf(c.reservation_id) || "좌석 미배정"} · {c.arrived_at ? `창동 → ${stationName.get(c.arrived_station_id ?? "") ?? "캠퍼스"}` : stationName.get(c.station_id) ?? ""}</span></div>
+                  <div className="nm"><b>{r?.applicant_name ?? "—"} 님{r && r.party_size > 1 ? " 일행" : ""}</b><span>{new Date(c.at).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })} · {districtName(r?.district_code)} · {seatsOf(c.reservation_id) || "좌석 미배정"} · {c.arrived_at ? `창동 → ${stationName.get(c.arrived_station_id ?? "") ?? "캠퍼스"}` : stationName.get(c.station_id) ?? ""}</span></div>
                   <div className="cnt">{c.arrived_count}<em>명</em></div>
                   <div className="give">{givenOf(c.id).length ? givenOf(c.id).map((g) => <i key={g} className="on">{g}</i>) : <i>미지급</i>}</div>
                 </div>

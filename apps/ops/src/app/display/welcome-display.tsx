@@ -121,7 +121,8 @@ export function WelcomeDisplay() {
     document.documentElement.requestFullscreen?.().catch(() => {});
   }
 
-  const hhmm = now.toTimeString().slice(0, 5);
+  // Korea time whatever the lobby PC's own zone setting is (the programme highlight follows this too)
+  const hhmm = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Seoul" });
   const schedule = eventConfig.schedule;
   const nowIdx = schedule.reduce((idx, s, i) => (hhmm >= s.time ? i : idx), -1);
   return (

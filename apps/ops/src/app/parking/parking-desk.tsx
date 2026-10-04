@@ -94,7 +94,7 @@ export function ParkingDesk({ initial }: { initial: ParkingBoard | null }) {
             <div className="plateGrid">
               {arrived.map((v) => (
                 <button key={v.reservation_id} className="plate done" onClick={() => setAsk(v)}>
-                  <b>{v.plate}</b><span>{v.name} 님 · {new Date(v.arrived_at!).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}{v.checked_in ? " · 체크인됨" : ""}</span>
+                  <b>{v.plate}</b><span>{v.name} 님 · {new Date(v.arrived_at!).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" })}{v.checked_in ? " · 체크인됨" : ""}</span>
                 </button>
               ))}
             </div>

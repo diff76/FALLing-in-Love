@@ -23,7 +23,7 @@ const EXPIRY: { key: string; label: string; at: () => Date }[] = [
   { key: "7d", label: "7일", at: () => new Date(Date.now() + 7 * 864e5) },
   { key: "30d", label: "30일", at: () => new Date(Date.now() + 30 * 864e5) },
 ];
-const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "");
+const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" }) : "");
 
 type Run = (key: string, fn: () => Promise<void>, ok: string) => Promise<void>;
 

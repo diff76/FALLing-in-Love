@@ -82,7 +82,8 @@ export default async function AdminPage() {
   const inTransit = (checkins as { station_id: string; arrived_count: number; arrived_at?: string | null }[])
     .filter((c) => c.station_id === gateId && !c.arrived_at).reduce((n, c) => n + c.arrived_count, 0);
   const onCampus = (stats?.checked_in_people ?? 0) - inTransit;
-  const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  // Rendered on the server (Vercel runs in UTC): always say the zone, or the stamp reads 9 hours behind.
+  const stamp = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Seoul" });
 
   // Age groups: every named person we know an age for (hosts + companions)
   const ages = new Map<string, number>(eventConfig.ageGroups.map((a) => [a, 0]));
