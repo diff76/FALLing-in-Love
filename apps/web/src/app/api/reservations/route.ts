@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (error?.code === "P0005" || error?.code === "P0006") {
       const outbound = error.code === "P0005";
       const left = Number(error.message.split(":")[1] ?? 0);
-      const what = outbound ? "탑승하실 셔틀" : "돌아가는 셔틀";
+      const what = outbound ? "셔틀 편" : "돌아가는 셔틀";
       const text = left > 0 ? `선택하신 ${what}은 이제 ${left}석만 남아 일행 모두 타실 수 없습니다. 다른 시간을 골라 주세요.` : `선택하신 ${what}은 방금 만차가 되었습니다. 다른 시간을 골라 주세요.`;
       return NextResponse.json({ message: text, fieldErrors: { [outbound ? "outboundRun" : "returnRun"]: left > 0 ? `${left}석 남음` : "만차" }, seatsChanged: true }, { status: 409 });
     }
