@@ -14,7 +14,7 @@ const COLUMNS = [
   ["교구부서", "districtCode", eventConfig.districts.map(([, l]) => l).join(", ")],
   ["초대자", "inviterName", "초대받음일 때"], ["연령대", "ageGroup", eventConfig.ageGroups.join(" / ")],
   ["동행1", "member1", "성함"], ["동행2", "member2", "성함"], ["동행3", "member3", "성함"], ["동행4", "member4", "성함"], ["동행5", "member5", "성함"],
-  ["이동", "transport", "셔틀 / 자차 / 개별 (기본 셔틀)"], ["셔틀편", "outboundRun", eventConfig.shuttle.outbound.join(" / ")],
+  ["이동", "transport", "셔틀 / 자차 / 개별 (셔틀편이 비어 있으면 개별 이동 · 미정)"], ["셔틀편", "outboundRun", eventConfig.shuttle.outbound.join(" / ")],
   ["복귀셔틀", "returnRun", eventConfig.shuttle.return.join(" / ")], ["차량번호", "vehiclePlate", "자차일 때"],
   ["우회동선", "mobilitySupport", "예 / 아니오"], ["도움요청", "mobilityNote", ""], ["식이", "dietaryNote", ""],
   ["초대장수신", "contactConsent", "예 / 아니오 (기본 예)"],
@@ -36,7 +36,9 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
   const kind: ReservationInput["kind"] = /초대받|guest/i.test(kindRaw) ? "guest_self" : "host";
   const attendance: ReservationInput["attendance"] = /예배|worship/i.test(g("참여")) ? "worship" : "main";
   const transportRaw = g("이동");
-  const transport: ReservationInput["transport"] = /자차|car/i.test(transportRaw) ? "car" : /개별|other/i.test(transportRaw) ? "other" : "shuttle";
+  // No shuttle run written → 개별 이동 · 미정 (unless the row says 자차); a run written means the shuttle.
+  const transport: ReservationInput["transport"] = /자차|car/i.test(transportRaw) ? "car"
+    : /개별|other/i.test(transportRaw) || !g("셔틀편") ? "other" : "shuttle";
   const members = ["동행1", "동행2", "동행3", "동행4", "동행5"].map(g).filter(Boolean).map((name) => ({ name, relation: undefined, ageGroup: undefined, dietaryNote: undefined }));
   const district = pick(eventConfig.districts, g("교구부서"));
   if (!g("성함")) problems.push("성함 없음");
@@ -46,7 +48,7 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
   const service = (["1", "2", "3"] as const).find((s) => g("예배").startsWith(s));
   const site = /창동/.test(g("장소")) ? "changdong" : /한신/.test(g("장소")) ? "hanshin" : undefined;
   if (attendance === "worship" && (!service || !site)) problems.push("예배/장소 확인");
-  let outboundRun = g("셔틀편") || (transport === "shuttle" ? eventConfig.shuttle.defaultOutbound : "");
+  let outboundRun = transport === "shuttle" ? g("셔틀편") : "";
   if (outboundRun && !(eventConfig.shuttle.outbound as readonly string[]).includes(outboundRun)) { problems.push(`셔틀편 ${outboundRun} 없음`); outboundRun = ""; }
   let returnRun = g("복귀셔틀");
   if (returnRun && !(eventConfig.shuttle.return as readonly string[]).includes(returnRun)) { problems.push(`복귀셔틀 ${returnRun} 없음`); returnRun = ""; }
