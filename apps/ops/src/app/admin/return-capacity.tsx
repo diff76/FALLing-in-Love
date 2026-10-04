@@ -2,25 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setReturnCapacity } from "./actions";
+import { setRunCapacity } from "./actions";
 
-export type ReturnRow = { id: string; label: string; capacity: number; booked: number };
+export type RunRow = { id: string; label: string; capacity: number; booked: number };
 
-/** Admin: seats per return bus. Bookings (web sign-ups + the scan desk) count against it automatically. */
-export function ReturnCapacity({ runs }: { runs: ReturnRow[] }) {
+/** Admin: seats per bus, one table per direction. Bookings (web sign-ups, the return desk) count against it automatically. */
+export function RunCapacity({ runs, kind }: { runs: RunRow[]; kind: "출발" | "복귀" }) {
   const router = useRouter();
   const [draft, setDraft] = useState<Record<string, string>>(Object.fromEntries(runs.map((r) => [r.id, String(r.capacity)])));
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const save = async (r: ReturnRow) => {
+  const save = async (r: RunRow) => {
     setBusy(r.id); setMsg(null);
-    try { await setReturnCapacity(r.id, Number(draft[r.id])); setMsg(`${r.label} 편 좌석을 ${draft[r.id]}석으로 저장했습니다.`); router.refresh(); }
-    catch (e) { setMsg((e as Error).message); } finally { setBusy(null); }
+    const err = await setRunCapacity(r.id, Number(draft[r.id]));
+    setBusy(null);
+    if (err) { setMsg(err); return; }
+    setMsg(`${kind} ${r.label} 편 좌석을 ${draft[r.id]}석으로 저장했습니다.`); router.refresh();
   };
   return (
     <div className="returnCap">
       <table>
-        <thead><tr><th>복귀 편</th><th>예약</th><th>남은 좌석</th><th>전체 좌석</th><th /></tr></thead>
+        <thead><tr><th>{kind} 편</th><th>예약</th><th>남은 좌석</th><th>전체 좌석</th><th /></tr></thead>
         <tbody>{runs.map((r) => {
           const cap = Number(draft[r.id]); const left = Number.isFinite(cap) ? cap - r.booked : r.capacity - r.booked;
           return (

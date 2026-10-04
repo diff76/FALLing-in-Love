@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { eventConfig } from "@fil/config";
 import type { ReservationInput } from "@fil/domain";
@@ -11,6 +11,7 @@ const ORD = ["첫 번째", "두 번째", "세 번째", "네 번째", "다섯 번
 const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 /** minutes between the first two outbound runs (the timetable is evenly spaced) */
 const shuttleGap = toMin(eventConfig.shuttle.outbound[1]) - toMin(eventConfig.shuttle.outbound[0]);
+type Seats = Record<string, number>;   // "outbound 12:30" → seats left
 
 export function ReservationForm() {
   const router = useRouter();
@@ -21,6 +22,33 @@ export function ReservationForm() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // Seats left per run (one 25-seat bus each). A run without room for the whole party can't be picked;
+  // the server checks again at the moment of saving.
+  const [seats, setSeats] = useState<Seats | null>(null);
+  const [outboundRun, setOutboundRun] = useState<string>(eventConfig.shuttle.defaultOutbound);
+  const [returnRun, setReturnRun] = useState("");
+  const party = mode === "host" ? 1 + guests.filter((g) => g.name.trim()).length : 1;
+  const left = (dir: "outbound" | "return", t: string) => seats?.[`${dir} ${t}`];
+  const fits = (dir: "outbound" | "return", t: string) => { const n = left(dir, t); return n === undefined || n >= party; };
+  const runLabel = (dir: "outbound" | "return", t: string) => {
+    const n = left(dir, t);
+    return n === undefined ? `${t} 출발` : n === 0 ? `${t} 출발 · 만차` : n < party ? `${t} 출발 · ${n}석 남음 (일행 ${party}명)` : `${t} 출발 · ${n}석 남음`;
+  };
+  const loadSeats = useCallback(async () => {
+    try {
+      const r = await fetch("/api/shuttles", { cache: "no-store" }).then((x) => x.json()) as { runs: { direction: string; label: string; available: number }[] };
+      setSeats(Object.fromEntries(r.runs.map((x) => [`${x.direction} ${x.label}`, x.available])));
+    } catch { /* keep the plain timetable; the server still guards */ }
+  }, []);
+  useEffect(() => { loadSeats(); }, [loadSeats]);
+  // the suggested run is full → suggest the nearest later (then earlier) run that still has room
+  useEffect(() => {
+    if (!seats || fits("outbound", outboundRun)) return;
+    const list = eventConfig.shuttle.outbound as readonly string[]; const at = list.indexOf(outboundRun);
+    const next = [...list.slice(at + 1), ...list.slice(0, at).reverse()].find((t) => fits("outbound", t));
+    if (next && outboundRun === eventConfig.shuttle.defaultOutbound) setOutboundRun(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seats]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,8 +65,8 @@ export function ReservationForm() {
       ageGroup: fd.get("ageGroup") ?? "",
       members: mode === "host" ? guests.filter((g) => g.name.trim()) : [],
       transport,
-      outboundRun: fd.get("outboundRun") ?? "",
-      returnRun: fd.get("returnRun") ?? "",
+      outboundRun: transport === "shuttle" ? outboundRun : "",
+      returnRun,
       vehiclePlate: fd.get("vehiclePlate") ?? "",
       // No wheelchair/stroller service this year: the "help needed" field was removed (2026-09-27).
       mobilitySupport: false,
@@ -54,6 +82,7 @@ export function ReservationForm() {
       const res = await fetch("/api/reservations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) {
+        if (data.seatsChanged) loadSeats();   // someone took the last seats meanwhile: show the new counts
         setFieldErrors(data.fieldErrors ?? {});
         setMessage({ kind: "error", text: data.message ?? "신청을 접수하지 못했습니다." });
         return;
@@ -157,15 +186,17 @@ export function ReservationForm() {
         </label>
         {transport === "shuttle" ? (
           <label><span>탑승 예정 편</span>
-            <select name="outboundRun" defaultValue={eventConfig.shuttle.defaultOutbound}>
-              {eventConfig.shuttle.outbound.map((t) => <option key={t} value={t}>{t} 출발</option>)}
+            <select name="outboundRun" value={outboundRun} onChange={(e) => setOutboundRun(e.target.value)}>
+              {eventConfig.shuttle.outbound.map((t) => <option key={t} value={t} disabled={!fits("outbound", t)}>{runLabel("outbound", t)}</option>)}
             </select>{err("outboundRun")}
+            {!fits("outbound", outboundRun) && <span className="fieldError">이 편은 일행 {party}명이 함께 타실 자리가 없습니다. 다른 시간을 골라 주세요.</span>}
           </label>
         ) : transport === "car" ? (
           <label><span>차량 번호 <em>주차 안내용</em></span><input name="vehiclePlate" placeholder="12가 3456" />{err("vehiclePlate")}</label>
         ) : <div />}
         <label><span>돌아가는 셔틀 <em>{eventConfig.origin.name} 방면 · 선택</em></span>
-          <select name="returnRun" defaultValue=""><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t}>{t} 출발</option>)}</select>{err("returnRun")}
+          <select name="returnRun" value={returnRun} onChange={(e) => setReturnRun(e.target.value)}><option value="">필요 없습니다</option>{eventConfig.shuttle.return.map((t) => <option key={t} value={t} disabled={!fits("return", t)}>{runLabel("return", t)}</option>)}</select>{err("returnRun")}
+          {returnRun && !fits("return", returnRun) && <span className="fieldError">이 편은 일행 {party}명이 함께 타실 자리가 없습니다. 다른 시간을 골라 주세요.</span>}
         </label>
         <label><span>가리시는 음식 <em>선택</em></span><input name="dietaryNote" placeholder="알레르기, 채식 등" /></label>
       </div>
