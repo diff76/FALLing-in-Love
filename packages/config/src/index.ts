@@ -55,7 +55,7 @@ export const eventConfig = {
     outbound: ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00"],
     return: ["16:15", "16:30", "16:45", "17:00"],
     /** pre-selected outbound run on the sign-up form */
-    defaultOutbound: "12:30",
+    defaultOutbound: "10:00",
     /** seats per return bus (each run is one 25-seat bus); admins adjust per run in ops */
     returnSeats: 25,
     rideMinutes: 18,
