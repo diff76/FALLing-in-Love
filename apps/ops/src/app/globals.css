@@ -472,15 +472,26 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 
 /* admin: edit one sign-up */
 .resEdit { display: grid; gap: 14px; }
+/* grid items default to their content's width (a long option like "메인 행사 참여 (13:00-16:00 · 한신성전)")
+   and then spill out of the box — let every level shrink to the box instead */
+.resEdit > *, .resGrid > *, .resMember > * { min-width: 0; }
 .resEdit h3 { margin: 10px 0 0; font-size: 14px; letter-spacing: .04em; } .resEdit h3 small { margin-left: 6px; font-weight: 500; color: var(--ink-soft); }
-.resGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.resGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px 14px; }
 .resGrid label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
-.resGrid input, .resGrid select, .resMember input, .resMember select { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.16); background: #fff; color: #1F1A16; font: inherit; font-size: 15px; font-weight: 400; }
-.resGrid label.chk { display: flex; align-items: center; gap: 8px; align-self: end; padding-bottom: 10px; }
+.resGrid input, .resGrid select, .resMember input, .resMember select { width: 100%; text-overflow: ellipsis; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.16); background: #fff; color: #1F1A16; font: inherit; font-size: 15px; font-weight: 400; }
+.resGrid label.chk { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; justify-content: flex-start; font-weight: 600; }
+.resGrid label.chk input { width: 18px; height: 18px; flex: none; padding: 0; }
 .resGrid small.warn { color: #BE5637; font-weight: 600; }
 .resMembers { display: grid; gap: 8px; }
-.resMember { display: grid; grid-template-columns: 1.2fr 1fr .8fr 1.2fr auto; gap: 6px; align-items: center; }
+.resMember { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.2fr) auto; gap: 6px; align-items: center; }
 .resMembers > .miniBtn { justify-self: start; }
 .resActions { display: flex; gap: 8px; flex-wrap: wrap; } .resActions .btn.ghost { margin-top: 0; }
 .rowAct a.miniBtn { text-decoration: none; display: inline-block; }
-@media (max-width: 760px) { .resMember { grid-template-columns: 1fr 1fr; } .resMember .miniBtn { justify-self: start; } }
+/* phones: one field per row in the main grid; each companion becomes a small card (name + relation, age + food, remove) */
+@media (max-width: 760px) {
+  .resGrid { grid-template-columns: 1fr; }
+  .resMember { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 10px; border: 1px solid rgba(0,0,0,.08); border-radius: 12px; }
+  .resMember .miniBtn { grid-column: 1 / -1; justify-self: end; }
+  .resGrid label.chk { padding-bottom: 0; }
+  .resActions .btn { flex: 1 1 0; }
+}
