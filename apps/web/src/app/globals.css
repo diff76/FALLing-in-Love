@@ -189,7 +189,7 @@ img { max-width: 100%; }
 .editBanner b { font-size: 15px; } .editBanner span { font-size: 14px; color: var(--ink-soft); }
 .editBanner a, .editBanner .linkish { justify-self: start; margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--persimmon); }
 .formPanel .linkish { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--persimmon); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.alreadyApplied { margin: 0 0 22px; font-size: 15.5px; color: var(--ink-soft); }   /* a little under the 17px question below */
+.alreadyApplied { margin: 0 0 22px; font-size: 15.5px; font-weight: 700; color: var(--ink-soft); }   /* a little under the 17px question below */
 .lookupPanel { display: grid; gap: 10px; margin: 0 0 26px; padding: 18px; border-radius: 16px; background: var(--paper-deep); border: 1px solid var(--line); }
 .lookupPanel b { font-size: 16px; } .lookupPanel p { margin: 0; font-size: 14px; color: var(--ink-soft); }
 .lookupRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

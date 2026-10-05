@@ -73,11 +73,16 @@ export function BgmPlayer() {
       gain.current = { ctx, node };
     } catch { /* fall back to the element */ }
   };
-  const play = () => {
-    const a = audio.current; if (!a || !track) return;
-    wireGain(); gain.current?.ctx.resume().catch(() => {});
+  /** Resolves true only when sound is really coming out (on iOS that also needs the gain context running). */
+  const play = (): Promise<boolean> => {
+    const a = audio.current; if (!a || !track) return Promise.resolve(false);
+    wireGain();
+    const g = gain.current;
+    const ctxReady = g ? g.ctx.resume().then(() => g.ctx.state === "running").catch(() => false) : Promise.resolve(true);
     if (loaded.current !== track.key) load(track);
-    a.play().then(() => { setPlaying(true); setHint(false); }).catch(() => setPlaying(false));
+    return a.play()
+      .then(async () => { setPlaying(true); setHint(false); return ctxReady; })
+      .catch(() => { setPlaying(false); return false; });
   };
   const pause = () => { audio.current?.pause(); setPlaying(false); };
   const toggle = () => { if (playing) { pause(); writePref({ off: true }); } else { writePref({ off: false }); play(); } };
@@ -91,8 +96,17 @@ export function BgmPlayer() {
   useEffect(() => {
     if (!data || away || !data.settings.autostart || readPref().off) return;
     let done = false, t = 0;
-    const evs = ["pointerdown", "pointerup", "keydown", "touchend"] as const;
-    const start = (e: Event) => { if ((e.target as Element | null)?.closest?.(".bgm")) return; play(); off(); };
+    // only events a browser counts as the visitor's go-ahead for sound: a mouse press, a finger lifting
+    // (pointerup/touchend — a finger going *down* does not count on phones), a click, a key
+    const evs = ["pointerdown", "pointerup", "touchend", "click", "keydown"] as const;
+    const start = (e: Event) => {
+      if ((e.target as Element | null)?.closest?.(".bgm")) return;
+      const pt = (e as PointerEvent).pointerType;
+      if (e.type === "pointerdown" && pt && pt !== "mouse") return;
+      if (e.type === "pointerup" && pt === "mouse") return;
+      // stop listening only once sound is confirmed; a refused or silent start waits for the next tap
+      play().then((ok) => { if (ok) off(); });
+    };
     const off = () => { done = true; clearTimeout(t); evs.forEach((ev) => window.removeEventListener(ev, start, true)); };
     const a = audio.current;
     if (a && track) {
