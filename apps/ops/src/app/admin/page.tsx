@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { supabaseServer } from "@/lib/supabase-server";
 import { OpsShell } from "@/components/ops-shell";
@@ -189,7 +190,7 @@ export default async function AdminPage() {
               <td>{r.transport === "shuttle" ? "셔틀" : r.transport === "car" ? "자차" : "개별"}</td>
               <td>{[r.dietary_note && "식이", r.mobility_support && "도움", r.vehicle_plate && "주차", r.return_run_id && "복귀"].filter(Boolean).join(" · ") || "—"}</td>
               <td>{arrived.has(r.id) ? <span className="tag in">확인</span> : <span className="tag">미도착</span>}</td>
-              <td><ReservationAction id={r.id} name={r.applicant_name} checkedIn={arrived.has(r.id)} mode="cancel" /></td></tr>
+              <td><span className="rowAct"><Link className="miniBtn" href={`/admin/reservations/${r.id}`}>수정</Link><ReservationAction id={r.id} name={r.applicant_name} checkedIn={arrived.has(r.id)} mode="cancel" /></span></td></tr>
           ))}</tbody>
         </table></div>
       </section>

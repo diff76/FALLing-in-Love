@@ -14,7 +14,7 @@ import { PassRefresh } from "@/components/pass-refresh";
 export const dynamic = "force-dynamic";
 
 type Member = { position: number; name: string };
-type Props = { params: Promise<{ token: string }>; searchParams: Promise<{ issued?: string; g?: string }> };
+type Props = { params: Promise<{ token: string }>; searchParams: Promise<{ issued?: string; g?: string; updated?: string }> };
 
 const preview: PassLookup = {
   code: "261011-00-000", applicant_name: "미리보기", kind: "host", inviter_name: null, district_label: "신청 DB 연결 전",
@@ -68,7 +68,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function PassPage({ params, searchParams }: Props) {
   const { token } = await params;
-  const { issued, g } = await searchParams;
+  const { issued, g, updated } = await searchParams;
   if (!isPassTokenShape(token) && token !== "preview") notFound();
 
   const configured = isSupabaseAdminConfigured();
@@ -157,6 +157,7 @@ export default async function PassPage({ params, searchParams }: Props) {
         <h1>{issuedCount ? `${issuedCount}명의 사전 참여 신청이 완료되었습니다` : "Matinée Pass"}</h1>
         <p>{eventConfig.dateLabel} {eventConfig.passMeet.time}, {eventConfig.passMeet.place}에서 뵙겠습니다.</p>
         <PassRefresh />
+        {updated && <p className="passAlert ok">신청 내용이 수정되었습니다. 바뀐 내용으로 아래 Pass가 갱신되었습니다.</p>}
         {issuedCount > 0 && <p className="passAlert">실제 좌석은 당일 현장에서 체크인하셔야 배정됩니다. 이 QR을 웰컴 스테이션(주차장)이나 채플 로비에서 보여주세요.</p>}
       </div>
       <TicketCard
@@ -175,6 +176,10 @@ export default async function PassPage({ params, searchParams }: Props) {
         qrNote={<>웰컴 스테이션(주차장)이나 채플 로비에서 이 화면을 보여주세요.<br />일행 모두가 한 번에 확인됩니다.</>}
       />
       <PassActions url={url} code={pass.code} seated={!!pass.seat_label} />
+      {/* change the sign-up (people, times, shuttle…) until check-in; the ticket number and this link stay the same */}
+      {token !== "preview" && (pass.checked_in
+        ? <p className="passEditNote">체크인 후에는 웹에서 신청 내용을 바꿀 수 없습니다. 변경이 필요하시면 현장 웰컴 데스크에 말씀해 주세요.</p>
+        : <a className="passEdit" href={`/apply?edit=${token}`}>신청 내용 수정하기 <span aria-hidden="true">→</span></a>)}
       {invites.length > 0 && <InviteGuests guests={invites} />}
       <aside className="passNote">
         <b>이 페이지 주소가 곧 Pass입니다.</b>

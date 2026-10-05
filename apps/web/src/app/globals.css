@@ -152,6 +152,10 @@ img { max-width: 100%; }
 .legendHint { margin-left: 8px; color: var(--persimmon); font-weight: 700; }
 .modeSwitch.attendance { margin: 0 0 22px; }
 .formNote { margin: 26px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--paper-deep); font-size: 14px; color: var(--ink-soft); }
+.passAlert.ok { background: #E7EFDD; color: #3E5540; }
+.passEdit { width: min(100%, 440px); display: flex; justify-content: center; align-items: center; gap: 8px; padding: 13px 12px; border-radius: 12px; border: 1.5px solid var(--persimmon); color: var(--persimmon); font-weight: 800; font-size: 14px; text-decoration: none; transition: background-color .25s var(--ease), color .25s var(--ease); }
+.passEdit:hover { background: var(--persimmon); color: #fff; }
+.passEditNote { width: min(100%, 440px); margin: 0; font-size: 13px; color: var(--ink-soft); text-align: center; }
 .passAlert { margin: 10px auto 0; max-width: 440px; padding: 12px 14px; border-radius: 12px; background: #F8E3DC; color: #7A2E1D; font-size: 15px; }
 .modeSwitch button { padding: 14px; border-radius: 12px; border: 1px solid var(--line); background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
 .modeSwitch button[aria-pressed="true"] { background: var(--ink); color: var(--cream); border-color: var(--ink); }
@@ -180,6 +184,23 @@ img { max-width: 100%; }
 .submitButton[disabled] { opacity: .6; cursor: progress; }
 .formMessage { margin: 18px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--paper-deep); font-size: 15px; }
 .formMessage.error { background: #F8E3DC; color: #7A2E1D; }
+/* changing a sign-up: banner while editing, "이미 신청하셨나요?" lookup, the done panel */
+.reservationForm ~ .editBanner, .editBanner { display: grid; gap: 4px; margin: 0 0 22px; padding: 14px 16px; border-radius: 14px; background: #FBEFD9; border: 1px solid rgba(201, 147, 47, .45); }
+.editBanner b { font-size: 15px; } .editBanner span { font-size: 14px; color: var(--ink-soft); }
+.editBanner a, .editBanner .linkish { justify-self: start; margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--persimmon); }
+.formPanel .linkish { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--persimmon); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.alreadyApplied { margin: 0 0 22px; font-size: 14px; color: var(--ink-soft); }
+.lookupPanel { display: grid; gap: 10px; margin: 0 0 26px; padding: 18px; border-radius: 16px; background: var(--paper-deep); border: 1px solid var(--line); }
+.lookupPanel b { font-size: 16px; } .lookupPanel p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+.lookupRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lookupRow label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+.lookupRow input { padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 16px; }
+.lookupActions { display: flex; align-items: center; gap: 16px; }
+.lookupActions .submitButton { margin-top: 0; width: auto; padding: 14px 22px; font-size: 15px; }
+.editDone { display: grid; gap: 10px; }
+.editDone h2 { margin: 0; font-family: var(--font-ko); font-size: 26px; }
+.editDone p { margin: 0; color: var(--ink-soft); }
+@media (max-width: 560px) { .lookupRow { grid-template-columns: 1fr; } .lookupActions { flex-direction: column; align-items: stretch; } .lookupActions .submitButton { width: 100%; } }
 .fieldError { font-size: 13px; color: var(--persimmon); font-weight: 500; }
 
 /* ---------- pass ---------- */
