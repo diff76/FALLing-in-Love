@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createBrowserSupabaseClient, OMS_BUCKET, type OmsTrack } from "@fil/supabase";
-import { deleteTrack, editTrack, listTracks, reorderTracks, trackUploadTicket, type Result } from "./actions";
+import { deleteTrack, editTrack, listTracks, reorderTracks, trackUploadTicket, type Result, type TrackFolder } from "./actions";
 
 type Staged = { id: string; file: File; title: string; artist: string; status: "wait" | "up" | "done" | "fail"; msg?: string };
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -23,7 +23,8 @@ function fromFileName(name: string) {
  * Pick files → check title/artist → upload. Files go straight to storage through one-time signed URLs,
  * so long tracks are fine (up to 50MB each). Order, titles and deletions apply to the site right away.
  */
-export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrack[]; playerUrl: string; loadError: boolean }) {
+export function OmsConsole({ initial, playerUrl, loadError, folder = "tracks" }: { initial: OmsTrack[]; playerUrl: string; loadError: boolean; folder?: TrackFolder }) {
+  const bgm = folder === "bgm";
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [tracks, setTracks] = useState(initial);
   const [staged, setStaged] = useState<Staged[]>([]);
@@ -32,7 +33,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
   const [edit, setEdit] = useState<{ key: string; title: string; artist: string } | null>(null);
   const [drag, setDrag] = useState(false);
 
-  const reload = async () => setTracks(await ok(listTracks()));
+  const reload = async () => setTracks(await ok(listTracks(folder)));
   const run = async (tag: string, fn: () => Promise<void>, done?: string) => {
     setBusy(tag); setMsg(null);
     try { await fn(); await reload(); if (done) setMsg(done); }
@@ -62,7 +63,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
       patch(s.id, { status: "up", msg: undefined });
       try {
         const ext = s.file.name.split(".").pop() ?? "mp3";
-        const { key, token } = await ok(trackUploadTicket({ title: s.title, artist: s.artist, ext, size: s.file.size }));
+        const { key, token } = await ok(trackUploadTicket({ title: s.title, artist: s.artist, ext, size: s.file.size, folder }));
         const { error } = await supabase.storage.from(OMS_BUCKET).uploadToSignedUrl(key, token, s.file, { contentType: s.file.type || "audio/mpeg" });
         if (error) throw error;
         patch(s.id, { status: "done" }); uploaded++;
@@ -70,7 +71,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
     }
     await reload().catch(() => {});
     setBusy(null);
-    setMsg(`${uploaded}곡을 올렸습니다.${uploaded < todo.length ? ` ${todo.length - uploaded}곡은 실패했습니다 — 아래에서 확인 후 다시 올려 주세요.` : " 웹사이트 플레이어에 바로 반영됩니다."}`);
+    setMsg(`${uploaded}곡을 올렸습니다.${uploaded < todo.length ? ` ${todo.length - uploaded}곡은 실패했습니다 — 아래에서 확인 후 다시 올려 주세요.` : (bgm ? " 웹사이트 배경음악에 바로 반영됩니다." : " 웹사이트 플레이어에 바로 반영됩니다.")}`);
   }
 
   const move = (i: number, d: -1 | 1) => {
@@ -84,7 +85,7 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
   return (
     <div className="omsConsole">
       <section className="box">
-        <h2>곡 올리기</h2>
+        <h2>{bgm ? "배경음악 올리기" : "곡 올리기"}</h2>
         <p className="sub">파일 이름을 <code>03 - 곡 제목 - 연주자.mp3</code>처럼 하면 제목·연주자가 자동으로 채워집니다. 올린 곡은 목록 맨 뒤에 붙고, 순서는 아래에서 바꿀 수 있습니다. 파일당 50MB까지.</p>
         <label className={`omsDrop ${drag ? "drag" : ""}`}
           onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
@@ -116,8 +117,8 @@ export function OmsConsole({ initial, playerUrl, loadError }: { initial: OmsTrac
       </section>
 
       <section className="box">
-        <h2>재생 목록 <small>{tracks.length}곡 · <a href={playerUrl} target="_blank" rel="noreferrer">웹사이트 플레이어 열기 ↗</a></small></h2>
-        {!tracks.length ? <p className="tiny">아직 올린 곡이 없습니다. 웹사이트에는 “트랙이 아직 없습니다”로 보입니다.</p> : (
+        <h2>{bgm ? "배경음악 목록" : "재생 목록"} <small>{tracks.length}곡 · <a href={playerUrl} target="_blank" rel="noreferrer">{bgm ? "웹사이트 열기 ↗" : "웹사이트 플레이어 열기 ↗"}</a></small></h2>
+        {!tracks.length ? <p className="tiny">{bgm ? "아직 올린 곡이 없습니다. 곡이 없으면 웹사이트에 배경음악 버튼이 나오지 않습니다." : "아직 올린 곡이 없습니다. 웹사이트에는 “트랙이 아직 없습니다”로 보입니다."}</p> : (
           <ol className="omsTracks">
             {tracks.map((t, i) => (
               <li key={t.key}>

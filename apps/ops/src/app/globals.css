@@ -495,3 +495,12 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
   .resGrid label.chk { padding-bottom: 0; }
   .resActions .btn { flex: 1 1 0; }
 }
+
+/* admin: website background music settings */
+.bgmSettings { display: grid; gap: 12px; }
+.bgmRow { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,.08); cursor: pointer; }
+.bgmRow input { width: 18px; height: 18px; margin-top: 2px; flex: none; }
+.bgmRow span { display: grid; gap: 2px; } .bgmRow small { font-size: 13px; opacity: .7; line-height: 1.5; }
+.bgmVol { display: grid; grid-template-columns: auto minmax(0, 1fr) 52px; gap: 6px 12px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,.08); }
+.bgmVol small { grid-column: 1 / -1; font-size: 13px; opacity: .7; }
+.bgmVol input { width: 100%; accent-color: #BE5637; }

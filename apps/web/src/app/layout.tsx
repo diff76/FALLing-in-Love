@@ -1,3 +1,4 @@
+import { BgmPlayer } from "@/components/bgm-player";
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Gowun_Batang, Syne } from "next/font/google";
 import { eventConfig } from "@fil/config";
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <head>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
       </head>
-      <body>{children}</body>
+      <body>{children}<BgmPlayer /></body>
     </html>
   );
 }

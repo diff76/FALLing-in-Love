@@ -23,11 +23,11 @@ const unb64url = (s: string) => {
   return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
 };
 
-export function trackKey(order: number, title: string, artist: string, ext: string): string {
+export function trackKey(order: number, title: string, artist: string, ext: string, folder: "tracks" | "bgm" = "tracks"): string {
   const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp3";
   const n = Math.max(0, Math.min(9999, Math.round(order)));
   // NFC: macOS file names arrive as decomposed Hangul (ㅇ+ㅣ…), which some phones draw as loose letters
-  return `tracks/${String(n).padStart(4, "0")}-${b64url(JSON.stringify({ t: title.trim().normalize("NFC"), a: artist.trim().normalize("NFC") }))}.${safeExt}`;
+  return `${folder}/${String(n).padStart(4, "0")}-${b64url(JSON.stringify({ t: title.trim().normalize("NFC"), a: artist.trim().normalize("NFC") }))}.${safeExt}`;
 }
 export function photoKey(): string {
   return `photos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
