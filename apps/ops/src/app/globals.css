@@ -504,3 +504,20 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 .bgmVol { display: grid; grid-template-columns: auto minmax(0, 1fr) 52px; gap: 6px 12px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,.08); }
 .bgmVol small { grid-column: 1 / -1; font-size: 13px; opacity: .7; }
 .bgmVol input { width: 100%; accent-color: #BE5637; }
+
+/* admin: one sign-up's Matinée Pass */
+.passPanel { display: grid; gap: 12px; margin-bottom: 16px; }
+.passPanel h2 { margin: 0; }
+.passView { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 14px; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); }
+.passView dt { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); font-weight: 800; }
+.passView dd { margin: 2px 0 0; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.passView .ok { color: var(--olive); }
+.passPanel .linkList li { flex-wrap: wrap; }
+.passPanel label.chk { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; font-size: 14px; font-weight: 600; } .passPanel label.chk input { width: 18px; height: 18px; flex: none; } .passPanel label.chk small { flex-basis: 100%; padding-left: 26px; color: var(--ink-soft); font-weight: 400; }
+.passMinted { grid-template-columns: 180px minmax(0, 1fr); align-items: start; gap: 16px; }
+.passQr { width: 180px; padding: 8px; border-radius: 12px; background: #fff; } .passQr svg { display: block; width: 100%; height: auto; }
+.passLinks { display: grid; gap: 8px; min-width: 0; } .passLinks b { font-size: 14px; }
+.passLinks .resActions { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); } .passLinks .resActions .btn { white-space: nowrap; } .passLinks .resActions a.btn { text-decoration: none; text-align: center; }
+.passLinks > .btn { justify-self: start; }
+.inviteRow { display: flex; align-items: center; gap: 8px; } .inviteRow span { flex: 1; min-width: 0; font-weight: 600; }
+@media (max-width: 640px) { .passMinted { grid-template-columns: 1fr; } .passQr { margin: 0 auto; } }
