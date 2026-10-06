@@ -16,7 +16,14 @@ export async function POST(request: Request) {
   if (!isSupabaseAdminConfigured()) return NextResponse.json({ message: "신청 저장소가 아직 연결되지 않았습니다." }, { status: 503 });
   const db = createAdminSupabaseClient();
   const token = generatePassToken();
-  const { data, error } = await db.from("passes").update({ token_hash: await hashPassToken(token), issued_at: new Date().toISOString() } as never).eq("reservation_id", id).is("revoked_at", null).select("id");
-  if (error || !data?.length) return NextResponse.json({ message: "새 Pass를 만들지 못했습니다. 교회로 문의해 주세요." }, { status: 500 });
+  const fail = () => NextResponse.json({ message: "새 Pass를 만들지 못했습니다. 교회로 문의해 주세요." }, { status: 500 });
+  // A sign-up may carry more than one live link (an old link restored by an admin, migration 0011):
+  // the newest row takes the new token, any others are revoked.
+  const { data: rows } = await db.from("passes").select("id").eq("reservation_id", id).is("revoked_at", null).order("issued_at", { ascending: false });
+  const [keep, ...rest] = rows ?? [];
+  if (!keep) return fail();
+  const { error } = await db.from("passes").update({ token_hash: await hashPassToken(token), issued_at: new Date().toISOString() } as never).eq("id", keep.id);
+  if (error) return fail();
+  if (rest.length) await db.from("passes").update({ revoked_at: new Date().toISOString() } as never).in("id", rest.map((r) => r.id));
   return NextResponse.json({ token });
 }

@@ -41,9 +41,11 @@ export function ReservationForm() {
   const [saved, setSaved] = useState<{ grant: string; code: string } | null>(null);
   const [reissueBusy, setReissueBusy] = useState(false);
 
-  // /apply?edit=<pass token> — reopen that sign-up
+  // /apply?edit=<pass token> — reopen that sign-up; /apply?find=1 (from a Pass link that no longer opens) — the name + phone lookup
   useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get("edit");
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("find")) { setLookup({ name: "", phone: "", open: true, why: "manual" }); return; }
+    const token = q.get("edit");
     if (!token) return;
     setLoading(true);
     fetch(`/api/reservations/edit?token=${encodeURIComponent(token)}`, { cache: "no-store" })

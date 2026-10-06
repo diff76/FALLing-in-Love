@@ -190,6 +190,12 @@ img { max-width: 100%; }
 .editBanner a, .editBanner .linkish { justify-self: start; margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--persimmon); }
 .formPanel .linkish { padding: 0; border: 0; background: none; font: inherit; font-weight: 700; color: var(--persimmon); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .alreadyApplied { margin: 0 0 22px; font-size: 15.5px; font-weight: 700; color: var(--ink-soft); }   /* a little under the 17px question below */
+/* a Pass link that no longer opens */
+.passGone { display: grid; gap: 14px; margin-top: 30px; }
+.passGone article { padding: 20px 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-deep); }
+.passGone b { font-size: 16px; }
+.passGone p { margin: 6px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
+.passGone .button { margin-top: 16px; }
 .lookupPanel { display: grid; gap: 10px; margin: 0 0 26px; padding: 18px; border-radius: 16px; background: var(--paper-deep); border: 1px solid var(--line); }
 .lookupPanel b { font-size: 16px; } .lookupPanel p { margin: 0; font-size: 14px; color: var(--ink-soft); }
 .lookupRow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
