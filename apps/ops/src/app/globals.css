@@ -521,3 +521,9 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 .passLinks > .btn { justify-self: start; }
 .inviteRow { display: flex; align-items: center; gap: 8px; } .inviteRow span { flex: 1; min-width: 0; font-weight: 600; }
 @media (max-width: 640px) { .passMinted { grid-template-columns: 1fr; } .passQr { margin: 0 auto; } }
+/* admin: search over the sign-up list + Excel download */
+.listTools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 12px; }
+.listTools input[type="search"] { flex: 1 1 320px; min-width: 0; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(0,0,0,.16); background: #fff; color: #1F1A16; font: inherit; font-size: 15px; }
+.listTools label.chk { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; } .listTools label.chk input { width: 17px; height: 17px; }
+.box h2 small a.miniBtn.dl { text-decoration: none; margin-left: 6px; }
+small.via { color: var(--brick); }
