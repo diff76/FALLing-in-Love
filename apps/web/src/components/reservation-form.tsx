@@ -57,6 +57,7 @@ export function ReservationForm() {
 
   async function openExisting(e: React.FormEvent) {
     e.preventDefault(); if (!lookup) return;
+    if (!lookup.name.trim() && !lookup.phone.trim()) { setLookupError("성함이나 연락처 중 하나를 적어 주세요."); return; }
     setLookupBusy(true); setLookupError(null);
     try {
       const r = await fetch("/api/reservations/lookup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: lookup.name, phone: lookup.phone }) });
@@ -105,10 +106,10 @@ export function ReservationForm() {
       {lookup && (
         <form className="lookupPanel" onSubmit={openExisting}>
           <b>{lookup.why === "duplicate" ? "이 연락처로 이미 신청되어 있습니다" : "기존 신청 불러오기"}</b>
-          <p>{lookup.why === "duplicate" ? "새로 신청하지 않으셔도 됩니다. 신청하신 분의 성함과 연락처를 확인하면 기존 신청을 불러와 내용을 확인하고 수정하실 수 있습니다." : "신청하실 때 적은 성함과 연락처를 넣어 주세요. 기존 신청을 불러와 확인하고 수정하실 수 있습니다."}</p>
+          <p>{lookup.why === "duplicate" ? "새로 신청하지 않으셔도 됩니다. 신청하신 분의 성함과 연락처를 확인하면 기존 신청을 불러와 내용을 확인하고 수정하실 수 있습니다." : "신청하실 때 적은 성함이나 연락처 중 하나만 넣어도 됩니다. 기존 신청을 불러와 확인하고 수정하실 수 있습니다."}</p>
           <div className="lookupRow">
-            <label><span>성함</span><input value={lookup.name} onChange={(e) => setLookup({ ...lookup, name: e.target.value })} autoComplete="name" required /></label>
-            <label><span>연락처</span><input value={lookup.phone} onChange={(e) => setLookup({ ...lookup, phone: e.target.value })} type="tel" inputMode="tel" placeholder="010-0000-0000" required /></label>
+            <label><span>성함</span><input value={lookup.name} onChange={(e) => setLookup({ ...lookup, name: e.target.value })} autoComplete="name" /></label>
+            <label><span>연락처</span><input value={lookup.phone} onChange={(e) => setLookup({ ...lookup, phone: e.target.value })} type="tel" inputMode="tel" placeholder="010-0000-0000" /></label>
           </div>
           <div className="lookupActions">
             <button type="submit" className="submitButton" disabled={lookupBusy}>{lookupBusy ? "찾는 중…" : "기존 신청 불러오기"}</button>

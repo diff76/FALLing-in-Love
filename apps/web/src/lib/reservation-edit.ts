@@ -6,7 +6,7 @@ import type { Db } from "@fil/supabase";
 /**
  * Changing a sign-up after it was made. Two ways in:
  *  - the Pass link (whoever holds the Pass already holds the reservation), or
- *  - name + phone on the sign-up page (both must match an active sign-up exactly). That proof is turned
+ *  - name and/or phone on the sign-up page (either one is enough; both given must both match). That proof is turned
  *    into a short-lived signed grant so the following save / Pass re-issue need not ask again.
  * Web edits stop once the party has checked in; staff change things at the desk from then on.
  */
@@ -46,9 +46,20 @@ export async function reservationForToken(db: Db, token: unknown): Promise<strin
 
 /** name + phone → the matching active reservation (both must match; spaces in the name are ignored). */
 export async function reservationForNamePhone(db: Db, name: string, phoneDigits: string): Promise<string | null> {
-  const { data } = await db.from("reservations").select("id, applicant_name").eq("status", "active").eq("phone", phoneDigits);
+  const ids = await reservationsForLookup(db, name, phoneDigits);
+  return ids[0] ?? null;
+}
+
+/**
+ * "이미 신청하셨나요?" lookup: name and/or phone. Both given → both must match; only the phone → that sign-up
+ * (a phone is unique among active sign-ups); only the name → every active sign-up under that name (spaces ignored).
+ */
+export async function reservationsForLookup(db: Db, name: string, phoneDigits: string): Promise<string[]> {
+  let q = db.from("reservations").select("id, applicant_name").eq("status", "active");
+  if (phoneDigits) q = q.eq("phone", phoneDigits);
+  const { data } = await q;
   const want = name.replace(/\s+/g, "");
-  return (data ?? []).find((r) => r.applicant_name.replace(/\s+/g, "") === want)?.id ?? null;
+  return (data ?? []).filter((r) => !want || r.applicant_name.replace(/\s+/g, "") === want).map((r) => r.id);
 }
 
 export async function isCheckedIn(db: Db, reservationId: string): Promise<boolean> {
