@@ -164,7 +164,7 @@ export default async function PassPage({ params, searchParams }: Props) {
         code={pass.code}
         issued={issuedCount > 0}
         name={<>{pass.applicant_name} 님{pass.guest_count > 0 ? ` 외 ${pass.guest_count}인` : ""}</>}
-        party={`${pass.kind === "guest_self" ? `${pass.inviter_name ?? ""} 님의 초대` : pass.district_label ?? ""}${pass.guest_count > 0 ? ` · 함께 오시는 분 ${pass.guest_count}명` : " · 혼자 오십니다"}${worship ? ` · ${worship}` : ""}`}
+        party={`${pass.kind === "guest_self" ? `${pass.inviter_name ?? ""} 님의 초대` : pass.kind === "mirae" ? `미래셀 · ${pass.district_label ?? ""}` : pass.district_label ?? ""}${pass.guest_count > 0 ? ` · 함께 오시는 분 ${pass.guest_count}명` : " · 혼자 오십니다"}${worship ? ` · ${worship}` : ""}`}
         fields={[
           { k: "Seats", v: seats },
           { k: "Shuttle", v: shuttle },

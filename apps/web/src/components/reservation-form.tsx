@@ -10,7 +10,7 @@ type Guest = { name: string; relation: string; ageGroup: string; dietaryNote: st
 type EditAuth = { token: string } | { grant: string };
 /** A saved sign-up reopened in the form (shape of lib/reservation-edit Prefill). */
 type Prefill = {
-  code: string; kind: "host" | "guest_self"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
+  code: string; kind: "host" | "guest_self" | "mirae"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
   applicantName: string; phone: string; districtCode: string; inviterName: string; ageGroup: string; members: Guest[];
   transport: "shuttle" | "car" | "other"; outboundRun: string; returnRun: string; vehiclePlate: string; dietaryNote: string;
   contactConsent: boolean; checkedIn: boolean;
@@ -131,7 +131,7 @@ export function ReservationForm() {
 function FormBody({ edit, onDuplicate, onSaved }: { edit: { auth: EditAuth; data: Prefill } | null; onDuplicate: (name: string, phone: string) => void; onSaved: (code: string) => void }) {
   const router = useRouter();
   const pre = edit?.data;
-  const [mode, setMode] = useState<"host" | "guest_self">(pre?.kind ?? "host");
+  const [mode, setMode] = useState<"host" | "guest_self" | "mirae">(pre?.kind ?? "host");
   const [attendance, setAttendance] = useState<"main" | "worship">(pre?.attendance ?? "main");
   const [guests, setGuests] = useState<Guest[]>(pre?.members.length ? pre.members : [emptyGuest()]);
   const [transport, setTransport] = useState<"shuttle" | "car" | "other">(pre?.transport ?? "shuttle");
@@ -214,10 +214,11 @@ function FormBody({ edit, onDuplicate, onSaved }: { edit: { auth: EditAuth; data
 
   return (
     <form className="reservationForm" onSubmit={submit} noValidate>
-      <fieldset className="modeSwitch">
+      <fieldset className="modeSwitch kind">
         <legend>어떻게 참여하시나요? <span className="legendHint">혼자 참여시 &lsquo;제가 초대합니다&rsquo;를 선택</span></legend>
         <button type="button" aria-pressed={mode === "host"} onClick={() => setMode("host")}>제가 초대합니다</button>
         <button type="button" aria-pressed={mode === "guest_self"} onClick={() => setMode("guest_self")}>초대를 받았습니다</button>
+        <button type="button" aria-pressed={mode === "mirae"} onClick={() => setMode("mirae")}>미래셀입니다</button>
       </fieldset>
 
       <div className="formSection"><span>{stepNo(++step)}</span><div><h2>어디까지 함께하시나요?</h2><p>메인 행사는 오후 1시부터 4시까지 {eventConfig.venue.short}에서 열립니다. 예배만 참석하시는 분도 신청해 주세요.</p></div></div>
@@ -243,17 +244,24 @@ function FormBody({ edit, onDuplicate, onSaved }: { edit: { auth: EditAuth; data
         </div>
       )}
 
-      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분(혹은 혼자 오신 분)" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
+      <div className="formSection"><span>{stepNo(++step)}</span><div><h2>{mode === "host" ? "초청하시는 분(혹은 혼자 오신 분)" : mode === "mirae" ? "미래셀 신청자" : "당신을 알려주세요"}</h2><p>안내와 당일 좌석 배정을 위해 필요한 정보만 받습니다.</p></div></div>
       <div className="formGrid">
         <label><span>성함</span><input name="applicantName" autoComplete="name" required defaultValue={pre?.applicantName} />{err("applicantName")}</label>
         <label><span>연락처</span><input name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="010-0000-0000" required defaultValue={pre?.phone} />{err("phone")}</label>
-        {mode === "host" ? (
-          <label><span>교구 / 부서</span>
-            <select name="districtCode" defaultValue={pre?.districtCode ?? ""}>
-              <option value="">선택해 주세요</option>
-              {eventConfig.districts.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-            </select>{err("districtCode")}
-          </label>
+        {mode === "host" || mode === "mirae" ? (
+          <>
+            <label><span>교구 / 부서</span>
+              <select name="districtCode" defaultValue={pre?.districtCode ?? ""}>
+                <option value="">선택해 주세요</option>
+                {eventConfig.districts.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+              </select>{err("districtCode")}
+            </label>
+            {mode === "mirae" && (
+              <label><span>연령대 <em>선택</em></span>
+                <select name="ageGroup" defaultValue={pre?.ageGroup ?? ""}><option value="">선택 안 함</option>{eventConfig.ageGroups.map((a) => <option key={a}>{a}</option>)}</select>
+              </label>
+            )}
+          </>
         ) : (
           <>
             <label><span>초대해주신 분 성함</span><input name="inviterName" defaultValue={pre?.inviterName} />{err("inviterName")}</label>

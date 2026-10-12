@@ -527,3 +527,4 @@ details > summary h2.inline { display: inline; } details[open] > summary { margi
 .listTools label.chk { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; } .listTools label.chk input { width: 17px; height: 17px; }
 .box h2 small a.miniBtn.dl { text-decoration: none; margin-left: 6px; }
 small.via { color: var(--brick); }
+small.mirae { color: var(--olive); font-weight: 700; }

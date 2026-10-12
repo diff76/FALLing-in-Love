@@ -5,7 +5,7 @@ import { createAdminSupabaseClient, isSupabaseAdminConfigured } from "@fil/supab
 import { getSession } from "@/lib/auth";
 
 export type AdminEditData = {
-  id: string; code: string; kind: "host" | "guest_self"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
+  id: string; code: string; kind: "host" | "guest_self" | "mirae"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
   applicantName: string; phone: string; districtCode: string; inviterName: string; ageGroup: string;
   members: { name: string; relation: string; ageGroup: string; dietaryNote: string }[];
   transport: "shuttle" | "car" | "other"; outboundRun: string; returnRun: string; vehiclePlate: string; dietaryNote: string;

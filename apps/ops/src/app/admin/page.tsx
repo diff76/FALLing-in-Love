@@ -55,7 +55,7 @@ export default async function AdminPage() {
   const arrived = new Map(checkins.map((c) => [c.reservation_id, c.arrived_count]));
 
   // 참석자 구분 — VIP: 초대받아 직접 신청한 분 + "함께 오시는 분". 인도자: VIP와 함께 온 초청자, 또는 직접 신청한 VIP가
-  // 초대자로 적은 분(같은 이름의 초청자가 한 명뿐일 때). 일반 성도: 그 밖의 초청자(혼자 오신 분).
+  // 초대자로 적은 분(같은 이름의 초청자가 한 명뿐일 때). 일반 성도: 그 밖의 초청자(혼자 오신 분). 미래셀: 미래셀로 신청한 분(동행 없음).
   // 체크인 기준은 실제로 온 사람으로 나눕니다: 일행 중 VIP가 오지 않았으면 그 초청자는 일반 성도로 셉니다.
   const norm = (n: string | null) => (n ?? "").replace(/\s+/g, "");
   const hostNames = new Map<string, number>();
@@ -67,10 +67,11 @@ export default async function AdminPage() {
     const cur = invitedBy.get(n) ?? { reg: false, came: false };
     invitedBy.set(n, { reg: true, came: cur.came || (arrived.get(r.id) ?? 0) > 0 });
   });
-  const roles = { member: { reg: 0, in: 0 }, leader: { reg: 0, in: 0 }, vip: { reg: 0, in: 0 } };
+  const roles = { member: { reg: 0, in: 0 }, leader: { reg: 0, in: 0 }, vip: { reg: 0, in: 0 }, mirae: { reg: 0, in: 0 } };
   rows.forEach((r) => {
     const came = arrived.get(r.id) ?? 0;
     if (r.kind === "guest_self") { roles.vip.reg += r.party_size; roles.vip.in += came; return; }
+    if (r.kind === "mirae") { roles.mirae.reg += r.party_size; roles.mirae.in += came; return; }
     const linked = invitedBy.get(norm(r.applicant_name));
     const companions = r.party_size - 1;
     if (companions > 0 || linked?.reg) { roles.leader.reg += 1; roles.vip.reg += companions; } else roles.member.reg += 1;
@@ -109,7 +110,7 @@ export default async function AdminPage() {
     party: r.party_size, arrived: arrived.has(r.id) ? arrived.get(r.id)! : null,
     transport: r.transport === "shuttle" ? "셔틀" : r.transport === "car" ? "자차" : "개별",
     flags: [r.dietary_note && "식이", r.mobility_support && "도움", r.vehicle_plate && "주차", r.return_run_id && "복귀"].filter(Boolean).join(" · ") || "—",
-    imported: r.source === "import", plate: r.vehicle_plate ?? "",
+    imported: r.source === "import", mirae: r.kind === "mirae", plate: r.vehicle_plate ?? "",
     members: members.filter((m) => m.reservation_id === r.id && m.name?.trim()).map((m) => m.name as string),
   }));
 
@@ -126,12 +127,13 @@ export default async function AdminPage() {
 
       <section className="box roleBox">
         <h2>참석자 구분 <small>체크인 기준 · 아래 작은 숫자는 신청 기준</small></h2>
-        <p className="sub">VIP = 초대받아 직접 신청한 분과 “함께 오시는 분”. 인도자 = VIP와 함께 온(또는 VIP를 초대한) 성도. 일반 성도 = 그 밖에 혼자 오신 성도.</p>
+        <p className="sub">VIP = 초대받아 직접 신청한 분과 “함께 오시는 분”. 인도자 = VIP와 함께 온(또는 VIP를 초대한) 성도. 미래셀 = 미래셀로 신청한 분. 일반 성도 = 그 밖에 혼자 오신 성도.</p>
         <div className="metricGrid">
           <article><span>일반 성도</span><h2>{roles.member.in}<em>명</em></h2><p>신청 {roles.member.reg}명</p></article>
           <article><span>인도자</span><h2>{roles.leader.in}<em>명</em></h2><p>신청 {roles.leader.reg}명</p></article>
           <article className="hot"><span>VIP</span><h2>{roles.vip.in}<em>명</em></h2><p>신청 {roles.vip.reg}명</p></article>
-          <article><span>합계</span><h2>{roles.member.in + roles.leader.in + roles.vip.in}<em>명</em></h2><p>신청 {roles.member.reg + roles.leader.reg + roles.vip.reg}명</p></article>
+          <article><span>미래셀</span><h2>{roles.mirae.in}<em>명</em></h2><p>신청 {roles.mirae.reg}명</p></article>
+          <article><span>합계</span><h2>{roles.member.in + roles.leader.in + roles.vip.in + roles.mirae.in}<em>명</em></h2><p>신청 {roles.member.reg + roles.leader.reg + roles.vip.reg + roles.mirae.reg}명</p></article>
         </div>
       </section>
 

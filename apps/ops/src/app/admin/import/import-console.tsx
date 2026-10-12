@@ -9,7 +9,7 @@ import { checkDuplicates, importRows, type DuplicateHit, type ImportRowResult } 
 /** Excel columns (Korean headers) → reservation input. Kept in ONE place so the template and the parser agree. */
 const COLUMNS = [
   ["성함", "applicantName", "필수"], ["연락처", "phone", "필수 · 010-0000-0000"],
-  ["구분", "kind", "초청 / 초대받음 (기본 초청)"], ["참여", "attendance", "메인 / 예배 (기본 메인)"],
+  ["구분", "kind", "초청 / 초대받음 / 미래셀 (기본 초청)"], ["참여", "attendance", "메인 / 예배 (기본 메인)"],
   ["예배", "worshipService", "예배만: 1 / 2 / 3"], ["장소", "worshipSite", "예배만: 창동 / 한신"],
   ["교구부서", "districtCode", eventConfig.districts.map(([, l]) => l).join(", ")],
   ["초대자", "inviterName", "초대받음일 때"], ["연령대", "ageGroup", eventConfig.ageGroups.join(" / ")],
@@ -33,18 +33,20 @@ function toDraft(rec: Record<string, unknown>, rowNo: number): Draft {
   const problems: string[] = [];
   const g = (k: string) => String(rec[k] ?? "").trim();
   const kindRaw = g("구분");
-  const kind: ReservationInput["kind"] = /초대받|guest/i.test(kindRaw) ? "guest_self" : "host";
+  const kind: ReservationInput["kind"] = /초대받|guest/i.test(kindRaw) ? "guest_self" : /미래|mirae/i.test(kindRaw) ? "mirae" : "host";
   const attendance: ReservationInput["attendance"] = /예배|worship/i.test(g("참여")) ? "worship" : "main";
   const transportRaw = g("이동");
   // No shuttle run written → 개별 이동 · 미정 (unless the row says 자차); a run written means the shuttle.
   const transport: ReservationInput["transport"] = /자차|car/i.test(transportRaw) ? "car"
     : /개별|other/i.test(transportRaw) || !g("셔틀편") ? "other" : "shuttle";
-  const members = ["동행1", "동행2", "동행3", "동행4", "동행5"].map(g).filter(Boolean).map((name) => ({ name, relation: undefined, ageGroup: undefined, dietaryNote: undefined }));
+  const memberCells = ["동행1", "동행2", "동행3", "동행4", "동행5"].map(g).filter(Boolean).map((name) => ({ name, relation: undefined, ageGroup: undefined, dietaryNote: undefined }));
   const district = pick(eventConfig.districts, g("교구부서"));
   if (!g("성함")) problems.push("성함 없음");
   const phone = normalizePhone(g("연락처"));
   if (!(phone.length === 10 || phone.length === 11)) problems.push("연락처 형식");
-  if (kind === "host" && !district) problems.push("교구/부서 확인");
+  if ((kind === "host" || kind === "mirae") && !district) problems.push("교구/부서 확인");
+  if (kind === "mirae" && memberCells.length) problems.push("미래셀은 동행 없이 신청 (동행 칸 비우기)");
+  const members = kind === "mirae" ? [] : memberCells;
   const service = (["1", "2", "3"] as const).find((s) => g("예배").startsWith(s));
   const site = /창동/.test(g("장소")) ? "changdong" : /한신/.test(g("장소")) ? "hanshin" : undefined;
   if (attendance === "worship" && (!service || !site)) problems.push("예배/장소 확인");
@@ -66,8 +68,9 @@ export function downloadTemplate() {
   const header = COLUMNS.map(([h]) => h);
   const hint = COLUMNS.map(([, , h]) => h);
   const sample = ["예시 홍길동", "010-1234-5678", "초청", "메인", "", "", "11교구", "", "40대", "예시 동행", "", "", "", "", "셔틀", "12:30", "16:15", "", "아니오", "", "", "예"];
+  const sample3 = ["예시 박미래", "010-3333-4444", "미래셀", "메인", "", "", "13교구", "", "30대", "", "", "", "", "", "셔틀", "13:00", "", "", "아니오", "", "", "예"];
   const sample2 = ["예시 김영희", "010-2222-3333", "초청", "예배", "2", "창동", "21교구", "", "60대", "", "", "", "", "", "개별", "", "", "", "예", "휠체어", "", "아니오"];
-  const ws = XLSX.utils.aoa_to_sheet([header, hint, sample, sample2]);
+  const ws = XLSX.utils.aoa_to_sheet([header, hint, sample, sample2, sample3]);
   ws["!cols"] = header.map(() => ({ wch: 16 }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "참여신청");
@@ -133,7 +136,7 @@ export function ImportConsole() {
               <tr key={d.rowNo} className={d.duplicate ? "dup" : d.problems.length ? "bad" : ""}>
                 <td className="mono">{d.rowNo}</td><td>{d.applicantName}</td><td className="mono">{d.phone}</td>
                 <td>{d.attendance === "worship" ? `예배 ${d.worshipService ?? "?"}부 · ${d.worshipSite === "changdong" ? "창동" : d.worshipSite === "hanshin" ? "한신" : "?"}` : "메인"}</td>
-                <td>{eventConfig.districts.find(([c]) => c === d.districtCode)?.[1] ?? (d.kind === "guest_self" ? `초대: ${d.inviterName ?? ""}` : "—")}</td>
+                <td>{eventConfig.districts.find(([c]) => c === d.districtCode)?.[1] ?? (d.kind === "guest_self" ? `초대: ${d.inviterName ?? ""}` : "—")}{d.kind === "mirae" ? " · 미래셀" : ""}</td>
                 <td className="mono">{1 + d.members.length}</td>
                 <td>{d.transport === "shuttle" ? `셔틀 ${d.outboundRun ?? ""}` : d.transport === "car" ? `자차 ${d.vehiclePlate ?? ""}` : "개별"}</td>
                 <td>{d.problems.length ? <span className="tag bad">{d.problems.join(", ")}</span>

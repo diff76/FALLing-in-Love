@@ -48,7 +48,7 @@ export function AdminReservationEditor({ initial }: { initial: AdminEditData }) 
       <p className="tiny">티켓 번호 <b className="mono">{initial.code}</b>{initial.source === "import" ? " · 수기 등록" : " · 웹 신청"} · 저장해도 티켓 번호와 Pass 링크는 바뀌지 않습니다. 관리자 수정은 셔틀 좌석 제한을 받지 않습니다(초과 시 좌석 표에 빨간색으로 표시).</p>
 
       <div className="resGrid">
-        <label>구분<select value={f.kind} onChange={(e) => set("kind", e.target.value as AdminEditData["kind"])}><option value="host">초청자 (제가 초대합니다)</option><option value="guest_self">초대받음</option></select></label>
+        <label>구분<select value={f.kind} onChange={(e) => set("kind", e.target.value as AdminEditData["kind"])}><option value="host">초청자 (제가 초대합니다)</option><option value="guest_self">초대받음</option><option value="mirae">미래셀</option></select></label>
         <label>참여<select value={f.attendance} onChange={(e) => set("attendance", e.target.value as AdminEditData["attendance"])}>{eventConfig.attendance.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select></label>
         {f.attendance === "worship" && <>
           <label>예배<select value={f.worshipService} onChange={(e) => set("worshipService", e.target.value)}><option value="">선택</option>{eventConfig.worshipServices.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>{err("worshipService")}</label>
@@ -56,7 +56,7 @@ export function AdminReservationEditor({ initial }: { initial: AdminEditData }) 
         </>}
         <label>성함<input value={f.applicantName} onChange={(e) => set("applicantName", e.target.value)} required />{err("applicantName")}</label>
         <label>연락처<input value={f.phone} onChange={(e) => set("phone", e.target.value)} inputMode="tel" required />{err("phone")}</label>
-        <label>교구 / 부서<select value={f.districtCode} onChange={(e) => set("districtCode", e.target.value)}><option value="">{f.kind === "host" ? "선택" : "모름"}</option>{eventConfig.districts.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>{err("districtCode")}</label>
+        <label>교구 / 부서<select value={f.districtCode} onChange={(e) => set("districtCode", e.target.value)}><option value="">{f.kind === "guest_self" ? "모름" : "선택"}</option>{eventConfig.districts.map(([c, l]) => <option key={c} value={c}>{l}</option>)}</select>{err("districtCode")}</label>
         {f.kind === "guest_self" && <label>초대해 주신 분<input value={f.inviterName} onChange={(e) => set("inviterName", e.target.value)} />{err("inviterName")}</label>}
         <label>연령대<select value={f.ageGroup} onChange={(e) => set("ageGroup", e.target.value)}><option value="">선택 안 함</option>{eventConfig.ageGroups.map((a) => <option key={a}>{a}</option>)}</select></label>
       </div>

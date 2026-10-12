@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 const kst = (t: string | null | undefined) => (t ? new Date(t).toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16) : "");
 const phoneFmt = (d: string | null) => (!d ? "" : d.length === 11 ? `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}` : d.length === 10 ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : d);
 const yes = (b: unknown) => (b ? "예" : "");
+const kindLabel = (k: string) => (k === "host" ? "초청자" : k === "mirae" ? "미래셀" : "초대받음");
 
 type Seat = { id: string; floor: number; row_label: string; row_index: number; num: number; wheelchair: boolean };
 /** "1층 C열 3–4번" — the same wording as seat_label_for() in the database */
@@ -67,7 +68,7 @@ export async function GET() {
     const c = checkin.get(r.id);
     const ms = members.filter((m) => m.reservation_id === r.id && m.name?.trim());
     return [
-      r.code, r.kind === "host" ? "초청자" : "초대받음", r.applicant_name, phoneFmt(r.phone), districtName(r.district_code), r.inviter_name ?? "", r.age_group ?? "",
+      r.code, kindLabel(r.kind), r.applicant_name, phoneFmt(r.phone), districtName(r.district_code), r.inviter_name ?? "", r.age_group ?? "",
       attendance(r), r.party_size, ms.map((m) => m.relation ? `${m.name}(${m.relation})` : m.name).join(", "),
       transport(r.transport), run(r.outbound_run_id), run(r.return_run_id), r.vehicle_plate ?? "", r.dietary_note ?? "",
       r.mobility_support ? (r.mobility_note || "예") : "", yes(r.contact_consent),
@@ -81,7 +82,7 @@ export async function GET() {
   const persons = rows.flatMap((r) => {
     const c = checkin.get(r.id);
     const common = [districtName(r.district_code), attendance(r), transport(r.transport), run(r.outbound_run_id), run(r.return_run_id), c ? "확인" : ""];
-    const self = [r.code, r.kind === "host" ? "초청자" : "초대받음(VIP)", r.applicant_name, "본인", r.age_group ?? "", r.dietary_note ?? "", r.applicant_name, phoneFmt(r.phone), ...common];
+    const self = [r.code, r.kind === "guest_self" ? "초대받음(VIP)" : kindLabel(r.kind), r.applicant_name, "본인", r.age_group ?? "", r.dietary_note ?? "", r.applicant_name, phoneFmt(r.phone), ...common];
     const ms = members.filter((m) => m.reservation_id === r.id && m.name?.trim())
       .map((m) => [r.code, "함께 오시는 분(VIP)", m.name, m.relation ?? "", m.age_group ?? "", m.dietary_note ?? "", r.applicant_name, phoneFmt(r.phone), ...common]);
     return [self, ...ms];

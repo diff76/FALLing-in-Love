@@ -151,6 +151,7 @@ img { max-width: 100%; }
 /* hint after the question: same line on desktop, its own line on phones (max-width: 820px, with the stacked form) */
 .legendHint { margin-left: 8px; color: var(--persimmon); font-weight: 700; }
 .modeSwitch.attendance { margin: 0 0 22px; }
+.modeSwitch.kind { grid-template-columns: repeat(3, 1fr); }   /* 제가 초대합니다 · 초대를 받았습니다 · 미래셀입니다 */
 .formNote { margin: 26px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--paper-deep); font-size: 14px; color: var(--ink-soft); }
 .passAlert.ok { background: #E7EFDD; color: #3E5540; }
 .passEdit { width: min(100%, 440px); display: flex; justify-content: center; align-items: center; gap: 8px; padding: 13px 12px; border-radius: 12px; border: 1.5px solid var(--persimmon); color: var(--persimmon); font-weight: 800; font-size: 14px; text-decoration: none; transition: background-color .25s var(--ease), color .25s var(--ease); }
@@ -262,7 +263,7 @@ img { max-width: 100%; }
   .scrollCue { display: none; }
   .dayGrid { grid-template-columns: 1fr; gap: 30px; }
   .formGrid, .guestCard { grid-template-columns: 1fr; }
-  .modeSwitch { grid-template-columns: 1fr; }
+  .modeSwitch, .modeSwitch.kind { grid-template-columns: 1fr; }
   .modeSwitch legend { line-height: 1.4; }
   .legendHint { display: block; margin: 1px 0 0; }   /* tight under the question */
 }

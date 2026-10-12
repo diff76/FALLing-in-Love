@@ -31,7 +31,8 @@ export const reservationMemberSchema = z.object({
 
 export const reservationInputSchema = z
   .object({
-    kind: z.enum(["host", "guest_self"]),
+    /** host = 제가 초대합니다 (인도자, may bring companions) · guest_self = 초대받음 (VIP) · mirae = 미래셀 (district, no companions) */
+    kind: z.enum(["host", "guest_self", "mirae"]),
     /** main = the 13:00–16:00 matinée at Hanshin; worship = one of the services only */
     attendance: z.enum(["main", "worship"]).default("main"),
     worshipService: z.enum(["1", "2", "3"]).optional().or(z.literal("")).transform((v) => v || undefined),
@@ -53,8 +54,11 @@ export const reservationInputSchema = z
     contactConsent: z.boolean().default(false),
   })
   .superRefine((v, ctx) => {
-    if (v.kind === "host" && !v.districtCode) {
+    if ((v.kind === "host" || v.kind === "mirae") && !v.districtCode) {
       ctx.addIssue({ code: "custom", path: ["districtCode"], message: "교구 또는 부서를 선택해 주세요" });
+    }
+    if (v.kind === "mirae" && v.members.length > 0) {
+      ctx.addIssue({ code: "custom", path: ["members"], message: "미래셀 신청은 함께 오시는 분을 추가할 수 없습니다" });
     }
     if (v.kind === "guest_self" && !v.inviterName) {
       ctx.addIssue({ code: "custom", path: ["inviterName"], message: "초대해주신 분의 성함을 적어주세요" });

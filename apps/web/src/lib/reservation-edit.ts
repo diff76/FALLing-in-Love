@@ -11,7 +11,7 @@ import type { Db } from "@fil/supabase";
  * Web edits stop once the party has checked in; staff change things at the desk from then on.
  */
 export type Prefill = {
-  code: string; kind: "host" | "guest_self"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
+  code: string; kind: "host" | "guest_self" | "mirae"; attendance: "main" | "worship"; worshipService: string; worshipSite: string;
   applicantName: string; phone: string; districtCode: string; inviterName: string; ageGroup: string;
   members: { name: string; relation: string; ageGroup: string; dietaryNote: string }[];
   transport: "shuttle" | "car" | "other"; outboundRun: string; returnRun: string; vehiclePlate: string; dietaryNote: string;

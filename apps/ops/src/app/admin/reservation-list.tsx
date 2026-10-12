@@ -6,7 +6,7 @@ import { ReservationAction } from "./reservation-actions";
 
 export type ListRow = {
   id: string; code: string; name: string; phone: string; district: string; inviter: string; attendance: string;
-  party: number; arrived: number | null; transport: string; flags: string; imported: boolean; plate: string; members: string[];
+  party: number; arrived: number | null; transport: string; flags: string; imported: boolean; mirae: boolean; plate: string; members: string[];
 };
 
 const squash = (s: string) => s.toLowerCase().replace(/[\s\-·.]/g, "");
@@ -43,7 +43,7 @@ export function ReservationList({ rows }: { rows: ListRow[] }) {
         <tbody>
           {shown.map(({ r, via }) => (
             <tr key={r.id}><td className="mono">{r.code}</td>
-              <td>{r.name}{r.imported ? <small> 수기</small> : null}{via ? <small className="via"> · 동행 {via}</small> : null}</td>
+              <td>{r.name}{r.mirae ? <small className="mirae"> 미래셀</small> : null}{r.imported ? <small> 수기</small> : null}{via ? <small className="via"> · 동행 {via}</small> : null}</td>
               <td>{r.district}</td><td>{r.attendance}</td>
               <td className="mono">{r.arrived != null ? `${r.arrived} / ${r.party}` : r.party}</td>
               <td>{r.transport}</td><td>{r.flags}</td>

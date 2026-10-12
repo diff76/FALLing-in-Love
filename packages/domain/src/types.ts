@@ -1,5 +1,5 @@
 export type StaffRole = "staff" | "desk" | "admin" | "parking";
-export type ReservationKind = "host" | "guest_self";
+export type ReservationKind = "host" | "guest_self" | "mirae";
 export type TransportKind = "shuttle" | "car" | "other";
 export type CheckinMethod = "qr" | "manual";
 

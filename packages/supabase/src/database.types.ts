@@ -10,7 +10,7 @@ export type StaffRoleRow = { profile_id: string; role: "staff" | "desk" | "admin
 export type ReservationRow = {
   id: string;
   code: string;
-  kind: "host" | "guest_self";
+  kind: "host" | "guest_self" | "mirae";
   applicant_name: string;
   phone: string;
   phone_last4: string;
@@ -59,7 +59,7 @@ export type ParkingBoard = {
 export type PassLookup = {
   code: string;
   applicant_name: string;
-  kind: "host" | "guest_self";
+  kind: "host" | "guest_self" | "mirae";
   inviter_name: string | null;
   district_label: string | null;
   party_size: number;
@@ -82,7 +82,7 @@ export type ReservationSummary = {
   id: string;
   code: string;
   applicant_name: string;
-  kind: "host" | "guest_self";
+  kind: "host" | "guest_self" | "mirae";
   district_code: string | null;
   district_label: string | null;
   party_size: number;
