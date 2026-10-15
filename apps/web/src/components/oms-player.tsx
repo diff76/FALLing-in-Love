@@ -20,11 +20,20 @@ const entranceOf = (step: number) => (step * 3) % ENTRANCES;
 /** In-app browsers (KakaoTalk, Naver, Instagram…) often stop audio when the app goes to the background. */
 const IN_APP = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i;
 const noop = () => () => {};
+const SHUFFLE_KEY = "fil.oms.shuffle";
+/** A random order of 0…n−1 (Fisher–Yates) that does not start with `avoid`, so a new round never repeats the last photo. */
+function shuffled(n: number, avoid = -1): number[] {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  if (n > 1 && a[0] === avoid) [a[0], a[1]] = [a[1], a[0]];
+  return a;
+}
+const inOrder = (n: number) => Array.from({ length: n }, (_, i) => i);
 
 /**
  * OMS Player (One More Song Player): the day's playlist with prev/next/play/pause, repeat
  * (all · one · off), a seekable progress bar, volume, the full track list, and a photo slideshow
- * with varied Ken Burns moves and entrances (switch on · off, pause). Off shows the record with the site lockup,
+ * with varied Ken Burns moves and entrances (switch on · off, pause, in order or shuffled — remembered per device). Off shows the record with the site lockup,
  * turning at 33⅓ only while music plays (it halts where it is on pause and carries on from there).
  * Fullscreen uses the Fullscreen API, or a fixed overlay where it is unavailable (iPhone).
  * The sound itself (and background / lock-screen play) lives in <OmsAudioProvider> in the
@@ -35,8 +44,11 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   const shell = useRef<HTMLDivElement>(null);
   const [showList, setShowList] = useState(false);
   const [slides, setSlides] = useState<Slides>(photos.length ? "play" : "stop");
-  // prev stays underneath (still moving) while the next photo makes its entrance over it
-  const [{ slide, prev: prevSlide, step }, setShow] = useState({ slide: 0, prev: -1, step: 0 });
+  // prev stays underneath (still moving) while the next photo makes its entrance over it.
+  // order = the photo indexes of this round (in order, or shuffled); pos = where in it we are.
+  const [random, setRandom] = useState(false);
+  const [{ order, pos, prev: prevSlide, step }, setShow] = useState({ order: inOrder(photos.length), pos: 0, prev: -1, step: 0 });
+  const slide = order.at(pos) ?? 0;
   const stage = useRef<HTMLDivElement>(null);
   const [full, setFull] = useState<"off" | "native" | "overlay">("off");
   const inApp = useSyncExternalStore(noop, () => IN_APP.test(navigator.userAgent), () => false);
@@ -44,9 +56,27 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   // ---- slideshow ----
   useEffect(() => {
     if (slides !== "play" || photos.length < 2) return;
-    const t = setInterval(() => setShow((s) => ({ slide: (s.slide + 1) % photos.length, prev: s.slide, step: s.step + 1 })), SLIDE_MS);
+    const t = setInterval(() => setShow((s) => {
+      const cur = s.order.at(s.pos) ?? 0;
+      if (s.pos + 1 < s.order.length) return { ...s, pos: s.pos + 1, prev: cur, step: s.step + 1 };
+      // end of the round: shuffle afresh (never starting on the photo just shown), or start over in order
+      return { order: random ? shuffled(photos.length, cur) : inOrder(photos.length), pos: 0, prev: cur, step: s.step + 1 };
+    }), SLIDE_MS);
     return () => clearInterval(t);
-  }, [slides, photos.length]);
+  }, [slides, photos.length, random]);
+  // the choice is remembered on this device
+  useEffect(() => { try { if (localStorage.getItem(SHUFFLE_KEY) === "1") setRandom(true); } catch { /* storage blocked */ } }, []);
+  // switching mode keeps the photo on screen and builds the rest of the round from it
+  useEffect(() => {
+    setShow((s) => {
+      const cur = s.order.at(s.pos) ?? 0;
+      if (!random) return { ...s, order: inOrder(photos.length), pos: Math.min(cur, Math.max(0, photos.length - 1)) };
+      const rest = shuffled(photos.length).filter((i) => i !== cur);
+      return { ...s, order: [cur, ...rest], pos: 0 };
+    });
+  }, [random, photos.length]);
+  const toggleRandom = () => { const v = !random; setRandom(v); try { localStorage.setItem(SHUFFLE_KEY, v ? "1" : "0"); } catch { /* storage blocked */ } };
+  const upcoming = order.at(pos + 1) ?? (random ? -1 : 0);
 
   // ---- fullscreen ----
   useEffect(() => {
@@ -86,11 +116,11 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
           </div>
         ) : photos.map((p, i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={p.key} src={p.url} alt="" className={i === slide ? `on m${moveOf(step)} e${entranceOf(step)}` : i === prevSlide ? `prev m${moveOf(step - 1)}` : ""} loading={i === slide || i === (slide + 1) % photos.length ? "eager" : "lazy"} />
+          <img key={p.key} src={p.url} alt="" className={i === slide ? `on m${moveOf(step)} e${entranceOf(step)}` : i === prevSlide ? `prev m${moveOf(step - 1)}` : ""} loading={i === slide || i === upcoming ? "eager" : "lazy"} />
         ))}
         <div className="omsSlideCtl" role="group" aria-label="사진 슬라이드쇼">
           <button type="button" role="switch" aria-checked={!stopped} className="omsSlideSwitch" disabled={!photos.length}
-            onClick={() => { if (stopped) { setShow({ slide: 0, prev: -1, step: 0 }); setSlides("play"); } else setSlides("stop"); }}
+            onClick={() => { if (stopped) { setShow({ order: random ? shuffled(photos.length) : inOrder(photos.length), pos: 0, prev: -1, step: 0 }); setSlides("play"); } else setSlides("stop"); }}
             title={stopped ? "사진 슬라이드쇼 켜기" : "슬라이드쇼 끄고 LP 보기"}>
             <i aria-hidden="true" /><span>슬라이드쇼 {stopped ? "OFF" : "ON"}</span>
           </button>
@@ -99,7 +129,12 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
               <Icon d={slides === "pause" ? I.play : I.pause} />
             </button>
           )}
-          <span className="omsSlideLabel"><Icon d={I.photo} /> {photos.length ? (stopped ? `${photos.length}장` : `${slide + 1} / ${photos.length}`) : "사진 준비 중"}</span>
+          {!stopped && photos.length > 1 && (
+            <button type="button" aria-pressed={random} onClick={toggleRandom} aria-label={random ? "무작위 재생 끄기 (순서대로)" : "무작위 재생 켜기"} title={random ? "무작위 재생 중 · 누르면 순서대로" : "순서대로 재생 중 · 누르면 무작위"}>
+              <Icon d={I.shuffle} />
+            </button>
+          )}
+          <span className="omsSlideLabel"><Icon d={I.photo} /> {photos.length ? (stopped ? `${photos.length}장` : random ? `무작위 ${pos + 1} / ${photos.length}` : `${slide + 1} / ${photos.length}`) : "사진 준비 중"}</span>
         </div>
         <button type="button" className="omsFullBtn" onClick={toggleFull} title={full === "off" ? "전체 화면" : "전체 화면 끝내기"} aria-label={full === "off" ? "전체 화면" : "전체 화면 끝내기"}><Icon d={full === "off" ? I.full : I.exit} /></button>
       </div>
