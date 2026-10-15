@@ -77,6 +77,10 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
   }, [random, photos.length]);
   const toggleRandom = () => { const v = !random; setRandom(v); try { localStorage.setItem(SHUFFLE_KEY, v ? "1" : "0"); } catch { /* storage blocked */ } };
   const upcoming = order.at(pos + 1) ?? (random ? -1 : 0);
+  // Only the photo on screen, the one fading out under it and the next one (preloading, invisible) are in the page.
+  // Mounting all of them made phones decode every photo at once (160 × up to 2400×1600) and crashed mobile Chrome.
+  // Kept in index order, so the two that stay never move in the DOM (a moved <img> would restart its animation).
+  const mounted = [...new Set([prevSlide, slide, upcoming])].filter((i) => i >= 0 && i < photos.length).sort((a, b) => a - b);
 
   // ---- fullscreen ----
   useEffect(() => {
@@ -114,9 +118,9 @@ export function OmsPlayer({ photos }: { photos: PlayerPhoto[] }) {
             <Vinyl spinning className="omsStageVinyl" />
             <span className="omsLockup"><span className="fall">FALL</span>ing <em>in</em> Love</span>
           </div>
-        ) : photos.map((p, i) => (
+        ) : mounted.map((i) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={p.key} src={p.url} alt="" className={i === slide ? `on m${moveOf(step)} e${entranceOf(step)}` : i === prevSlide ? `prev m${moveOf(step - 1)}` : ""} loading={i === slide || i === upcoming ? "eager" : "lazy"} />
+          <img key={photos[i].key} src={photos[i].url} alt="" decoding="async" className={i === slide ? `on m${moveOf(step)} e${entranceOf(step)}` : i === prevSlide ? `prev m${moveOf(step - 1)}` : ""} />
         ))}
         <div className="omsSlideCtl" role="group" aria-label="사진 슬라이드쇼">
           <button type="button" role="switch" aria-checked={!stopped} className="omsSlideSwitch" disabled={!photos.length}
