@@ -1,6 +1,6 @@
 // Server only (service-role key). Import from route handlers and server components, never from "use client" files.
 import { districtName, eventConfig } from "@fil/config";
-import { hashPassToken, LETTER_AUDIENCES, LETTER_MAX_CHARS, LETTER_MAX_PHOTOS, LETTER_TOKEN_PATTERN, letterPhotoPrefix, parseLetterCode, type LetterAudience } from "@fil/domain";
+import { hashPassToken, LETTER_AUDIENCES, LETTER_MAX_CHARS, LETTER_MAX_PHOTOS, LETTER_TOKEN_PATTERN, letterPhotoPrefix, parseLetterCode, type LetterAudience, type LetterKind } from "@fil/domain";
 import { createAdminSupabaseClient, isSupabaseAdminConfigured, listOms, OMS_BUCKET, type OmsTrack } from "@fil/supabase";
 
 /** Thank-you letters (migrations 0013, 0014): one per district × audience, read and written only on the server. */
@@ -8,7 +8,7 @@ export const DISTRICT_CODES = eventConfig.districts.map(([c]) => c);
 export type LetterPhoto = { key: string; url: string };
 export type LetterText = { body: string; signer: string; updatedAt: string | null; photos: LetterPhoto[] };
 export type LetterPageData = {
-  district: string; districtLabel: string; audience: LetterAudience;
+  district: string; districtLabel: string; audience: LetterKind;
   letter: LetterText; tracks: OmsTrack[]; numbers: { people: number; vip: number; photos: number };
 };
 
@@ -19,14 +19,14 @@ const editors = () => db().from("letter_editors" as never);
 const bucket = () => db().storage.from(OMS_BUCKET);
 
 /** The photos attached to one letter, oldest first (their names start with the upload time). */
-export async function letterPhotos(district: string, a: LetterAudience): Promise<LetterPhoto[]> {
+export async function letterPhotos(district: string, a: LetterKind): Promise<LetterPhoto[]> {
   const prefix = letterPhotoPrefix(district, a);
   const { data } = await bucket().list(prefix.slice(0, -1), { limit: 50, sortBy: { column: "name", order: "asc" } });
   return (data ?? []).filter((f) => f.id && /\.(jpe?g|png|webp)$/i.test(f.name))
     .map((f) => ({ key: prefix + f.name, url: bucket().getPublicUrl(prefix + f.name).data.publicUrl }));
 }
 
-async function readLetter(district: string, a: LetterAudience): Promise<LetterText | null> {
+async function readLetter(district: string, a: LetterKind): Promise<LetterText | null> {
   const [{ data }, photos] = await Promise.all([
     letters().select("body, signer, updated_at").eq("district_code", district).eq("kind", a).maybeSingle(),
     letterPhotos(district, a),
@@ -41,7 +41,7 @@ export async function loadLetterPage(code: string): Promise<LetterPageData | nul
   if (!hit || !isSupabaseAdminConfigured()) return null;
   const [letter, oms, people] = await Promise.all([readLetter(hit.district, hit.audience), listOms().catch(() => ({ tracks: [], photos: [] })), countPeople()]);
   if (!letter?.body.trim()) return null;
-  return { district: hit.district, districtLabel: districtName(hit.district), audience: hit.audience, letter, tracks: oms.tracks, numbers: { ...people, photos: oms.photos.length } };
+  return { district: hit.district, districtLabel: hit.audience === "staff" ? "STAFF" : districtName(hit.district), audience: hit.audience, letter, tracks: oms.tracks, numbers: { ...people, photos: oms.photos.length } };
 }
 
 /** Everyone who signed up (active), and how many of them were VIP (self-registered guests + companions). */
@@ -83,7 +83,7 @@ export async function saveDistrictLetters(district: string, input: LetterDraft, 
 
 // ---------- photos ----------
 /** A one-time upload address for one more photo on a letter (the browser shrinks it to a JPEG first). */
-export async function photoUploadTicket(district: string, a: LetterAudience): Promise<{ key: string; signedUrl: string }> {
+export async function photoUploadTicket(district: string, a: LetterKind): Promise<{ key: string; signedUrl: string }> {
   const have = await letterPhotos(district, a);
   if (have.length >= LETTER_MAX_PHOTOS) throw new Error(`사진은 편지마다 ${LETTER_MAX_PHOTOS}장까지 붙일 수 있습니다.`);
   const key = `${letterPhotoPrefix(district, a)}${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
@@ -94,7 +94,7 @@ export async function photoUploadTicket(district: string, a: LetterAudience): Pr
 
 /** Remove one photo; the key must sit under this district's letters. */
 export async function removeLetterPhoto(district: string, key: string) {
-  if (!key.startsWith(`letters/${district}/`) || !/^letters\/[A-Za-z0-9]+\/(vip|leader|mirae|member)\/[\w.-]+$/.test(key)) throw new Error("잘못된 사진입니다.");
+  if (!key.startsWith(`letters/${district}/`) || !/^letters\/[A-Za-z0-9]+\/(vip|leader|mirae|member|staff)\/[\w.-]+$/.test(key)) throw new Error("잘못된 사진입니다.");
   const { error } = await bucket().remove([key]);
   if (error) throw new Error(error.message);
 }

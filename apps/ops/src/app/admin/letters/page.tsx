@@ -3,6 +3,7 @@ import { OpsShell } from "@/components/ops-shell";
 import { isSupabaseAdminConfigured } from "@fil/supabase";
 import { loadLetterOverview, WEB_ORIGIN } from "./data";
 import { LettersConsole } from "./letters-console";
+import { StaffLetterBox } from "./staff-letter";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export default async function LettersPage() {
             </ol>
             {data.noDistrict > 0 && <p className="tiny warn">교구/부서가 없는 신청 {data.noDistrict}건은 받을 편지가 정해지지 않아 발송용 엑셀에 링크가 비어 있습니다. 관리자 명단에서 교구를 채워 주세요.</p>}
           </section>
+          <StaffLetterBox initial={data.staff} />
           <LettersConsole districts={data.districts} webOrigin={WEB_ORIGIN} />
         </>
       )}

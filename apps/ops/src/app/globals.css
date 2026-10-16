@@ -555,3 +555,11 @@ small.mirae { color: var(--olive); font-weight: 700; }
 .ltEdit label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
 .ltEdit input, .ltEdit textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.16); background: #fff; color: #1F1A16; font: inherit; font-size: 15px; font-weight: 400; line-height: 1.7; }
 @media (max-width: 420px) { .ltCards { grid-template-columns: minmax(0, 1fr); } }
+/* admin: the STAFF letter */
+.ltStaffTop { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-bottom: 10px; }
+.ltStaffTop .miniBtn { text-decoration: none; }
+.ltStaffPhotos { display: grid; gap: 6px; }
+.ltStaffPhotos figure { position: relative; margin: 0; }
+.ltStaffPhotos figure button { position: absolute; top: 4px; right: 4px; width: 26px; height: 26px; border: 0; border-radius: 50%; background: rgba(26, 20, 16, .7); color: #fff; font-size: 12px; cursor: pointer; }
+.ltAddPhoto { position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 8px; border: 1.5px dashed rgba(0, 0, 0, .25); font-size: 12.5px; font-weight: 700; text-align: center; padding: 4px; cursor: pointer; }
+.ltAddPhoto input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }

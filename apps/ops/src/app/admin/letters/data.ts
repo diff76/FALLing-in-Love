@@ -1,6 +1,6 @@
 // Server only (service-role key): import from server components, route handlers and server actions.
 import { eventConfig } from "@fil/config";
-import { LETTER_AUDIENCES, letterAudienceOf, letterCode, letterPhotoPrefix, linkedHostNames, type LetterAudience } from "@fil/domain";
+import { LETTER_AUDIENCES, letterAudienceOf, letterCode, letterPhotoPrefix, linkedHostNames, STAFF_LETTER, type LetterAudience, type LetterKind } from "@fil/domain";
 import { createAdminSupabaseClient, OMS_BUCKET } from "@fil/supabase";
 
 /** The thank-you letters live on the web site; ops builds the links and the sending list against it. */
@@ -14,6 +14,7 @@ export type DistrictLetters = {
   letters: Record<LetterAudience, LetterRow | null>; photos: Record<LetterAudience, string[]>;
   counts: Record<LetterAudience, number>; editors: EditorLink[];
 };
+export type StaffLetter = { body: string; signer: string; updatedAt: string | null; photos: { key: string; url: string }[]; url: string };
 export type Recipient = { name: string; phone: string; district: string | null; audience: LetterAudience; companions: number };
 
 // The tables arrive with migration 0013, after the generated types — address them untyped.
@@ -28,6 +29,14 @@ export async function loadRecipients(): Promise<Recipient[]> {
   return rows.map((r) => ({ name: r.applicant_name, phone: r.phone, district: r.district_code, audience: letterAudienceOf(r, linked), companions: r.kind === "mirae" ? 0 : r.party_size - 1 }));
 }
 
+/** The photos of one letter folder (letters/<district>/<kind>/), oldest first. */
+export async function listLetterPhotos(district: string, kind: LetterKind): Promise<{ key: string; url: string }[]> {
+  const bucket = createAdminSupabaseClient().storage.from(OMS_BUCKET);
+  const prefix = letterPhotoPrefix(district, kind);
+  const { data } = await bucket.list(prefix.slice(0, -1), { limit: 50, sortBy: { column: "name", order: "asc" } });
+  return (data ?? []).filter((f) => f.id).map((f) => ({ key: prefix + f.name, url: bucket.getPublicUrl(prefix + f.name).data.publicUrl }));
+}
+
 /** Photo URLs under letters/<district>/ — one listing per letter folder. */
 async function loadPhotos(district: string): Promise<Record<LetterAudience, string[]>> {
   const bucket = createAdminSupabaseClient().storage.from(OMS_BUCKET);
@@ -39,7 +48,7 @@ async function loadPhotos(district: string): Promise<Record<LetterAudience, stri
   return Object.fromEntries(LETTER_AUDIENCES.map((a, i) => [a, lists[i]])) as Record<LetterAudience, string[]>;
 }
 
-export async function loadLetterOverview(): Promise<{ districts: DistrictLetters[]; noDistrict: number; tablesMissing: boolean; oldKinds: boolean }> {
+export async function loadLetterOverview(): Promise<{ districts: DistrictLetters[]; staff: StaffLetter; noDistrict: number; tablesMissing: boolean; oldKinds: boolean }> {
   const [lettersRes, editorsRes, recipients] = await Promise.all([
     tbl("letters").select("district_code, kind, body, signer, updated_at, updated_via"),
     tbl("letter_editors").select("id, district_code, label, created_at, last_used_at, revoked_at").order("created_at", { ascending: false }),
@@ -61,5 +70,10 @@ export async function loadLetterOverview(): Promise<{ districts: DistrictLetters
       editors: editors.filter((e) => e.district_code === code).map((e) => ({ id: e.id, label: e.label, createdAt: e.created_at, lastUsedAt: e.last_used_at, revokedAt: e.revoked_at })),
     };
   });
-  return { districts, noDistrict: recipients.filter((r) => !r.district).length, tablesMissing, oldKinds: rows.some((r) => r.kind === "one" || r.kind === "two") };
+  const staffRow = rows.find((r) => r.district_code === STAFF_LETTER.district && r.kind === STAFF_LETTER.kind);
+  const staff: StaffLetter = {
+    body: staffRow?.body ?? "", signer: staffRow?.signer ?? "", updatedAt: staffRow?.updated_at ?? null,
+    photos: await listLetterPhotos(STAFF_LETTER.district, STAFF_LETTER.kind), url: `${WEB_ORIGIN}/letter/${STAFF_LETTER.code}`,
+  };
+  return { districts, staff, noDistrict: recipients.filter((r) => !r.district).length, tablesMissing, oldKinds: rows.some((r) => r.kind === "one" || r.kind === "two") };
 }
