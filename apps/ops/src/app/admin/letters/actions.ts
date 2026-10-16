@@ -1,7 +1,7 @@
 "use server";
 
 import { eventConfig } from "@fil/config";
-import { generatePassToken, hashPassToken } from "@fil/domain";
+import { generatePassToken, hashPassToken, LETTER_AUDIENCES, LETTER_MAX_CHARS, type LetterAudience } from "@fil/domain";
 import { createAdminSupabaseClient, isSupabaseAdminConfigured } from "@fil/supabase";
 import { getSession } from "@/lib/auth";
 import { WEB_ORIGIN } from "./data";
@@ -40,14 +40,14 @@ export async function revokeEditorLink(id: string): Promise<Result<void>> {
   });
 }
 
-/** An admin writes or fixes a district's letters directly (same fields as the pastor's page). */
-export async function saveLettersAsAdmin(district: string, input: { one: string; two: string; signer: string }): Promise<Result<void>> {
+/** An admin writes or fixes a district's four letters directly (same fields as the pastor's page). */
+export async function saveLettersAsAdmin(district: string, input: Record<LetterAudience, string> & { signer: string }): Promise<Result<void>> {
   return attempt(async () => {
     const db = await adminDb(); knownDistrict(district);
     const clean = (s: string, max: number) => String(s ?? "").replace(/\r\n/g, "\n").trim().slice(0, max);
     const now = new Date().toISOString(), signer = clean(input.signer, 40);
-    const rows = (["one", "two"] as const).map((kind) => ({ district_code: district, kind, body: clean(input[kind], 2000), signer, updated_at: now, updated_via: "admin" }));
+    const rows = LETTER_AUDIENCES.map((kind) => ({ district_code: district, kind, body: clean(input[kind], LETTER_MAX_CHARS), signer, updated_at: now, updated_via: "admin" }));
     const { error } = await db.from("letters" as never).upsert(rows as never);
-    if (error) throw new Error(missingTables(error.message));
+    if (error) throw new Error(/check/.test(error.message) ? "편지 종류를 4가지로 나누는 DB 설정이 아직 없습니다 — 0014 SQL을 먼저 실행해 주세요." : missingTables(error.message));
   });
 }

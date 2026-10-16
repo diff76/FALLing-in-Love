@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { districtName } from "@fil/config";
-import { LETTER_AUDIENCE_LABEL, LETTER_AUDIENCES, letterKindOf } from "@fil/domain";
+import { LETTER_AUDIENCE_LABEL, LETTER_AUDIENCES, type LetterAudience } from "@fil/domain";
 import { getSession } from "@/lib/auth";
 import { letterUrl, loadLetterOverview, loadRecipients } from "../data";
 
@@ -18,16 +18,16 @@ export async function GET() {
   let overview, recipients;
   try { [overview, recipients] = await Promise.all([loadLetterOverview(), loadRecipients()]); }
   catch (e) { return new Response(`명단을 읽지 못했습니다: ${(e as Error).message}`, { status: 500 }); }
-  const ready = (district: string, kind: "one" | "two") => !!overview.districts.find((d) => d.code === district)?.[kind]?.body.trim();
+  const ready = (district: string, a: LetterAudience) => !!overview.districts.find((d) => d.code === district)?.letters[a]?.body.trim();
 
   const head = ["성함", "연락처", "교구/부서", "받는 편지", "편지 준비", "받을 링크", "함께 오신 분(연락처 없음)", "문자 문구"];
   const body = recipients.map((r) => {
     if (!r.district) return [r.name, phoneFmt(r.phone), "교구 확인 필요", LETTER_AUDIENCE_LABEL[r.audience], "교구를 먼저 정해 주세요", "", r.companions || "", ""];
-    const label = districtName(r.district), url = letterUrl(r.district, r.audience), ok = ready(r.district, letterKindOf(r.audience));
+    const label = districtName(r.district), url = letterUrl(r.district, r.audience), ok = ready(r.district, r.audience);
     const text = `[창동염광교회] ${r.name} 님, FALLing in Love에 함께해 주셔서 고맙습니다. ${label} 교구장 목사님의 편지가 도착했어요.${r.audience === "leader" ? " 함께 오신 분께도 편지를 전해 주세요." : ""}\n${url}`;
     return [r.name, phoneFmt(r.phone), label, LETTER_AUDIENCE_LABEL[r.audience], ok ? "준비됨" : "작성 전", url, r.audience === "leader" ? r.companions : "", text];
   });
-  const links = overview.districts.flatMap((d) => LETTER_AUDIENCES.map((a) => [d.label, LETTER_AUDIENCE_LABEL[a], a === "member" ? "②" : "①", d.counts[a], ready(d.code, letterKindOf(a)) ? "준비됨" : "작성 전", letterUrl(d.code, a)]));
+  const links = overview.districts.flatMap((d) => LETTER_AUDIENCES.map((a) => [d.label, LETTER_AUDIENCE_LABEL[a], d.counts[a], ready(d.code, a) ? "준비됨" : "작성 전", d.photos[a].length, letterUrl(d.code, a)]));
 
   const sheet = (rows: unknown[][], widths: number[]) => {
     const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -37,7 +37,7 @@ export async function GET() {
   };
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, sheet([head, ...body], [10, 14, 11, 18, 10, 40, 12, 70]), "발송 명단");
-  XLSX.utils.book_append_sheet(wb, sheet([["교구/부서", "받는 사람", "편지", "인원", "편지 준비", "링크"], ...links], [11, 18, 6, 6, 10, 42]), "편지 링크");
+  XLSX.utils.book_append_sheet(wb, sheet([["교구/부서", "받는 사람", "인원", "편지 준비", "사진", "링크"], ...links], [11, 18, 6, 10, 6, 42]), "편지 링크");
   const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" }) as Buffer;
   const stamp = new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16).replace(/[-: ]/g, "").replace(/^(\d{8})/, "$1-");
   return new Response(new Uint8Array(buf), {

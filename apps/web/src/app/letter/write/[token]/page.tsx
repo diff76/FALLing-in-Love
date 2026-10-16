@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { districtName } from "@fil/config";
-import { LETTER_AUDIENCES, letterAudienceOf, letterCode, linkedHostNames, type LetterAudience } from "@fil/domain";
+import { LETTER_AUDIENCES, letterAudienceOf, letterCode, letterGreeting, linkedHostNames, type LetterAudience } from "@fil/domain";
 import { createAdminSupabaseClient } from "@fil/supabase";
 import { BrandLink } from "@/components/brand-link";
 import { LetterEditor } from "@/components/letter-editor";
@@ -9,7 +9,7 @@ import { districtForEditorToken, loadDistrictLetters } from "@/lib/letters";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "감사 편지 쓰기", robots: { index: false, follow: false } };
 
-/** A district pastor's link: write the two thank-you letters of that district (and only that district). */
+/** A district pastor's link: write the four thank-you letters of that district (and only that district), with photos. */
 export default async function LetterWritePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const district = await districtForEditorToken(token);
@@ -29,11 +29,14 @@ export default async function LetterWritePage({ params }: { params: Promise<{ to
       <section className="formIntro">
         <p className="eyebrow">Thank-you letter</p>
         <h1>{label} 감사 편지</h1>
-        <p className="lede">행사에 함께한 {label} 분들께 보낼 편지 두 편을 써 주세요. 받는 분이 링크를 열면 봉투가 열리고, 목사님 글과 그날의 노래(The One More Song)가 함께 나옵니다.</p>
+        <p className="lede">행사에 함께한 {label} 분들께 보낼 편지를 받는 분에 따라 네 편(VIP · 인도자 · 미래셀 · 일반 성도)으로 써 주세요. 편지마다 사진을 붙일 수 있습니다. 받는 분이 링크를 열면 봉투가 열리고, 목사님 글과 그날의 노래(The One More Song)가 함께 나옵니다.</p>
       </section>
       <section className="formPanel">
-        <LetterEditor token={token} districtLabel={label} initial={{ one: letters.one.body, two: letters.two.body, signer: letters.one.signer || letters.two.signer }}
-          savedAt={letters.one.updatedAt ?? letters.two.updatedAt} counts={counts}
+        <LetterEditor token={token} districtLabel={label}
+          initial={{ ...(Object.fromEntries(LETTER_AUDIENCES.map((a) => [a, letters[a].body])) as Record<LetterAudience, string>), signer: LETTER_AUDIENCES.map((a) => letters[a].signer).find(Boolean) ?? "" }}
+          photos={Object.fromEntries(LETTER_AUDIENCES.map((a) => [a, letters[a].photos])) as Record<LetterAudience, { key: string; url: string }[]>}
+          savedAt={LETTER_AUDIENCES.map((a) => letters[a].updatedAt).filter(Boolean).sort().at(-1) ?? null} counts={counts}
+          greetings={Object.fromEntries(LETTER_AUDIENCES.map((a) => [a, letterGreeting(a, label).to])) as Record<LetterAudience, string>}
           links={Object.fromEntries(LETTER_AUDIENCES.map((a) => [a, `/letter/${letterCode(district, a)}`])) as Record<LetterAudience, string>} />
       </section>
     </main>

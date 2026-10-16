@@ -7,7 +7,7 @@ import { I, Icon } from "./oms-audio";
 
 type Track = { url: string; title: string; artist: string };
 type Props = {
-  envelope: string; to: string; districtLabel: string; paragraphs: string[]; signer: string;
+  envelope: string; to: string; districtLabel: string; paragraphs: string[]; signer: string; photos: string[];
   tracks: Track[]; numbers: { people: number; vip: number; photos: number }; forwardPath: string | null;
 };
 
@@ -19,7 +19,8 @@ const LEAF_COLORS = ["var(--persimmon)", "var(--amber)", "var(--paper-warm)", "v
  * page play sound after a tap. The letter then rises line by line: greeting, the district pastor's text,
  * a small One More Song player (the full page is one tap away), the day in numbers and a closing line.
  */
-export function LetterView({ envelope, to, districtLabel, paragraphs, signer, tracks, numbers, forwardPath }: Props) {
+export function LetterView({ envelope, to, districtLabel, paragraphs, signer, photos, tracks, numbers, forwardPath }: Props) {
+  const [zoom, setZoom] = useState<string | null>(null);
   const [stage, setStage] = useState<"sealed" | "opening" | "open">("sealed");
   const [idx, setIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -86,8 +87,18 @@ export function LetterView({ envelope, to, districtLabel, paragraphs, signer, tr
         <p className="ltTo">{to}</p>
         <section className="ltNote" aria-label="교구장 목사님 편지">
           {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
-          <p className="ltSign">2026년 10월<br />{districtLabel} 교구장 <b>{signer ? `${signer} 목사` : "목사"}</b></p>
+          <p className="ltSign">2026년 10월<br />{districtLabel} 교구장 <b>{signer ? `${signer} 목사` : "목사"}</b> 올림</p>
         </section>
+        {photos.length > 0 && (
+          <section className={`ltPhotos n${Math.min(photos.length, 3)}`} aria-label="함께 보내는 사진">
+            {photos.map((src, i) => (
+              <button key={src} type="button" onClick={() => setZoom(src)} aria-label={`사진 ${i + 1} 크게 보기`}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" loading="lazy" decoding="async" />
+              </button>
+            ))}
+          </section>
+        )}
 
         <section className={`ltOms ${playing ? "playing" : ""}`} aria-label="The One More Song">
           <div className="ltOmsStage"><small>THE ONE MORE SONG</small><Vinyl spinning={playing} className="ltVinyl" /></div>
@@ -136,6 +147,13 @@ export function LetterView({ envelope, to, districtLabel, paragraphs, signer, tr
             <div className="ltSeal" aria-hidden="true"><span>F</span><span>F</span></div>
           </div>
           <p className="ltHint">봉투를 눌러 편지를 열어 보세요<br /><small>소리가 함께 나옵니다</small></p>
+        </div>
+      )}
+      {zoom && (
+        <div className="ltZoom" role="dialog" aria-label="사진" onClick={() => setZoom(null)}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={zoom} alt="" />
+          <button type="button" aria-label="닫기">✕</button>
         </div>
       )}
       {leaves.length > 0 && (

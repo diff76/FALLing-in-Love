@@ -1,13 +1,14 @@
 /**
- * Thank-you letters after the event (migration 0013). One link per district × audience:
+ * Thank-you letters after the event (migrations 0013, 0014). One link per district × audience:
  * /letter/<district code in lower case>-<audience>, e.g. /letter/23-vip, /letter/ed-member.
- * The district pastor writes two letters: "one" for VIP · 인도자 · 미래셀, "two" for 일반 성도.
+ * The district pastor writes one letter per audience (four per district), each with up to a few photos.
  */
 export const LETTER_AUDIENCES = ["vip", "leader", "mirae", "member"] as const;
 export type LetterAudience = (typeof LETTER_AUDIENCES)[number];
-export type LetterKind = "one" | "two";
-
-export const letterKindOf = (a: LetterAudience): LetterKind => (a === "member" ? "two" : "one");
+export const LETTER_MAX_CHARS = 3000;
+export const LETTER_MAX_PHOTOS = 6;
+/** Photos of a letter live in the public "oms" bucket under letters/<district>/<audience>/. */
+export const letterPhotoPrefix = (district: string, a: LetterAudience) => `letters/${district}/${a}/`;
 
 export const LETTER_AUDIENCE_LABEL: Record<LetterAudience, string> = {
   vip: "VIP · 초대받은 분", leader: "인도자 · 초청자", mirae: "미래셀", member: "일반 성도 · 혼자 신청",

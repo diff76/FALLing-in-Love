@@ -535,14 +535,23 @@ small.mirae { color: var(--olive); font-weight: 700; }
 .ltCard { display: grid; gap: 10px; align-content: start; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); min-width: 0; }
 .ltCard.empty { opacity: .7; }
 .ltCard header { display: grid; gap: 2px; } .ltCard header b { font-size: 17px; }
-.ltStatus { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.ltLinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.ltLink { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px 6px 12px; border-radius: 10px; border: 1px solid var(--line); min-width: 0; }
-.ltLink a { font-weight: 700; font-size: 14px; }
-.ltLink.off { opacity: .55; }
+.ltGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.ltAud { display: grid; gap: 4px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); min-width: 0; }
+.ltAud.ok { border-color: rgba(108, 138, 80, .6); background: rgba(108, 138, 80, .08); }
+.ltAud.todo { border-color: rgba(190, 86, 55, .45); }
+.ltAud.none { opacity: .55; }
+.ltAudTop { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; } .ltAudTop b { font-size: 14px; } .ltAudTop small { font-size: 12px; color: var(--ink-soft); }
+.ltAudState { font-size: 12px; color: var(--ink-soft); } .ltAud.ok .ltAudState { color: var(--olive); font-weight: 700; } .ltAud.todo .ltAudState { color: var(--brick); font-weight: 700; }
+.ltAud .miniBtn { text-decoration: none; }
+.ltRead { display: grid; gap: 8px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, .03); }
+.ltRead .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.ltRead .miniBtn[aria-pressed="true"] { background: #2E251C; color: #FCF8F0; border-color: #2E251C; }
+.ltReadBody { white-space: pre-wrap; font-size: 14.5px; line-height: 1.85; max-height: 340px; overflow: auto; padding: 4px 2px; }
+.ltReadPhotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 6px; }
+.ltReadPhotos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
 .ltEditors { display: grid; gap: 6px; }
 .ltEditors .rowAct { flex-wrap: wrap; }
 .ltEdit { display: grid; gap: 8px; }
 .ltEdit label { display: grid; gap: 4px; font-size: 13px; font-weight: 700; }
 .ltEdit input, .ltEdit textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,.16); background: #fff; color: #1F1A16; font: inherit; font-size: 15px; font-weight: 400; line-height: 1.7; }
-@media (max-width: 420px) { .ltCards { grid-template-columns: minmax(0, 1fr); } .ltLinks { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 420px) { .ltCards { grid-template-columns: minmax(0, 1fr); } }

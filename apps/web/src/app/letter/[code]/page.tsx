@@ -31,6 +31,7 @@ export default async function LetterPage({ params }: Props) {
       envelope={g.envelope} to={g.to} districtLabel={d.districtLabel}
       paragraphs={d.letter.body.split(/\n\s*\n|\n/).map((p) => p.trim()).filter(Boolean)}
       signer={d.letter.signer}
+      photos={d.letter.photos.map((p) => p.url)}
       tracks={d.tracks.map((t) => ({ url: t.url, title: t.title, artist: t.artist }))}
       numbers={d.numbers}
       // 인도자: pass the VIP letter of the same district on to the companions (they gave no phone number)
