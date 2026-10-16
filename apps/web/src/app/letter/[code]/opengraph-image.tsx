@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
-// The link preview in KakaoTalk / Messages: a sealed envelope on autumn paper (Latin text only, so no font file is needed).
+// The link preview in KakaoTalk / Messages: a sealed envelope on autumn paper, with the site lockup in the same fonts as
+// the letter page (Syne for FALLing · Love, Fraunces italic for "in"), fetched from Google Fonts for just these letters.
 export const alt = "A letter has arrived · FALLing in Love";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -20,19 +21,44 @@ const ENVELOPE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 330">
   <text x="280" y="219" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="38" fill="#F6D9C8">F</text>
 </svg>`;
 
+/** One weight of a Google font, cut down to `text`, as TrueType (what the image renderer reads); null if unreachable. */
+async function googleFont(family: string, axes: string, text: string): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${family}:${axes}&text=${encodeURIComponent(text)}`)).text();
+    const url = css.match(/src: url\((.+?)\) format\('(?:opentype|truetype)'\)/)?.[1];
+    return url ? await (await fetch(url)).arrayBuffer() : null;
+  } catch { return null; }
+}
+
 export default async function Image() {
+  const [syne800, syne600, frauncesItalic, label] = await Promise.all([
+    googleFont("Syne", "wght@800", "FALL"),
+    googleFont("Syne", "wght@600", "ingLove"),
+    googleFont("Fraunces", "ital,wght@1,400", "in"),
+    googleFont("Noto+Sans", "wght@700", "A LETTER HAS ARRIVED"),
+  ]);
+  const fonts = [
+    syne800 && { name: "Syne", data: syne800, weight: 800 as const, style: "normal" as const },
+    syne600 && { name: "Syne", data: syne600, weight: 600 as const, style: "normal" as const },
+    frauncesItalic && { name: "Fraunces", data: frauncesItalic, weight: 400 as const, style: "italic" as const },
+    label && { name: "Label", data: label, weight: 700 as const, style: "normal" as const },
+  ].filter((f): f is NonNullable<typeof f> => !!f);
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "radial-gradient(120% 90% at 50% 25%, #FBF4E6 0%, #EFE3CC 75%)", fontFamily: "serif" }}>
-        <div style={{ display: "flex", fontSize: 26, letterSpacing: 8, color: "#3E5540", fontWeight: 700 }}>A LETTER HAS ARRIVED</div>
-        <div style={{ display: "flex", marginTop: 12, fontSize: 52, color: "#2E251C", fontWeight: 700 }}>
-          <span style={{ color: "#BE5637" }}>FALL</span><span>ing&nbsp;</span><span style={{ color: "#BE5637", fontStyle: "italic", fontWeight: 400 }}>in</span><span>&nbsp;Love</span>
+        <div style={{ display: "flex", fontFamily: "Label", fontSize: 24, letterSpacing: 7, color: "#3E5540", fontWeight: 700 }}>A LETTER HAS ARRIVED</div>
+        {/* the letter page's lockup: FALL (Syne 800, persimmon) · ing (Syne 600) · in (Fraunces italic, persimmon) · Love (Syne 600) */}
+        <div style={{ display: "flex", alignItems: "baseline", marginTop: 14, fontFamily: "Syne", fontSize: 64, fontWeight: 600, letterSpacing: -2.6, color: "#2E251C" }}>
+          <span style={{ color: "#BE5637", fontWeight: 800 }}>FALL</span>
+          <span>ing</span>
+          <span style={{ fontFamily: "Fraunces", fontStyle: "italic", fontWeight: 400, letterSpacing: 0, color: "#BE5637", margin: "0 8px" }}>in</span>
+          <span>Love</span>
         </div>
         {/* envelope: drawn as SVG (a CSS border triangle does not render in the image renderer) */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img alt="" width={560} height={330} style={{ marginTop: 40 }} src={`data:image/svg+xml;utf8,${encodeURIComponent(ENVELOPE)}`} />
       </div>
     ),
-    { ...size },
+    { ...size, fonts },
   );
 }
