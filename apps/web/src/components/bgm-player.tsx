@@ -21,7 +21,7 @@ const shuffled = (n: number) => { const a = [...Array(n).keys()]; for (let i = n
  * "allow all auto-play") — and when the browser refuses, as most do until the visitor has interacted,
  * it starts on the first tap/click/key instead. Without autostart it waits for the button.
  * A visitor who turns it off stays off on this device. It lives in the root layout (keeps playing across
- * pages), pauses while the tab is hidden, and steps aside on /one-more-song, which has its own player.
+ * pages), pauses while the tab is hidden, and steps aside on /one-more-song and /letter, which have their own music.
  */
 export function BgmPlayer() {
   const path = usePathname() ?? "/";
@@ -34,7 +34,7 @@ export function BgmPlayer() {
   const [vol, setVol] = useState(0.35);
   const [open, setOpen] = useState(false);
   const [hint, setHint] = useState(false);
-  const away = path.startsWith("/one-more-song");
+  const away = path.startsWith("/one-more-song") || path.startsWith("/letter");   // pages with their own music
   const track = data && order.length ? data.tracks[order[pos % order.length]] : null;
 
   useEffect(() => {

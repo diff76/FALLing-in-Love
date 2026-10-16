@@ -777,3 +777,125 @@ img { max-width: 100%; }
 .bgmVolume input { width: 100%; accent-color: var(--paper-warm); }
 @media (prefers-reduced-motion: reduce) { .bgmToggle .bars b { animation: none; transform: scaleY(.7); } }
 @media (max-width: 560px) { .bgmHint { font-size: 12px; max-width: 58vw; white-space: normal; } }
+
+/* ---------- thank-you letter (/letter/<district>-<audience>) ----------
+   The event's paper world plus two colours from its palette: garden green (pine) for the envelope lining, stamp,
+   One More Song stage and figures; afternoon gold (amber) for the postmark and rules. */
+.ltPage { --pine-deep: #25342A; --night: #1A1410; position: relative; min-height: 100svh; background: var(--paper); }
+.ltLetter { max-width: 520px; margin: 0 auto; padding: 48px max(20px, env(safe-area-inset-right, 0px)) 72px max(20px, env(safe-area-inset-left, 0px)); display: grid; gap: 26px; }
+.ltPage.sealed .ltLetter { visibility: hidden; }
+.ltLetter > * { opacity: 0; transform: translateY(16px); }
+.ltPage.open .ltLetter > * { animation: ltRise .8s var(--ease-out) both; }
+.ltPage.open .ltLetter > :nth-child(2) { animation-delay: .12s; } .ltPage.open .ltLetter > :nth-child(3) { animation-delay: .24s; }
+.ltPage.open .ltLetter > :nth-child(4) { animation-delay: .38s; } .ltPage.open .ltLetter > :nth-child(5) { animation-delay: .5s; }
+.ltPage.open .ltLetter > :nth-child(6) { animation-delay: .62s; } .ltPage.open .ltLetter > :nth-child(7) { animation-delay: .74s; }
+@keyframes ltRise { to { opacity: 1; transform: none; } }
+
+.ltLock { font-family: var(--font-syne), "Syne", sans-serif; font-weight: 600; font-size: 24px; letter-spacing: -.04em; color: var(--ink); }
+.ltLock em { font-family: var(--font-display); font-weight: 400; font-style: italic; color: var(--persimmon); margin: 0 .12em; }
+.ltLock .fall { color: var(--persimmon); }
+.ltHead { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.ltHead small, .ltSceneTop small { font-size: 11px; font-weight: 700; letter-spacing: .26em; color: var(--pine); }
+.ltHead h1 { margin: 6px 0 0; font-family: var(--font-ko); font-size: clamp(28px, 7vw, 36px); line-height: 1.3; letter-spacing: -.02em; }
+.ltTo { margin: 0; text-align: center; font-family: var(--font-ko); font-size: 16px; color: var(--ink-soft); }
+
+.ltNote { position: relative; padding: 28px 22px 22px; border-radius: 4px; background-color: var(--cream);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 33px, rgba(201, 147, 47, .18) 33px 34px); background-position: 0 18px;
+  box-shadow: 0 1px 0 var(--line), 0 18px 34px -26px rgba(46, 37, 28, .55); }
+.ltNote::before { content: "PASTOR'S NOTE"; position: absolute; top: -10px; left: 18px; padding: 2px 9px; border-radius: 2px; background: var(--persimmon); color: var(--cream); font-size: 10px; font-weight: 700; letter-spacing: .2em; }
+.ltNote p { margin: 0 0 10px; font-family: var(--font-ko); font-size: 16.5px; line-height: 2.06; }
+.ltNote .ltSign { margin: 14px 0 0; text-align: right; font-size: 15px; line-height: 1.7; }
+.ltNote .ltSign b { font-size: 18px; }
+
+.ltOms { border-radius: 20px; overflow: hidden; color: var(--cream); background: linear-gradient(170deg, var(--pine-deep) 0%, var(--night) 75%); }
+.ltOmsStage { position: relative; height: 168px; overflow: hidden; background: radial-gradient(80% 90% at 70% 60%, #3B5241, transparent); }
+.ltOmsStage small { position: absolute; z-index: 1; left: 16px; top: 14px; font-size: 10px; letter-spacing: .24em; font-weight: 700; color: var(--paper-warm); }
+.ltVinyl { width: 300px; aspect-ratio: 1; right: -90px; top: 50%; transform: translateY(-50%); }
+.ltVinyl .labelTop { font-size: 13px; } .ltVinyl .labelMid { font-size: 6px; } .ltVinyl .labelBot { font-size: 5px; }
+.ltOmsBody { padding: 16px 18px 18px; display: grid; gap: 12px; }
+.ltOmsBody h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1.1; letter-spacing: -.02em; }
+.ltOmsBody h2 em { color: var(--paper-warm); }
+.ltOmsBody p { margin: 0; font-size: 14px; color: rgba(252, 248, 240, .72); }
+.ltOmsRow { display: flex; gap: 10px; align-items: center; }
+.ltPlay { width: 48px; height: 48px; flex: none; border: 0; border-radius: 50%; background: var(--paper-warm); color: var(--night); display: grid; place-items: center; cursor: pointer; }
+.ltNext { width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--cream); display: grid; place-items: center; cursor: pointer; margin-left: auto; }
+.ltTrack { min-width: 0; display: grid; font-size: 13px; }
+.ltTrack b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ltTrack span { color: rgba(252, 248, 240, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ltOmsLink { display: flex; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid rgba(228, 192, 142, .45); color: var(--paper-warm); text-decoration: none; font-size: 14px; font-weight: 700; }
+
+.ltForward { display: grid; gap: 8px; padding: 18px 18px 16px; border-radius: 14px; border: 1px dashed rgba(62, 85, 64, .45); background: rgba(62, 85, 64, .06); }
+.ltForward b { font-family: var(--font-ko); font-size: 17px; }
+.ltForward p { margin: 0; font-size: 14px; color: var(--ink-soft); line-height: 1.65; }
+.ltForward button { justify-self: start; padding: 12px 18px; border: 0; border-radius: 999px; background: var(--pine); color: var(--cream); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.ltForward small { font-size: 13px; color: var(--pine); }
+
+.ltNumbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.ltNumbers div { padding: 12px 4px 0; border-top: 1px solid rgba(201, 147, 47, .55); }
+.ltNumbers b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; color: var(--pine); font-variant-numeric: tabular-nums; }
+.ltNumbers span { font-size: 12px; color: var(--ink-soft); }
+.ltClosing { margin: 6px 0 0; text-align: center; font-family: var(--font-ko); font-size: 16px; color: var(--ink-soft); }
+.ltClosing b { display: block; margin-top: 6px; font-family: var(--font-syne), "Syne", sans-serif; font-size: 13px; letter-spacing: .1em; color: var(--pine); }
+
+/* the envelope scene */
+.ltScene { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; cursor: pointer; background: radial-gradient(120% 80% at 50% 30%, #FBF4E6 0%, var(--paper-deep) 70%); transition: opacity .7s var(--ease), visibility .7s; -webkit-tap-highlight-color: transparent; }
+.ltScene.isOpening { pointer-events: none; animation: ltFade .6s ease-in .8s forwards; }
+@keyframes ltFade { to { opacity: 0; } }
+.ltSceneTop { position: absolute; top: calc(52px + env(safe-area-inset-top, 0px)); left: 0; right: 0; display: grid; gap: 6px; justify-items: center; }
+.ltHint { position: absolute; bottom: calc(56px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; margin: 0; text-align: center; font-size: 15px; color: var(--ink-soft); line-height: 1.6; animation: ltBreathe 2.2s ease-in-out infinite; }
+.ltHint small { font-size: 12px; color: var(--pine); }
+@keyframes ltBreathe { 50% { opacity: .4; } }
+.ltScene.isOpening .ltHint { opacity: 0; animation: none; }
+
+.ltEnvelope { position: relative; width: min(300px, 80vw); aspect-ratio: 300 / 198; animation: ltArrive .9s var(--ease-out) both; }
+@keyframes ltArrive { from { transform: translateY(46px) rotate(-4deg) scale(.92); opacity: 0; } }
+.ltEnvBack { position: absolute; inset: 0; border-radius: 6px; background: repeating-linear-gradient(45deg, var(--pine) 0 7px, #46604A 7px 14px); box-shadow: 0 22px 36px -20px rgba(46, 37, 28, .5); }
+.ltPeek { position: absolute; z-index: 1; left: 5%; right: 5%; bottom: 6%; height: 88%; border-radius: 4px; background: var(--cream); display: grid; justify-items: center; padding-top: 18px; transition: transform 1s var(--ease-out) .55s; }
+.ltPeek i { width: 60%; height: 6px; border-radius: 3px; background: var(--paper-deep); box-shadow: 0 14px 0 var(--paper-deep), 0 28px 0 var(--paper-deep); }
+.ltEnvFront { position: absolute; z-index: 2; inset: 0; border-radius: 6px; clip-path: polygon(0 0, 50% 66%, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(to top right, transparent 49.6%, #DCC69E 50%, transparent 50.4%) left / 50% 100% no-repeat,
+              linear-gradient(to top left, transparent 49.6%, #DCC69E 50%, transparent 50.4%) right / 50% 100% no-repeat, #EAD9B8; }
+.ltAddr { position: absolute; z-index: 3; left: 0; right: 0; bottom: 9%; text-align: center; font-family: var(--font-ko); font-size: 15px; color: var(--ink); padding: 0 12px; }
+.ltStamp { position: absolute; z-index: 3; right: 5%; bottom: 25%; width: 44px; height: 54px; display: grid; place-items: center; text-align: center; line-height: 1.15; transform: rotate(4deg);
+  background: var(--pine); outline: 3px solid var(--pine); border: 2px dashed rgba(252, 248, 240, .7); border-radius: 2px; color: var(--cream); font-family: var(--font-display); font-style: italic; font-size: 10.5px; }
+.ltPostmark { position: absolute; z-index: 3; left: 6%; top: 36%; width: 70px; height: 70px; border-radius: 50%; border: 1.5px solid rgba(201, 147, 47, .75); display: grid; place-items: center; text-align: center; transform: rotate(-12deg); font-size: 8.5px; line-height: 1.3; letter-spacing: .08em; color: rgba(46, 37, 28, .55); }
+.ltFlap { position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: 66%; transform-origin: 50% 0; transition: transform .7s cubic-bezier(.5, 0, .3, 1) .25s, z-index 0s .6s; }
+.ltFlap::before { content: ""; position: absolute; inset: 0; background: #E2CDA6; clip-path: polygon(0 0, 100% 0, 50% 100%); border-radius: 6px 6px 0 0; }
+.ltSeal { position: absolute; z-index: 6; left: 50%; top: 66%; width: 54px; height: 54px; margin: -27px 0 0 -27px; transition: opacity .3s .35s; }
+.ltSeal span { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 50%; font-family: var(--font-display); font-style: italic; font-size: 22px; color: #F6D9C8;
+  background: radial-gradient(circle at 35% 30%, #D8714F, var(--persimmon) 55%, #973F27); box-shadow: 0 2px 4px rgba(0, 0, 0, .25), inset 0 0 0 4px rgba(255, 255, 255, .08); transition: transform .45s var(--ease); }
+.ltSeal span:first-child { clip-path: polygon(0 0, 55% 0, 42% 48%, 58% 62%, 45% 100%, 0 100%); }
+.ltSeal span:last-child { clip-path: polygon(55% 0, 100% 0, 100% 100%, 45% 100%, 58% 62%, 42% 48%); }
+.ltScene.isOpening .ltSeal span:first-child { transform: translate(-16px, 7px) rotate(-18deg); }
+.ltScene.isOpening .ltSeal span:last-child { transform: translate(16px, 7px) rotate(18deg); }
+.ltScene.isOpening .ltSeal { opacity: 0; }
+.ltScene.isOpening .ltFlap { transform: rotateX(180deg); z-index: 0; }
+.ltScene.isOpening .ltPeek { transform: translateY(-62%); }
+
+.ltLeaves { position: fixed; inset: 0; z-index: 41; pointer-events: none; overflow: hidden; }
+.ltLeaves i { position: absolute; top: -20px; width: 15px; height: 11px; border-radius: 0 100% 0 100%; opacity: 0; animation: ltFall var(--d) linear var(--w) forwards; }
+@keyframes ltFall { 0% { opacity: 0; transform: translate(0, 0) rotate(0); } 10% { opacity: .9; } 100% { opacity: 0; transform: translate(var(--x), 105vh) rotate(var(--r)); } }
+@media (prefers-reduced-motion: reduce) {
+  .ltPage.open .ltLetter > * { animation: none; opacity: 1; transform: none; }
+  .ltEnvelope, .ltHint { animation: none; }
+  .ltLeaves { display: none; }
+}
+/* the district pastor's writing page (/letter/write/<token>) */
+.lwForm { display: grid; gap: 22px; }
+.lwField { display: grid; gap: 8px; }
+.lwField span { font-weight: 700; } .lwField em { font-style: normal; font-weight: 400; font-size: 13px; color: var(--ink-soft); margin-left: 6px; }
+.lwField input, .lwLetter textarea { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: inherit; font-size: 16px; }
+.lwLetter { display: grid; gap: 8px; padding: 18px; border-radius: 16px; border: 1px solid rgba(62, 85, 64, .25); background: rgba(62, 85, 64, .05); }
+.lwLetter.two { border-color: rgba(190, 86, 55, .25); background: rgba(190, 86, 55, .04); }
+.lwLetterHead { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.lwLetterHead b { font-family: var(--font-ko); font-size: 19px; }
+.lwLetterHead span { font-size: 13.5px; color: var(--ink-soft); }
+.lwLetter textarea { font-family: var(--font-ko); line-height: 1.9; resize: vertical; min-height: 180px; }
+.lwLetter small, .lwPreviews small { font-size: 12.5px; color: var(--ink-soft); }
+.lwActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.lwActions .submitButton { width: auto; margin-top: 0; padding: 16px 28px; }
+.lwAt { font-size: 13px; color: var(--ink-soft); }
+.lwPreviews { display: grid; gap: 8px; padding-top: 18px; border-top: 1px dashed var(--line); }
+.lwPreviews div { display: flex; flex-wrap: wrap; gap: 8px; }
+.lwPreview { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--pine); color: var(--pine); font-size: 14px; font-weight: 700; text-decoration: none; }
+.lwPreview.off { border-color: var(--line); color: var(--ink-soft); font-weight: 400; }

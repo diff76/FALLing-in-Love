@@ -15,6 +15,7 @@ const nav: { href: string; label: string; roles: StaffRole[] }[] = [
   { href: "/admin/accounts", label: "계정 관리", roles: ["admin"] },
   { href: "/admin/oms", label: "One More Song", roles: ["admin"] },
   { href: "/admin/bgm", label: "배경음악", roles: ["admin"] },
+  { href: "/admin/letters", label: "감사 편지", roles: ["admin"] },
 ];
 
 export function OpsShell({ title, eyebrow, roles, email, wide, light, children }: { title: string; eyebrow: string; roles: StaffRole[]; email: string | null; wide?: boolean; light?: boolean; children: React.ReactNode }) {
