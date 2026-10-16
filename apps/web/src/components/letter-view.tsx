@@ -69,7 +69,7 @@ export function LetterView({ envelope, to, districtLabel, paragraphs, signer, ph
   const forward = async () => {
     if (!forwardPath) return;
     const url = new URL(forwardPath, window.location.origin).toString();
-    const text = `함께 와 주셔서 고맙습니다. ${districtLabel}에서 보내는 감사 편지예요.`;
+    const text = `함께 와 주셔서 감사합니다. ${districtLabel}에서 보내는 감사 편지예요.`;
     if (navigator.share) { try { await navigator.share({ title: "FALLing in Love · 감사 편지", text, url }); return; } catch { return; } }
     try { await navigator.clipboard.writeText(`${text}\n${url}`); setToast("링크를 복사했습니다. 함께 오신 분께 붙여 넣어 보내 주세요."); }
     catch { window.prompt("링크를 복사해 보내 주세요", url); }

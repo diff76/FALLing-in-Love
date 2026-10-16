@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const base = { robots: { index: false, follow: false } } satisfies Metadata;
   if (!d) return { ...base, title: "감사 편지" };
   const title = `${d.districtLabel} 가족께 도착한 편지`;
-  const description = "FALLing in Love에 함께해 주셔서 고맙습니다. 교구장 목사님의 편지와 그날의 노래가 담겨 있습니다.";
+  const description = "FALLing in Love에 함께해 주셔서 감사합니다. 교구장 목사님의 편지와 그날의 노래가 담겨 있습니다.";
   return { ...base, title, description, openGraph: { title: `${title} · FALLing in Love`, description, type: "website" } };
 }
 
