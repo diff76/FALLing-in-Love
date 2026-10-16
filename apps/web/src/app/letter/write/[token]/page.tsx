@@ -29,7 +29,7 @@ export default async function LetterWritePage({ params }: { params: Promise<{ to
       <section className="formIntro">
         <p className="eyebrow">Thank-you letter</p>
         <h1>{label} 감사 편지</h1>
-        <p className="lede">행사에 함께한 {label} 분들께 보낼 편지를 받는 분에 따라 네 편(VIP · 인도자 · 미래셀 · 일반 성도)으로 써 주세요. 편지마다 사진을 붙일 수 있습니다. 받는 분이 링크를 열면 봉투가 열리고, 목사님 글과 그날의 노래(The One More Song)가 함께 나옵니다.</p>
+        <p className="lede">행사에 함께한 {label} 분들께 보낼 편지를 받는 분에 따라 네 편(VIP · 인도자 · 미래셀 · 일반 성도)으로 써 주세요. 편지마다 사진을 붙일 수 있습니다. 받는 분이 링크를 열면 봉투가 열리고, 목사님 글과 그날의 추억이 담긴 사진과 노래(The One More Song)가 함께 나옵니다.</p>
       </section>
       <section className="formPanel">
         <LetterEditor token={token} districtLabel={label}
