@@ -82,7 +82,7 @@ export function LetterView({ envelope, to, districtLabel, paragraphs, signer, ph
         <header className="ltHead">
           <small>THANK YOU FOR COMING</small>
           <span className="ltLock"><span className="fall">FALL</span>ing<em>in</em>Love</span>
-          <h1>함께해 주셔서<br />고맙습니다</h1>
+          <h1>함께해 주셔서<br />감사합니다</h1>
         </header>
         <p className="ltTo">{to}</p>
         <section className="ltNote" aria-label="교구장 목사님 편지">
